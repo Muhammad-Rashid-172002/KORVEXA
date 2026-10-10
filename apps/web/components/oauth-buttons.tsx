@@ -19,7 +19,11 @@ export function OAuthButtons() {
   if (!providers || (!providers.google && !providers.github)) return null;
 
   const signIn = (provider: 'google' | 'github') =>
-    authClient.signIn.social({ provider, callbackURL: `${WEB_URL}/dashboard`, errorCallbackURL: `${WEB_URL}/login?error=oauth` });
+    authClient.signIn.social({
+      provider,
+      callbackURL: `${WEB_URL}/dashboard`,
+      errorCallbackURL: `${WEB_URL}/login?error=oauth`,
+    });
 
   return (
     <div className="flex flex-col gap-2">

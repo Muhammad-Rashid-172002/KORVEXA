@@ -34,7 +34,9 @@ export function findTransition<S extends string, E extends string>(
   event: E,
   actor: Actor,
 ): Transition<S, E> | undefined {
-  return machine.transitions.find((t) => t.event === event && t.from.includes(from) && t.actors.includes(actor));
+  return machine.transitions.find(
+    (t) => t.event === event && t.from.includes(from) && t.actors.includes(actor),
+  );
 }
 
 /** Returns the next state or throws InvalidTransitionError. */
@@ -55,5 +57,7 @@ export function availableEvents<S extends string, E extends string>(
   from: S,
   actor: Actor,
 ): E[] {
-  return machine.transitions.filter((t) => t.from.includes(from) && t.actors.includes(actor)).map((t) => t.event);
+  return machine.transitions
+    .filter((t) => t.from.includes(from) && t.actors.includes(actor))
+    .map((t) => t.event);
 }

@@ -37,7 +37,10 @@ export function SignupForm() {
   }
 
   return (
-    <AuthCard title="Create your account" subtitle={`Join ${brand.productName} to hire or offer software work.`}>
+    <AuthCard
+      title="Create your account"
+      subtitle={`Join ${brand.productName} to hire or offer software work.`}
+    >
       <OAuthButtons />
       <form className="flex flex-col gap-4" method="post" onSubmit={onSubmit}>
         <Field id="name" label="Full name" autoComplete="name" required maxLength={100} />

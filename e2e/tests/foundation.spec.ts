@@ -15,7 +15,9 @@ test.describe('Phase 0 foundation', () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test('sign up → verify email (Mailpit) → dashboard → realtime → upload → logout → login', async ({ page }, info) => {
+  test('sign up → verify email (Mailpit) → dashboard → realtime → upload → logout → login', async ({
+    page,
+  }, info) => {
     const email = uniqueEmail(info.project.name);
     const password = 'e2e-password-123';
 
@@ -54,7 +56,9 @@ test.describe('Phase 0 foundation', () => {
     await expect(status).toContainText(/\d+ ms/);
 
     // 6. Presigned upload straight to object storage
-    await page.getByTestId('file-input').setInputFiles({ name: 'proof.png', mimeType: 'image/png', buffer: PNG_1PX });
+    await page
+      .getByTestId('file-input')
+      .setInputFiles({ name: 'proof.png', mimeType: 'image/png', buffer: PNG_1PX });
     await expect(page.getByTestId('file-list')).toContainText('proof.png');
     await expect(page.getByRole('button', { name: 'Download proof.png' })).toBeVisible();
     await shot(page, info, '04-dashboard');

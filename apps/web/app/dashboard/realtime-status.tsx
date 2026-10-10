@@ -21,7 +21,9 @@ export function RealtimeStatus() {
     socketRef.current = socket;
     socket.on('session:ready', () => setStatus('connected'));
     socket.on('disconnect', () => setStatus('disconnected'));
-    socket.on('connect_error', (err) => setStatus(err.message === 'unauthorized' ? 'unauthorized' : 'disconnected'));
+    socket.on('connect_error', (err) =>
+      setStatus(err.message === 'unauthorized' ? 'unauthorized' : 'disconnected'),
+    );
     return () => {
       socket.close();
     };
@@ -29,7 +31,9 @@ export function RealtimeStatus() {
 
   const ping = () => {
     const started = performance.now();
-    socketRef.current?.emit('ping', { echo: 'dashboard' }, () => setLatency(Math.round(performance.now() - started)));
+    socketRef.current?.emit('ping', { echo: 'dashboard' }, () =>
+      setLatency(Math.round(performance.now() - started)),
+    );
   };
 
   const label: Record<Status, string> = {

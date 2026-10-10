@@ -32,7 +32,9 @@ export class PresignUploadResponseDto extends createZodDto(
   }),
 ) {}
 
-export class FilePageDto extends createZodDto(z.object({ items: z.array(fileSchema), nextCursor: z.uuid().nullable() })) {}
+export class FilePageDto extends createZodDto(
+  z.object({ items: z.array(fileSchema), nextCursor: z.uuid().nullable() }),
+) {}
 
 export const listQuerySchema = z.object({
   cursor: z.uuid().optional(),

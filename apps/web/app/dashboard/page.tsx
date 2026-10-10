@@ -45,7 +45,9 @@ export default async function DashboardPage() {
         </Card>
         <Card className="flex flex-col gap-3">
           <CardTitle>Files</CardTitle>
-          <CardDescription>Direct-to-storage upload with a presigned URL. Only you can see your files.</CardDescription>
+          <CardDescription>
+            Direct-to-storage upload with a presigned URL. Only you can see your files.
+          </CardDescription>
           <FileUploader />
         </Card>
       </div>

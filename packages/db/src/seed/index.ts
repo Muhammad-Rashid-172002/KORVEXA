@@ -19,7 +19,12 @@ type SeedUser = {
 
 /** Generic dev personas — clearly fake, never shown as real marketplace data. */
 const SEED_USERS: SeedUser[] = [
-  { email: 'buyer@dev.glasswork.test', name: 'Dev Buyer', roles: ['buyer'], headline: '[DEV SEED] Buyer account' },
+  {
+    email: 'buyer@dev.glasswork.test',
+    name: 'Dev Buyer',
+    roles: ['buyer'],
+    headline: '[DEV SEED] Buyer account',
+  },
   {
     email: 'seller@dev.glasswork.test',
     name: 'Dev Seller',
@@ -43,11 +48,31 @@ const SEED_USERS: SeedUser[] = [
 
 /** Placeholder fee values — real values are decided before Phase 3 (DECISIONS D-045). */
 const SEED_SETTINGS = [
-  { key: SETTING_KEYS.buyerServiceFeeBps, value: 0, description: '[DEV PLACEHOLDER] buyer service fee, basis points' },
-  { key: SETTING_KEYS.buyerServiceFeeMinAmount, value: 0, description: '[DEV PLACEHOLDER] buyer fee minimum, minor units' },
-  { key: SETTING_KEYS.sellerCommissionBps, value: 0, description: '[DEV PLACEHOLDER] seller commission, basis points' },
-  { key: SETTING_KEYS.sellerCommissionMinAmount, value: 0, description: '[DEV PLACEHOLDER] seller commission minimum, minor units' },
-  { key: SETTING_KEYS.autoApproveDays, value: 5, description: 'Auto-approve submitted milestones after N days (D-022)' },
+  {
+    key: SETTING_KEYS.buyerServiceFeeBps,
+    value: 0,
+    description: '[DEV PLACEHOLDER] buyer service fee, basis points',
+  },
+  {
+    key: SETTING_KEYS.buyerServiceFeeMinAmount,
+    value: 0,
+    description: '[DEV PLACEHOLDER] buyer fee minimum, minor units',
+  },
+  {
+    key: SETTING_KEYS.sellerCommissionBps,
+    value: 0,
+    description: '[DEV PLACEHOLDER] seller commission, basis points',
+  },
+  {
+    key: SETTING_KEYS.sellerCommissionMinAmount,
+    value: 0,
+    description: '[DEV PLACEHOLDER] seller commission minimum, minor units',
+  },
+  {
+    key: SETTING_KEYS.autoApproveDays,
+    value: 5,
+    description: 'Auto-approve submitted milestones after N days (D-022)',
+  },
 ];
 
 export async function seed(db: Database): Promise<{ users: number; settings: number }> {
@@ -66,7 +91,13 @@ export async function seed(db: Database): Promise<{ users: number; settings: num
       })
       .onConflictDoUpdate({
         target: users.email,
-        set: { name: u.name, roles: u.roles, adminScopes: u.adminScopes ?? [], emailVerified: true, isSeed: true },
+        set: {
+          name: u.name,
+          roles: u.roles,
+          adminScopes: u.adminScopes ?? [],
+          emailVerified: true,
+          isSeed: true,
+        },
       })
       .returning({ id: users.id });
     if (!row) throw new Error(`failed to upsert ${u.email}`);
@@ -74,7 +105,10 @@ export async function seed(db: Database): Promise<{ users: number; settings: num
     await db
       .insert(accounts)
       .values({ userId: row.id, providerId: 'credential', accountId: row.id, password: passwordHash })
-      .onConflictDoUpdate({ target: [accounts.providerId, accounts.accountId], set: { password: passwordHash } });
+      .onConflictDoUpdate({
+        target: [accounts.providerId, accounts.accountId],
+        set: { password: passwordHash },
+      });
 
     await db
       .insert(profiles)

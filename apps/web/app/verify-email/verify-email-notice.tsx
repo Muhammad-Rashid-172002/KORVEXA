@@ -23,8 +23,8 @@ export function VerifyEmailNotice() {
       <div className="flex items-start gap-3">
         <MailCheck className="mt-0.5 shrink-0 text-primary" size={20} aria-hidden />
         <p className="text-sm">
-          We sent a verification link to {email ? <strong>{email}</strong> : 'your email'}. Open it to activate your
-          account — the link expires in 1 hour.
+          We sent a verification link to {email ? <strong>{email}</strong> : 'your email'}. Open it to
+          activate your account — the link expires in 1 hour.
         </p>
       </div>
       {status === 'sent' && <Alert tone="success">A new link is on its way.</Alert>}

@@ -1,5 +1,12 @@
 import { ERROR_CODES, InvalidTransitionError, type ApiErrorBody } from '@glasswork/shared';
-import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  type ArgumentsHost,
+  Catch,
+  type ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ZodValidationException } from 'nestjs-zod';
@@ -33,7 +40,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof ZodValidationException) {
       status = 400;
       message = 'Request validation failed';
-      details = (exception.getZodError() as ZodError).issues.map((i) => ({ path: i.path.join('.'), message: i.message }));
+      details = (exception.getZodError() as ZodError).issues.map((i) => ({
+        path: i.path.join('.'),
+        message: i.message,
+      }));
     } else if (exception instanceof InvalidTransitionError) {
       status = 409;
       message = exception.message;
@@ -48,7 +58,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     const body: ApiErrorBody = {
-      error: { code: CODE_BY_STATUS[status] ?? ERROR_CODES.internal, message, details, requestId: String(req.id) },
+      error: {
+        code: CODE_BY_STATUS[status] ?? ERROR_CODES.internal,
+        message,
+        details,
+        requestId: String(req.id),
+      },
     };
     void reply.status(status).send(body);
   }

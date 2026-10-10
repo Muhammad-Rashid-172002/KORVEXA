@@ -5,7 +5,9 @@ export default defineConfig({
   schema: './src/schema/index.ts',
   out: './migrations',
   casing: 'snake_case',
-  dbCredentials: { url: process.env.DATABASE_URL ?? 'postgres://glasswork:glasswork@localhost:5432/glasswork' },
+  dbCredentials: {
+    url: process.env.DATABASE_URL ?? 'postgres://glasswork:glasswork@localhost:5432/glasswork',
+  },
   strict: true,
   verbose: true,
 });

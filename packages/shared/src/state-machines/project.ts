@@ -39,7 +39,12 @@ export const projectMachine: Machine<ProjectStatus, ProjectEvent> = {
       to: 'cancellation_requested',
       actors: ['buyer', 'seller'],
     },
-    { event: 'decline_cancellation', from: ['cancellation_requested'], to: 'active', actors: ['buyer', 'seller'] },
+    {
+      event: 'decline_cancellation',
+      from: ['cancellation_requested'],
+      to: 'active',
+      actors: ['buyer', 'seller'],
+    },
     {
       event: 'accept_cancellation',
       from: ['cancellation_requested'],

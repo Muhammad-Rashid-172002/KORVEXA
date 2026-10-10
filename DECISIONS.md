@@ -8,27 +8,29 @@ Status values: **Proposed** · **Accepted** · **Superseded by D-xxx**.
 
 ## 0. Brand & scope overrides
 
-**D-001 Product name is "Glasswork".** *Accepted (Rashid, 2026-10-11).*
+**D-001 Product name is "Glasswork".** _Accepted (Rashid, 2026-10-11)._
 This overrides the brief's working name "Korvenza Hub". It lives only in `packages/shared/src/brand.ts`:
+
 ```ts
 export const brand = {
   productName: 'Glasswork',
   parentName: 'KorvenzaTech',
   lockup: 'Glasswork by KorvenzaTech',
   tagline: 'Hire verified builders. Watch your project move.', // placeholder, change freely
-  domain: 'TODO',            // e.g. glasswork.<tld>; dev uses localhost
+  domain: 'TODO', // e.g. glasswork.<tld>; dev uses localhost
   parentDomain: 'korvenzatech.com',
   legalEntity: 'KorvenzaTech (TODO: registered company name)',
   legalAddress: 'TODO',
   supportEmail: 'TODO',
 } as const;
 ```
+
 A lint rule (`no-restricted-syntax` on string literals "Glasswork"/"KorvenzaTech" outside brand.ts) enforces "never hard-code".
 
-**D-002 KorvenzaTech's own services get no ranking advantage.** *Proposed.*
+**D-002 KorvenzaTech's own services get no ranking advantage.** _Proposed._
 They carry the "Operated by KorvenzaTech" label, the ranking function has no owner/affiliate input, and an automated test asserts that ranking is unchanged when the `operated_by_platform` flag is flipped. The same wording goes into the Terms (Phase 8).
 
-**D-003 Admin roles.** *Accepted (provisional).* Roles are data, never tied to specific people: three admin scopes plus `support`: `admin:product` (Product/Tech), `admin:growth` (onboarding, marketing), `admin:operations` (verification, support, disputes, payouts). Who holds which scope is assigned in the admin panel / seed, not in code. Provisional mapping (Rashid confirming with partners): Rashid = product, Taha Amir = growth, Suliman = operations. Money-moving admin actions (refunds, manual releases, payout approvals) require `admin:operations` and are audit-logged with a reason.
+**D-003 Admin roles.** _Accepted (provisional)._ Roles are data, never tied to specific people: three admin scopes plus `support`: `admin:product` (Product/Tech), `admin:growth` (onboarding, marketing), `admin:operations` (verification, support, disputes, payouts). Who holds which scope is assigned in the admin panel / seed, not in code. Provisional mapping (Rashid confirming with partners): Rashid = product, Taha Amir = growth, Suliman = operations. Money-moving admin actions (refunds, manual releases, payout approvals) require `admin:operations` and are audit-logged with a reason.
 
 ---
 
@@ -36,41 +38,41 @@ They carry the "Operated by KorvenzaTech" label, the ranking function has no own
 
 Rule I applied: take the latest stable release, but **skip majors less than ~6 weeks old** that the rest of the ecosystem hasn't caught up with yet. Renovate will propose upgrades weekly.
 
-| Area | Choice | Version | Note |
-|---|---|---|---|
-| Runtime | Node.js LTS | **22.x** (≥ 22.18.0; Docker `node:22.18.0-bookworm-slim`) | Matches your Mac. Node 24 LTS is the upgrade path (Phase 9). |
-| Package manager | pnpm | **12.11.2** (`packageManager` field) | Matches your Mac. |
-| Monorepo | Turborepo | **2.11.7** | |
-| Language | TypeScript | **6.0.3** | **Not 7.0**: Nest's DI relies on `emitDecoratorMetadata`, and typescript-eslint supports only `<6.1`. |
-| Web | Next.js (App Router) | **16.3.8** | 16.4.0 is 5 days old; I'll bump after ~2 weeks of patches. |
-| | React / React DOM | **19.3.0** | |
-| API | NestJS (`core`, `common`, `platform-fastify`, `websockets`, `platform-socket.io`) | **11.2.7** | **Not 12.x** (out Aug 27): `nestjs-zod` doesn't support Nest 12 yet. 11.x is still patched. |
-| | Fastify | 5.x (the version `@nestjs/platform-fastify` 11.2.7 pins) | |
-| | @nestjs/swagger | **11.4.7** | OpenAPI → TS client now, Dart client later |
-| Validation | zod | **4.6.5** | Shared by web, api and worker |
-| | nestjs-zod | **5.5.0** | zod DTOs + OpenAPI |
-| Database | PostgreSQL | **17** (`postgres:17-alpine`) | Brief says 16+. 17 is supported by both Neon and DO Managed. |
-| ORM | drizzle-orm / drizzle-kit | **0.45.4 / 0.31.11** | Not the 1.0 RC. |
-| | pg (node-postgres) | **8.23.1** | Most mature driver; Better Auth peer. |
-| Cache/queues | Redis | **7.4** (`redis:7.4-alpine`) | |
-| | ioredis | **5.11.1** | 6.0 is a fresh major. |
-| | BullMQ | **6.3.12** | |
-| Realtime | socket.io / @socket.io/redis-adapter | **4.8.4 / 8.3.0** | |
-| Auth | better-auth | **1.7.7** | See D-010 |
-| | @node-rs/argon2 | **2.2.2** | argon2id |
-| Payments | stripe (Node) | **22.6.2** | 23.0.0 is 10 days old. |
-| Files | @aws-sdk/client-s3 + s3-request-presigner | **3.1149.0** | Same code for MinIO and R2 |
-| Local S3 | MinIO | last published community image, pinned by tag | ⚠ MinIO stopped publishing community Docker images in late 2025, so we pin the last one. Local-only; prod uses R2. Fallback: Garage. |
-| Local mail | Mailpit | `axllent/mailpit` (pinned v1.x tag) | |
-| Email | React Email (`@react-email/components`) / Resend | **1.0.12 / 6.32.1** | Mailpit locally via SMTP transport |
-| UI | Tailwind CSS | **4.3.3** | |
-| | shadcn/ui + Radix | CLI-generated (code lives in `packages/ui`) | |
-| Logs | pino / nestjs-pino | **10.4.0 / 5.3.1** | |
-| Errors | @sentry/nestjs, @sentry/nextjs, @sentry/node | **10.76.2** | 11.0 is ~3 weeks old. |
-| Tests | Vitest | **4.1.11** | 5.0 is ~5 weeks old. |
-| | Playwright | **1.63.0** | 1.64 is 4 days old. |
-| | Testcontainers | **12.2.0** | |
-| Lint/format | ESLint (flat) / typescript-eslint / Prettier | **9.39.5** / latest compatible / **3.9.10** | ESLint 10's plugin ecosystem is still uneven. |
+| Area            | Choice                                                                            | Version                                                   | Note                                                                                                                                 |
+| --------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Runtime         | Node.js LTS                                                                       | **22.x** (≥ 22.18.0; Docker `node:22.18.0-bookworm-slim`) | Matches your Mac. Node 24 LTS is the upgrade path (Phase 9).                                                                         |
+| Package manager | pnpm                                                                              | **12.11.2** (`packageManager` field)                      | Matches your Mac.                                                                                                                    |
+| Monorepo        | Turborepo                                                                         | **2.11.7**                                                |                                                                                                                                      |
+| Language        | TypeScript                                                                        | **6.0.3**                                                 | **Not 7.0**: Nest's DI relies on `emitDecoratorMetadata`, and typescript-eslint supports only `<6.1`.                                |
+| Web             | Next.js (App Router)                                                              | **16.3.8**                                                | 16.4.0 is 5 days old; I'll bump after ~2 weeks of patches.                                                                           |
+|                 | React / React DOM                                                                 | **19.3.0**                                                |                                                                                                                                      |
+| API             | NestJS (`core`, `common`, `platform-fastify`, `websockets`, `platform-socket.io`) | **11.2.7**                                                | **Not 12.x** (out Aug 27): `nestjs-zod` doesn't support Nest 12 yet. 11.x is still patched.                                          |
+|                 | Fastify                                                                           | 5.x (the version `@nestjs/platform-fastify` 11.2.7 pins)  |                                                                                                                                      |
+|                 | @nestjs/swagger                                                                   | **11.4.7**                                                | OpenAPI → TS client now, Dart client later                                                                                           |
+| Validation      | zod                                                                               | **4.6.5**                                                 | Shared by web, api and worker                                                                                                        |
+|                 | nestjs-zod                                                                        | **5.5.0**                                                 | zod DTOs + OpenAPI                                                                                                                   |
+| Database        | PostgreSQL                                                                        | **17** (`postgres:17-alpine`)                             | Brief says 16+. 17 is supported by both Neon and DO Managed.                                                                         |
+| ORM             | drizzle-orm / drizzle-kit                                                         | **0.45.4 / 0.31.11**                                      | Not the 1.0 RC.                                                                                                                      |
+|                 | pg (node-postgres)                                                                | **8.23.1**                                                | Most mature driver; Better Auth peer.                                                                                                |
+| Cache/queues    | Redis                                                                             | **7.4** (`redis:7.4-alpine`)                              |                                                                                                                                      |
+|                 | ioredis                                                                           | **5.11.1**                                                | 6.0 is a fresh major.                                                                                                                |
+|                 | BullMQ                                                                            | **6.3.12**                                                |                                                                                                                                      |
+| Realtime        | socket.io / @socket.io/redis-adapter                                              | **4.8.4 / 8.3.0**                                         |                                                                                                                                      |
+| Auth            | better-auth                                                                       | **1.7.7**                                                 | See D-010                                                                                                                            |
+|                 | @node-rs/argon2                                                                   | **2.2.2**                                                 | argon2id                                                                                                                             |
+| Payments        | stripe (Node)                                                                     | **22.6.2**                                                | 23.0.0 is 10 days old.                                                                                                               |
+| Files           | @aws-sdk/client-s3 + s3-request-presigner                                         | **3.1149.0**                                              | Same code for MinIO and R2                                                                                                           |
+| Local S3        | MinIO                                                                             | last published community image, pinned by tag             | ⚠ MinIO stopped publishing community Docker images in late 2025, so we pin the last one. Local-only; prod uses R2. Fallback: Garage. |
+| Local mail      | Mailpit                                                                           | `axllent/mailpit` (pinned v1.x tag)                       |                                                                                                                                      |
+| Email           | React Email (`@react-email/components`) / Resend                                  | **1.0.12 / 6.32.1**                                       | Mailpit locally via SMTP transport                                                                                                   |
+| UI              | Tailwind CSS                                                                      | **4.3.3**                                                 |                                                                                                                                      |
+|                 | shadcn/ui + Radix                                                                 | CLI-generated (code lives in `packages/ui`)               |                                                                                                                                      |
+| Logs            | pino / nestjs-pino                                                                | **10.4.0 / 5.3.1**                                        |                                                                                                                                      |
+| Errors          | @sentry/nestjs, @sentry/nextjs, @sentry/node                                      | **10.76.2**                                               | 11.0 is ~3 weeks old.                                                                                                                |
+| Tests           | Vitest                                                                            | **4.1.11**                                                | 5.0 is ~5 weeks old.                                                                                                                 |
+|                 | Playwright                                                                        | **1.63.0**                                                | 1.64 is 4 days old.                                                                                                                  |
+|                 | Testcontainers                                                                    | **12.2.0**                                                |                                                                                                                                      |
+| Lint/format     | ESLint (flat) / typescript-eslint / Prettier                                      | **9.39.5** / latest compatible / **3.9.10**               | ESLint 10's plugin ecosystem is still uneven.                                                                                        |
 
 **D-005 IDs:** UUIDv7, generated in the app. They're time-sortable, which gives cheap cursor pagination, and they're safe to expose. Postgres 17 has no native v7, so the `uuidv7` package generates them.
 **D-006 Money:** `bigint` minor units + `char(3)` currency on every money column. No floats, ever. Amounts are always recomputed server-side from DB prices.
@@ -103,27 +105,30 @@ glasswork/
 ├─ artifacts/         git-ignored: screenshots, reports
 ├─ MASTER_PLAN.md · DECISIONS.md · README.md · SETUP.md · .env.example
 ```
+
 I added `packages/emails` and `packages/config`, which aren't in the brief. Emails are shared by api and worker; the config package keeps tsconfig/eslint in one place.
 
 ---
 
 ## 3. Auth
 
-**D-010 Better Auth 1.7.7, mounted inside the NestJS API on our own Postgres.** *Proposed.*
+**D-010 Better Auth 1.7.7, mounted inside the NestJS API on our own Postgres.** _Proposed._
+
 - **Why:** it's TypeScript-first and runs inside our API and DB (no BaaS). It has a Drizzle adapter, plus maintained plugins for exactly what the brief lists: email verification, password reset, Google/GitHub OAuth, TOTP 2FA, multi-session / revoke-all, bearer tokens, JWT, and Redis-backed rate limiting.
-- **Rejected:** *Lucia* (deprecated in 2025). *Auth.js* (Next-centric; it would put auth in the web app, which breaks "web talks only to API"). *Passport* (we'd hand-roll sessions, verification and token flows, which is what the brief forbids). *Keycloak/Ory* (another service to run and theme; too heavy for us now).
+- **Rejected:** _Lucia_ (deprecated in 2025). _Auth.js_ (Next-centric; it would put auth in the web app, which breaks "web talks only to API"). _Passport_ (we'd hand-roll sessions, verification and token flows, which is what the brief forbids). _Keycloak/Ory_ (another service to run and theme; too heavy for us now).
 - **Risk:** it's a younger library than Passport. Mitigation: exact pin, GitHub security-advisory watch, Renovate, and our own e2e tests on every auth flow.
 - **Passwords:** argon2id via `@node-rs/argon2` (OWASP params: m=19 MiB, t=2, p=1), plugged into Better Auth's custom `password.hash/verify`. Better Auth's default is scrypt, so we override it.
 - **Web sessions:** opaque session token in an httpOnly, Secure (prod), SameSite=Lax cookie. Sessions live in Postgres, with a Redis secondary-storage cache.
 - **Flutter app (later):** Better Auth `bearer` + `jwt` plugins: a short-lived JWT access token (15 min) plus a long-lived, revocable session token used to mint new access tokens.
-  - ⚠ **Pushback:** Better Auth doesn't do classic *rotating* refresh tokens out of the box. I'll add rotation (each refresh issues a new session token and revokes the old one, with reuse detection) as a small plugin in Phase 1, when the mobile API matters, rather than in Phase 0.
+  - ⚠ **Pushback:** Better Auth doesn't do classic _rotating_ refresh tokens out of the box. I'll add rotation (each refresh issues a new session token and revokes the old one, with reuse detection) as a small plugin in Phase 1, when the mobile API matters, rather than in Phase 0.
 - **Table naming clash:** Better Auth's `verification` table (email/OTP tokens) collides with the brief's `verifications` (seller badges). Better Auth's table becomes `auth_tokens`; `verifications` keeps the brief's meaning.
 - **Email verification required before login.** OAuth accounts whose email is verified by Google or GitHub skip it. Account linking happens only for verified emails.
 - **Rate limits:** auth endpoints get per-IP and per-email limits, plus temporary lockout after repeated failures (Redis).
 - **Phase 0 scope:** register, verify, login, OAuth wiring, logout. 2FA, password reset UI and the session list are Phase 1 (MASTER_PLAN).
 
-**D-011 Authorization: explicit policy functions + guard, not CASL.** *Proposed.*
+**D-011 Authorization: explicit policy functions + guard, not CASL.** _Proposed._
 Our rules are mostly relationship checks ("is this user a participant of this project?"), which need DB lookups. Typed functions like `canViewProject(actor, project)` are easier to read, test and audit than CASL's ability DSL.
+
 - Every controller method and socket handler must declare `@Policy(...)` or `@Public()`. A boot-time check fails the app if any route has neither.
 - Repositories take an `actor` and always scope their queries.
 - On cross-tenant access the API returns **404, not 403**, so it doesn't leak whether a resource exists.
@@ -140,11 +145,12 @@ Our rules are mostly relationship checks ("is this user a participant of this pr
 
 ## 5. Payments, escrow and payouts — the biggest risk in the brief
 
-**D-020 Split money-in from money-out, with our own ledger as the source of truth.** *Proposed.*
+**D-020 Split money-in from money-out, with our own ledger as the source of truth.** _Proposed._
 
-⚠ **Pushback (important):** the brief assumes Stripe Connect Express can pay every seller. Per Stripe's docs, **Connect cross-border payouts work only between platforms and sellers in the US, UK, EEA, Canada and Switzerland.** Sellers in Pakistan (likely most of our early supply) **can't be Connect Express accounts**. Stripe's alternative, *Global Payouts*, does reach Pakistan (PKR via wire), but only from a **US- or UK-based platform**, and it puts the money-transmission compliance on us instead of Stripe. So the legal entity question decides which payout rails we can even use. That's why it's open question Q1 below.
+⚠ **Pushback (important):** the brief assumes Stripe Connect Express can pay every seller. Per Stripe's docs, **Connect cross-border payouts work only between platforms and sellers in the US, UK, EEA, Canada and Switzerland.** Sellers in Pakistan (likely most of our early supply) **can't be Connect Express accounts**. Stripe's alternative, _Global Payouts_, does reach Pakistan (PKR via wire), but only from a **US- or UK-based platform**, and it puts the money-transmission compliance on us instead of Stripe. So the legal entity question decides which payout rails we can even use. That's why it's open question Q1 below.
 
 Design, so this doesn't block engineering:
+
 - `PaymentsProvider` (money in): `createCustomer`, `createMilestoneCharge(milestoneId, amount, idempotencyKey)`, `refund`, `verifyWebhook`, `parseEvent`. First adapter: **Stripe, test mode**, "separate charges and transfers" (no `on_behalf_of`), so funds sit in the platform balance until release.
 - `PayoutsProvider` (money out), chosen per seller by country and availability:
   1. `stripe_connect`: transfers to Express accounts (sellers in supported countries)
@@ -159,7 +165,7 @@ Design, so this doesn't block engineering:
 - **Safety rails:** the app refuses `sk_live_` keys unless `PAYMENTS_LIVE_ENABLED=true` (stays false until Q1 is answered). Webhooks: signature verified, raw event stored in `webhook_events`, processed idempotently by event id, admin replay.
 - **Holding period:** Stripe limits how long a platform may hold funds before paying out, and the limit depends on the platform country. We'll confirm it for the chosen entity before launch and set the auto-approve window under it.
 
-**D-021 Don't call it "escrow" in user-facing copy until a lawyer says so.** *Proposed.*
+**D-021 Don't call it "escrow" in user-facing copy until a lawyer says so.** _Proposed._
 "Escrow" is a regulated term in many jurisdictions. The code says `escrow`; the UI says "Milestone protection" / "Held by Glasswork until you approve". Low cost now, avoids a legal problem later.
 
 **D-022 Auto-approval:** default **5 days** after submission without buyer action, with reminders at day 2 and day 4. Configurable per platform setting; the timer runs in the worker; the buyer can pause it once by requesting a revision. (Fiverr uses 3; we give buyers a bit more since software review takes longer.)
@@ -180,13 +186,14 @@ The brief writes them as one line, but a project has several milestones in diffe
 ## 7. Files
 
 **D-030** Presigned PUT straight from the browser to S3 (MinIO locally, R2 in prod), max 15-minute expiry. Size and MIME are allow-listed per purpose, keys look like `u/{userId}/{uuid}`, and a `files` row moves `pending → uploaded → clean|infected`. Download URLs are issued only after a policy check.
-⚠ **Pushback:** ClamAV needs ~1–1.5 GB RAM, which is a lot for a single VPS. It goes in Phase 4 (deliverables) as a worker job behind a `FileScanner` interface. Phase 0 marks files `clean` with a TODO, and nothing downloadable to *other* users exists in Phase 0.
+⚠ **Pushback:** ClamAV needs ~1–1.5 GB RAM, which is a lot for a single VPS. It goes in Phase 4 (deliverables) as a worker job behind a `FileScanner` interface. Phase 0 marks files `clean` with a TODO, and nothing downloadable to _other_ users exists in Phase 0.
 
 ---
 
 ## 8. Infra, CI, observability
 
 **D-035** `docker compose` runs postgres, redis, minio (+ bucket init), mailpit, api, worker, web, all with healthchecks.
+
 - `pnpm dev:up` runs the whole stack in containers.
 - `pnpm dev` runs infra in Docker and the apps on the host with hot reload. This is the faster daily loop on a Mac.
 
@@ -202,22 +209,23 @@ The brief writes them as one line, but a project has several milestones in diffe
 
 **D-040 Palette (KorvenzaTech family).** All text/background pairs below meet WCAG AA; I'll verify the final pairs with a contrast script.
 
-| Token | Dark (default) | Light |
-|---|---|---|
-| `bg` | `#07110E` | `#F6FAF8` |
-| `surface` | `#0C1A15` | `#FFFFFF` |
-| `surface-2` | `#12241D` | `#EEF5F1` |
-| `border` | `#1E3A2F` | `#D9E6E0` |
-| `text` | `#E8F3EE` | `#0B1A14` |
-| `text-muted` | `#8FA89C` | `#4E6159` |
-| `primary` (actions) | `#19C784` (text on it: `#07110E`) | `#087F5B` (text on it: `#FFFFFF`) |
-| `primary-hover` | `#3DD69A` | `#066B4C` |
-| `focus-ring` | `#19C784` | `#087F5B` |
+| Token                                     | Dark (default)                                | Light                                         |
+| ----------------------------------------- | --------------------------------------------- | --------------------------------------------- |
+| `bg`                                      | `#07110E`                                     | `#F6FAF8`                                     |
+| `surface`                                 | `#0C1A15`                                     | `#FFFFFF`                                     |
+| `surface-2`                               | `#12241D`                                     | `#EEF5F1`                                     |
+| `border`                                  | `#1E3A2F`                                     | `#D9E6E0`                                     |
+| `text`                                    | `#E8F3EE`                                     | `#0B1A14`                                     |
+| `text-muted`                              | `#8FA89C`                                     | `#4E6159`                                     |
+| `primary` (actions)                       | `#19C784` (text on it: `#07110E`)             | `#087F5B` (text on it: `#FFFFFF`)             |
+| `primary-hover`                           | `#3DD69A`                                     | `#066B4C`                                     |
+| `focus-ring`                              | `#19C784`                                     | `#087F5B`                                     |
 | `success` / `warning` / `danger` / `info` | `#19C784` / `#F5B544` / `#F0616D` / `#5AB4F0` | `#087F5B` / `#A86B00` / `#C2313E` / `#1F6FB2` |
 
 **Glass:** only on overlays (command palette, popovers, modals) and the marketing site: `backdrop-blur(16px)` + translucent surface + 1px light border. Main app surfaces stay solid, for contrast and for speed (brief principle 3).
 
 **D-041 Type:** Geist Sans + Geist Mono (OFL, self-hosted through `next/font`, no layout shift).
+
 - Scale: 12 / 13 / 14 / 16 / 18 / 20 / 24 / 30 / 36 / 48 / 60.
 - Base 14px in the app (dense), 16px on marketing pages.
 - Line-height 1.5 for body, 1.2 for headings. Tabular numbers for money and progress.
@@ -230,21 +238,21 @@ The brief writes them as one line, but a project has several milestones in diffe
 
 **D-044 Marketing typography is an open design item.** Geist stays for the app. For the marketing site (Phase 8) we may align with korvenzatech.com typography; decide then.
 
-**D-045 Fees are admin-configurable settings, never hard-coded.** *Accepted.* `platform_settings` keys: `fees.buyer_service_bps`, `fees.buyer_service_min_amount`, `fees.seller_commission_bps`, `fees.seller_commission_min_amount` (basis points + minor units). Phase 0 seeds placeholder zeros clearly marked as dev values; real values are set before Phase 3.
+**D-045 Fees are admin-configurable settings, never hard-coded.** _Accepted._ `platform_settings` keys: `fees.buyer_service_bps`, `fees.buyer_service_min_amount`, `fees.seller_commission_bps`, `fees.seller_commission_min_amount` (basis points + minor units). Phase 0 seeds placeholder zeros clearly marked as dev values; real values are set before Phase 3.
 
 ---
 
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):
+
 - Q1: undecided; the partners will decide with an accountant/lawyer before Phase 3. Everything stays provider-agnostic.
 - Q4: undecided; build as admin settings (D-045).
 - Q5: provisional; roles stay configurable (D-003).
 - Q7: private repo coming; remote gets added when Rashid sends the URL. Doesn't block Phase 0.
 - Logo: the SVG wasn't in the message or the folder; Phase 0 uses a text lockup until it arrives.
 
-
-1. **Q1 — Legal entity & country for the Stripe platform account** (blocks *live* payments only; test mode goes ahead). Which registered entity operates Glasswork's payments?
+1. **Q1 — Legal entity & country for the Stripe platform account** (blocks _live_ payments only; test mode goes ahead). Which registered entity operates Glasswork's payments?
    - A US LLC (e.g. via Stripe Atlas) or a UK Ltd unlocks Connect + Global Payouts to Pakistan.
    - A Pakistan-only entity can't open a Stripe platform account at all.
    - Talk to an accountant/lawyer about tax and money-transmission obligations.

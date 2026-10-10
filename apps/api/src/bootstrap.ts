@@ -22,7 +22,9 @@ export async function createApp(opts: { logger?: boolean } = {}): Promise<NestFa
     trustProxy: env.TRUST_PROXY,
     requestIdHeader: 'x-request-id',
     genReqId: (raw: IncomingMessage) => {
-      const id = (typeof raw.headers['x-request-id'] === 'string' && raw.headers['x-request-id'].slice(0, 64)) || uuidv7();
+      const id =
+        (typeof raw.headers['x-request-id'] === 'string' && raw.headers['x-request-id'].slice(0, 64)) ||
+        uuidv7();
       (raw as IncomingMessage & { id?: string }).id = id;
       return id;
     },
@@ -34,7 +36,12 @@ export async function createApp(opts: { logger?: boolean } = {}): Promise<NestFa
   });
   if (opts.logger !== false) app.useLogger(app.get(Logger));
 
-  const corsOrigins = [env.WEB_URL, ...(env.CORS_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean) ?? [])];
+  const corsOrigins = [
+    env.WEB_URL,
+    ...(env.CORS_ORIGINS?.split(',')
+      .map((o) => o.trim())
+      .filter(Boolean) ?? []),
+  ];
   const fastify = app.getHttpAdapter().getInstance();
 
   await app.register(helmet, {

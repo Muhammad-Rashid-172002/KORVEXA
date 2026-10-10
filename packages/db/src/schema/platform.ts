@@ -32,4 +32,3 @@ export const platformSettings = pgTable('platform_settings', {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
-

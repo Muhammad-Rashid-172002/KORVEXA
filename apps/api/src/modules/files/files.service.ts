@@ -71,7 +71,10 @@ export class FilesService {
     }
 
     // TODO(Phase 4): enqueue ClamAV scan; until then files are only ever visible to their owner (D-030).
-    const updated = await this.repo.updateOwned({ userId: actor.userId }, id, { status: 'clean', uploadedAt: new Date() });
+    const updated = await this.repo.updateOwned({ userId: actor.userId }, id, {
+      status: 'clean',
+      uploadedAt: new Date(),
+    });
     await this.db.db.insert(auditLogs).values({
       actorId: actor.userId,
       action: 'file.uploaded',
@@ -91,12 +94,17 @@ export class FilesService {
     return {
       ...toDto(file),
       downloadUrl: downloadable ? await this.storage.presignGet(file.storageKey, file.originalName) : null,
-      downloadUrlExpiresAt: downloadable ? new Date(Date.now() + DOWNLOAD_URL_TTL_SECONDS * 1000).toISOString() : null,
+      downloadUrlExpiresAt: downloadable
+        ? new Date(Date.now() + DOWNLOAD_URL_TTL_SECONDS * 1000).toISOString()
+        : null,
     };
   }
 
   async listOwned(actor: RequestActor, q: { cursor?: string; limit: number }): Promise<CursorPage<FileDto>> {
-    const rows = await this.repo.listOwned({ userId: actor.userId }, { cursor: q.cursor, limit: q.limit + 1 });
+    const rows = await this.repo.listOwned(
+      { userId: actor.userId },
+      { cursor: q.cursor, limit: q.limit + 1 },
+    );
     const page = rows.slice(0, q.limit);
     return { items: page.map(toDto), nextCursor: rows.length > q.limit ? (page.at(-1)?.id ?? null) : null };
   }

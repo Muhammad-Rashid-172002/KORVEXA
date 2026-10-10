@@ -25,7 +25,9 @@ export default async function setup(project: TestProject): Promise<() => Promise
     const { Client } = await import('pg');
     const client = new Client({ connectionString: databaseUrl });
     await client.connect();
-    await client.query('DROP SCHEMA IF EXISTS public CASCADE; DROP SCHEMA IF EXISTS drizzle CASCADE; CREATE SCHEMA public;');
+    await client.query(
+      'DROP SCHEMA IF EXISTS public CASCADE; DROP SCHEMA IF EXISTS drizzle CASCADE; CREATE SCHEMA public;',
+    );
     await client.end();
   }
 

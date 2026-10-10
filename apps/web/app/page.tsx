@@ -6,11 +6,13 @@ import Link from 'next/link';
 export default function HomePage() {
   return (
     <section className="mx-auto flex max-w-3xl flex-col items-start gap-6 px-4 py-24">
-      <p className="rounded-full border border-border px-3 py-1 text-xs text-muted">Early preview · foundation build</p>
+      <p className="rounded-full border border-border px-3 py-1 text-xs text-muted">
+        Early preview · foundation build
+      </p>
       <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{brand.tagline}</h1>
       <p className="max-w-xl text-base text-muted">
-        {brand.productName} is a marketplace for software projects where every milestone, deliverable and payment is
-        visible to the buyer in one live project room.
+        {brand.productName} is a marketplace for software projects where every milestone, deliverable and
+        payment is visible to the buyer in one live project room.
       </p>
       <div className="flex flex-wrap gap-3">
         <Button asChild size="lg">

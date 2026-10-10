@@ -2,7 +2,15 @@ import { brand } from '@glasswork/shared/brand';
 import { Card } from '@glasswork/ui/components/card';
 import type { ReactNode } from 'react';
 
-export function AuthCard({ title, subtitle, children }: { title: string; subtitle?: ReactNode; children: ReactNode }) {
+export function AuthCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-16">
       <div className="flex flex-col gap-1">

@@ -43,7 +43,10 @@ export class AuthGuard implements CanActivate {
     if (!actor) throw new UnauthorizedException('Sign in required');
 
     if (policy.roles.length > 0) {
-      const [row] = await this.db.db.select({ roles: users.roles }).from(users).where(eq(users.id, actor.userId));
+      const [row] = await this.db.db
+        .select({ roles: users.roles })
+        .from(users)
+        .where(eq(users.id, actor.userId));
       if (!row || !hasAnyRole(row.roles, policy.roles)) throw new ForbiddenException('Insufficient role');
     }
     req.actor = actor;

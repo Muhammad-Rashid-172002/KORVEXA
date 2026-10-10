@@ -20,7 +20,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} dark`} suppressHydrationWarning>
       <body className="flex min-h-dvh flex-col bg-bg text-fg">
         <ThemeProvider>
-          <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50">
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50"
+          >
             Skip to content
           </a>
           <SiteHeader />

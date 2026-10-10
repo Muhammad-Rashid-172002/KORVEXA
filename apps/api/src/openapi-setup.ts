@@ -17,5 +17,7 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
 }
 
 export function setupOpenApi(app: INestApplication): void {
-  SwaggerModule.setup('v1/docs', app, () => buildOpenApiDocument(app), { jsonDocumentUrl: 'v1/openapi.json' });
+  SwaggerModule.setup('v1/docs', app, () => buildOpenApiDocument(app), {
+    jsonDocumentUrl: 'v1/openapi.json',
+  });
 }

@@ -17,7 +17,12 @@ import type { Server, Socket } from 'socket.io';
 import { SessionService, type RequestActor } from '../../auth/session.service';
 import { Policy } from '../../common/policy/decorators';
 
-type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents, Record<string, never>, { actor: RequestActor }>;
+type AppSocket = Socket<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  Record<string, never>,
+  { actor: RequestActor }
+>;
 
 /**
  * Authenticated Socket.io gateway. The handshake must carry a valid session cookie (or bearer token);

@@ -9,7 +9,8 @@ import { api } from '@/lib/api';
 type FileItem = { id: string; originalName: string; sizeBytes: number; status: string };
 const PURPOSE = 'portfolio' as const;
 
-const formatSize = (b: number) => (b < 1024 ? `${b} B` : b < 1024 ** 2 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1024 ** 2).toFixed(1)} MB`);
+const formatSize = (b: number) =>
+  b < 1024 ? `${b} B` : b < 1024 ** 2 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1024 ** 2).toFixed(1)} MB`;
 
 export function FileUploader() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,12 +32,26 @@ export function FileUploader() {
     setError(null);
     try {
       const { data: presign, error: presignError } = await api.POST('/v1/files/uploads', {
-        body: { purpose: PURPOSE, fileName: file.name, mimeType: file.type || 'application/octet-stream', sizeBytes: file.size },
+        body: {
+          purpose: PURPOSE,
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          sizeBytes: file.size,
+        },
       });
-      if (!presign) throw new Error((presignError as { error?: { message?: string } })?.error?.message ?? 'Upload rejected');
-      const put = await fetch(presign.upload.url, { method: 'PUT', headers: presign.upload.headers, body: file });
+      if (!presign)
+        throw new Error(
+          (presignError as { error?: { message?: string } })?.error?.message ?? 'Upload rejected',
+        );
+      const put = await fetch(presign.upload.url, {
+        method: 'PUT',
+        headers: presign.upload.headers,
+        body: file,
+      });
       if (!put.ok) throw new Error(`Storage rejected the upload (${put.status})`);
-      const { error: completeError } = await api.POST('/v1/files/{id}/complete', { params: { path: { id: presign.file.id } } });
+      const { error: completeError } = await api.POST('/v1/files/{id}/complete', {
+        params: { path: { id: presign.file.id } },
+      });
       if (completeError) throw new Error('Upload verification failed');
       await refresh();
     } catch (e) {
@@ -71,19 +86,29 @@ export function FileUploader() {
           <Upload size={16} aria-hidden /> {busy ? 'Uploading…' : 'Upload a file'}
         </label>
       </Button>
-      <p className="text-xs text-muted">Images, PDF or MP4 · up to {FILE_RULES[PURPOSE].maxBytes / 1024 ** 2} MB</p>
+      <p className="text-xs text-muted">
+        Images, PDF or MP4 · up to {FILE_RULES[PURPOSE].maxBytes / 1024 ** 2} MB
+      </p>
       {error && <Alert tone="danger">{error}</Alert>}
       {files.length === 0 ? (
         <p className="text-sm text-muted">No files yet.</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-border rounded-md border border-border" data-testid="file-list">
+        <ul
+          className="flex flex-col divide-y divide-border rounded-md border border-border"
+          data-testid="file-list"
+        >
           {files.map((f) => (
             <li key={f.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
               <span className="truncate">{f.originalName}</span>
               <span className="flex shrink-0 items-center gap-2 text-xs text-muted">
                 {formatSize(f.sizeBytes)}
                 {f.status === 'clean' && (
-                  <Button size="sm" variant="ghost" aria-label={`Download ${f.originalName}`} onClick={() => void download(f.id)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    aria-label={`Download ${f.originalName}`}
+                    onClick={() => void download(f.id)}
+                  >
                     <Download size={14} aria-hidden />
                   </Button>
                 )}

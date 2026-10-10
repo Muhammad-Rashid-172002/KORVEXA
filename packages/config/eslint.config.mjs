@@ -23,7 +23,15 @@ const brandLiteralRule = {
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/coverage/**', '**/*.d.ts', '**/migrations/**', '**/next-env.d.ts'],
+    ignores: [
+      '**/dist/**',
+      '**/.next/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+      '**/*.d.ts',
+      '**/migrations/**',
+      '**/next-env.d.ts',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -31,11 +39,21 @@ export default tseslint.config(
     rules: {
       ...brandLiteralRule,
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports', disallowTypeAnnotations: false }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { fixStyle: 'inline-type-imports', disallowTypeAnnotations: false },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-restricted-imports': [
         'error',
-        { paths: [{ name: 'drizzle-orm', message: 'Import query helpers from @glasswork/db (single drizzle instance).' }] },
+        {
+          paths: [
+            {
+              name: 'drizzle-orm',
+              message: 'Import query helpers from @glasswork/db (single drizzle instance).',
+            },
+          ],
+        },
       ],
     },
   },

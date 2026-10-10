@@ -17,8 +17,14 @@ export const users = pgTable(
     emailVerified: boolean().notNull().default(false),
     name: text().notNull(),
     image: text(),
-    roles: userRole().array().notNull().default(sql`'{buyer}'::user_role[]`),
-    adminScopes: adminScope().array().notNull().default(sql`'{}'::admin_scope[]`),
+    roles: userRole()
+      .array()
+      .notNull()
+      .default(sql`'{buyer}'::user_role[]`),
+    adminScopes: adminScope()
+      .array()
+      .notNull()
+      .default(sql`'{}'::admin_scope[]`),
     activeMode: activeMode().notNull().default('buyer'),
     bannedAt: timestamp({ withTimezone: true }),
     isSeed: isSeed(),
@@ -94,7 +100,10 @@ export const profiles = pgTable('profiles', {
   bio: text(),
   country: text(),
   timezone: text(),
-  languages: text().array().notNull().default(sql`'{}'::text[]`),
+  languages: text()
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   isSeed: isSeed(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

@@ -25,9 +25,20 @@ export const FILE_RULES: Record<FilePurpose, { maxBytes: number; mimeTypes: read
   },
   message: {
     maxBytes: 25 * MB,
-    mimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf', 'text/plain', 'application/zip'],
+    mimeTypes: [
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+      'image/gif',
+      'application/pdf',
+      'text/plain',
+      'application/zip',
+    ],
   },
-  evidence: { maxBytes: 50 * MB, mimeTypes: ['image/png', 'image/jpeg', 'application/pdf', 'video/mp4', 'text/plain'] },
+  evidence: {
+    maxBytes: 50 * MB,
+    mimeTypes: ['image/png', 'image/jpeg', 'application/pdf', 'video/mp4', 'text/plain'],
+  },
 };
 
 export const presignUploadSchema = z
@@ -40,10 +51,18 @@ export const presignUploadSchema = z
   .superRefine((v, ctx) => {
     const rule = FILE_RULES[v.purpose];
     if (!rule.mimeTypes.includes(v.mimeType)) {
-      ctx.addIssue({ code: 'custom', path: ['mimeType'], message: `Type ${v.mimeType} is not allowed for ${v.purpose}` });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['mimeType'],
+        message: `Type ${v.mimeType} is not allowed for ${v.purpose}`,
+      });
     }
     if (v.sizeBytes > rule.maxBytes) {
-      ctx.addIssue({ code: 'custom', path: ['sizeBytes'], message: `Max size for ${v.purpose} is ${rule.maxBytes} bytes` });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['sizeBytes'],
+        message: `Max size for ${v.purpose} is ${rule.maxBytes} bytes`,
+      });
     }
   });
 export type PresignUploadInput = z.infer<typeof presignUploadSchema>;

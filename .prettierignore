@@ -7,3 +7,6 @@ artifacts
 coverage
 packages/shared/openapi.json
 packages/shared/src/api/schema.d.ts
+**/.next
+infra/docker/Dockerfile
+CLAUDE.md

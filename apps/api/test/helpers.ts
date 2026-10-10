@@ -53,7 +53,10 @@ export async function signUpVerified(
 }
 
 /** Reads queued email jobs (the worker isn't running in integration tests). */
-export async function findEmailJob(to: string, template: EmailJob['template']): Promise<EmailJob | undefined> {
+export async function findEmailJob(
+  to: string,
+  template: EmailJob['template'],
+): Promise<EmailJob | undefined> {
   const queue = new Queue<EmailJob>(QUEUES.email, { connection: { url: process.env.REDIS_URL! } });
   try {
     const jobs = await queue.getJobs(['waiting', 'delayed', 'active', 'completed', 'failed', 'prioritized']);

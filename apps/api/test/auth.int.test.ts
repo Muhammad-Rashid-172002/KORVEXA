@@ -27,7 +27,12 @@ describe('auth end-to-end (register → verify → login → logout)', () => {
     expect(signUp.headers['set-cookie']).toBeUndefined(); // no session before verification
 
     // Unverified users cannot sign in.
-    const early = await app.inject({ method: 'POST', url: '/v1/auth/sign-in/email', headers: ORIGIN, payload: { email, password } });
+    const early = await app.inject({
+      method: 'POST',
+      url: '/v1/auth/sign-in/email',
+      headers: ORIGIN,
+      payload: { email, password },
+    });
     expect(early.statusCode).toBe(403);
     expect(early.json()).toMatchObject({ code: 'EMAIL_NOT_VERIFIED' });
 
@@ -58,7 +63,12 @@ describe('auth end-to-end (register → verify → login → logout)', () => {
     expect(audits.length).toBeGreaterThan(0);
 
     // Explicit login works too.
-    const signIn = await app.inject({ method: 'POST', url: '/v1/auth/sign-in/email', headers: ORIGIN, payload: { email, password } });
+    const signIn = await app.inject({
+      method: 'POST',
+      url: '/v1/auth/sign-in/email',
+      headers: ORIGIN,
+      payload: { email, password },
+    });
     expect(signIn.statusCode).toBe(200);
     const cookie2 = cookieHeader(signIn.headers['set-cookie']);
     const setCookie = ([] as string[]).concat(signIn.headers['set-cookie'] ?? []).join('\n');
@@ -66,7 +76,12 @@ describe('auth end-to-end (register → verify → login → logout)', () => {
     expect(setCookie).toMatch(/SameSite=Lax/i);
 
     // Logout revokes the session.
-    const out = await app.inject({ method: 'POST', url: '/v1/auth/sign-out', headers: { ...ORIGIN, cookie: cookie2 }, payload: {} });
+    const out = await app.inject({
+      method: 'POST',
+      url: '/v1/auth/sign-out',
+      headers: { ...ORIGIN, cookie: cookie2 },
+      payload: {},
+    });
     expect(out.statusCode).toBe(200);
     const after = await app.inject({ method: 'GET', url: '/v1/me', headers: { cookie: cookie2 } });
     expect(after.statusCode).toBe(401);
@@ -94,14 +109,28 @@ describe('auth end-to-end (register → verify → login → logout)', () => {
   it('accepts a bearer token for API clients (future Flutter app)', async () => {
     const email = uniqueEmail('bearer');
     const password = 'bearer-password-123';
-    await app.inject({ method: 'POST', url: '/v1/auth/sign-up/email', headers: ORIGIN, payload: { name: 'B', email, password } });
+    await app.inject({
+      method: 'POST',
+      url: '/v1/auth/sign-up/email',
+      headers: ORIGIN,
+      payload: { name: 'B', email, password },
+    });
     const job = await findEmailJob(email, 'verify-email');
     const link = new URL(job!.data.url);
     await app.inject({ method: 'GET', url: link.pathname + link.search });
-    const signIn = await app.inject({ method: 'POST', url: '/v1/auth/sign-in/email', headers: ORIGIN, payload: { email, password } });
+    const signIn = await app.inject({
+      method: 'POST',
+      url: '/v1/auth/sign-in/email',
+      headers: ORIGIN,
+      payload: { email, password },
+    });
     const token = signIn.headers['set-auth-token'];
     expect(typeof token).toBe('string');
-    const me = await app.inject({ method: 'GET', url: '/v1/me', headers: { authorization: `Bearer ${String(token)}` } });
+    const me = await app.inject({
+      method: 'GET',
+      url: '/v1/me',
+      headers: { authorization: `Bearer ${String(token)}` },
+    });
     expect(me.statusCode).toBe(200);
   });
 });

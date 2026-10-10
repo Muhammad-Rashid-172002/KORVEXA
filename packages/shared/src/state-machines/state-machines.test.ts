@@ -40,13 +40,17 @@ describe('milestone transitions', () => {
     expect(s).toBe('released');
   });
   it('rejects a seller approving their own work', () => {
-    expect(() => transition(milestoneMachine, 'submitted', 'approve', 'seller')).toThrow(InvalidTransitionError);
+    expect(() => transition(milestoneMachine, 'submitted', 'approve', 'seller')).toThrow(
+      InvalidTransitionError,
+    );
   });
   it('rejects client-triggered funding (only payment webhooks fund)', () => {
     expect(() => transition(milestoneMachine, 'pending', 'fund', 'buyer')).toThrow(InvalidTransitionError);
   });
   it('rejects releasing unapproved work', () => {
-    expect(() => transition(milestoneMachine, 'submitted', 'release', 'system')).toThrow(InvalidTransitionError);
+    expect(() => transition(milestoneMachine, 'submitted', 'release', 'system')).toThrow(
+      InvalidTransitionError,
+    );
   });
   it('lists buyer actions on a submitted milestone', () => {
     expect(availableEvents(milestoneMachine, 'submitted', 'buyer').sort()).toEqual(
@@ -77,6 +81,11 @@ describe('projectProgress', () => {
   it('ignores cancelled/refunded milestones and handles empty input', () => {
     expect(projectProgress([])).toBe(0);
     expect(projectProgress([{ amount: 5n, status: 'refunded' }])).toBe(0);
-    expect(projectProgress([{ amount: 5n, status: 'approved' }, { amount: 5n, status: 'cancelled' }])).toBe(100);
+    expect(
+      projectProgress([
+        { amount: 5n, status: 'approved' },
+        { amount: 5n, status: 'cancelled' },
+      ]),
+    ).toBe(100);
   });
 });

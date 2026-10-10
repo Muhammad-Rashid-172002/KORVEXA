@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "pnpm infra:up && turbo run dev --filter=@glasswork/api --filter=@glasswork/worker --filter=@glasswork/web",
-    "dev:up": "docker compose -f infra/docker-compose.yml --env-file .env up --build -d --wait",
+    "dev:up": "docker compose -f infra/docker-compose.yml --env-file .env up --build -d && node scripts/wait-for-stack.mjs",
     "dev:down": "docker compose -f infra/docker-compose.yml --env-file .env down",
     "dev:logs": "docker compose -f infra/docker-compose.yml --env-file .env logs -f api worker web",
     "infra:up": "docker compose -f infra/docker-compose.yml --env-file .env up -d --wait postgres redis minio minio-init mailpit",
@@ -23,7 +23,8 @@
     "openapi": "pnpm --filter @glasswork/api openapi",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "dev:reset": "docker compose -f infra/docker-compose.yml --env-file .env down -v"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

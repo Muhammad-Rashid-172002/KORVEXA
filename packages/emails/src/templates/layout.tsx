@@ -10,7 +10,15 @@ export function Layout({ preview, children }: { preview: string; children: React
       <Head />
       <Preview>{preview}</Preview>
       <Body style={{ backgroundColor: colors.bg, fontFamily: 'Helvetica, Arial, sans-serif', margin: 0 }}>
-        <Container style={{ maxWidth: 560, margin: '32px auto', backgroundColor: '#ffffff', borderRadius: 12, padding: 32 }}>
+        <Container
+          style={{
+            maxWidth: 560,
+            margin: '32px auto',
+            backgroundColor: '#ffffff',
+            borderRadius: 12,
+            padding: 32,
+          }}
+        >
           <Text style={{ fontSize: 20, fontWeight: 700, color: colors.ink, margin: 0 }}>
             {brand.productName}
             <span style={{ fontSize: 13, fontWeight: 400, color: colors.muted }}> by {brand.parentName}</span>

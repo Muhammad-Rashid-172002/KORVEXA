@@ -41,7 +41,8 @@ export class RouteAuditService implements OnApplicationBootstrap {
         if (!isRoute && !isSocket) continue;
         const targets = [handler, instance.constructor as object] as (() => void)[];
         const declared =
-          this.reflector.getAllAndOverride(IS_PUBLIC, targets) || this.reflector.getAllAndOverride(POLICY, targets);
+          this.reflector.getAllAndOverride(IS_PUBLIC, targets) ||
+          this.reflector.getAllAndOverride(POLICY, targets);
         if (!declared) missing.push(`${(instance.constructor as { name: string }).name}.${name}`);
       }
     }

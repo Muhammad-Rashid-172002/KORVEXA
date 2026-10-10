@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "agentGuidance": false,
   "globalDependencies": [".env"],
   "globalPassThroughEnv": ["NODE_ENV", "CI"],
   "tasks": {
@@ -13,9 +14,20 @@
       "cache": false,
       "persistent": true
     },
-    "lint": { "dependsOn": ["^build"] },
-    "typecheck": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^build"], "outputs": ["coverage/**"] },
-    "test:integration": { "dependsOn": ["^build"], "cache": false, "passThroughEnv": ["TEST_DATABASE_URL", "TEST_REDIS_URL", "TESTCONTAINERS_*", "DOCKER_HOST"] }
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "passThroughEnv": ["TEST_DATABASE_URL", "TEST_REDIS_URL", "TESTCONTAINERS_*", "DOCKER_HOST"]
+    }
   }
 }

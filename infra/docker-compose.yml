@@ -1,0 +1,163 @@
+# Glasswork local stack. One command from the repo root:  pnpm dev:up
+# (= docker compose -f infra/docker-compose.yml --env-file .env up --build -d, then waits for health)
+#
+# Browser-facing URLs:  web http://localhost:3000 · api http://localhost:4000 (docs /v1/docs)
+#                       mail http://localhost:8025 · storage console http://localhost:9001
+name: glasswork
+
+x-app-build: &app-build
+  context: ..
+  dockerfile: infra/docker/Dockerfile
+  args:
+    NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:-http://localhost:4000}
+    NEXT_PUBLIC_WEB_URL: ${WEB_URL:-http://localhost:3000}
+    NEXT_PUBLIC_UPLOAD_ORIGIN: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+    NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+
+# Environment shared by api + migrate. Hostnames point at compose services; public URLs stay localhost.
+x-api-env: &api-env
+  NODE_ENV: development
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  API_PORT: 4000
+  API_PUBLIC_URL: ${API_PUBLIC_URL:-http://localhost:4000}
+  WEB_URL: ${WEB_URL:-http://localhost:3000}
+  CORS_ORIGINS: ${CORS_ORIGINS:-}
+  COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+  TRUST_PROXY: 'false'
+  API_DOCS_ENABLED: ${API_DOCS_ENABLED:-true}
+  DATABASE_URL: postgres://${POSTGRES_USER:-glasswork}:${POSTGRES_PASSWORD:-glasswork}@postgres:5432/${POSTGRES_DB:-glasswork}
+  REDIS_URL: redis://redis:6379
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+  AUTH_RATE_LIMIT_ENABLED: ${AUTH_RATE_LIMIT_ENABLED:-true}
+  AUTH_RATE_LIMIT_MAX: ${AUTH_RATE_LIMIT_MAX:-10}
+  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+  GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+  GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+  GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+  S3_ENDPOINT: http://minio:9000
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_BUCKET: ${S3_BUCKET:-glasswork-dev}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-glasswork}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-glasswork-dev-secret}
+  S3_FORCE_PATH_STYLE: 'true'
+  S3_AUTO_CREATE_BUCKET: 'true'
+  RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-300}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-development}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-glasswork}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-glasswork}
+      POSTGRES_DB: ${POSTGRES_DB:-glasswork}
+    ports: ['${POSTGRES_PORT:-5432}:5432']
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    ports: ['${REDIS_PORT:-6379}:6379']
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Local S3. MinIO stopped publishing community images in late 2025; we pin the last known tag.
+  # If it can't be pulled, set MINIO_IMAGE in .env (see SETUP.md → Troubleshooting). Prod uses R2.
+  minio:
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-09-07T16-13-09Z}
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-glasswork}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-glasswork-dev-secret}
+    ports: ['${MINIO_API_PORT:-9000}:9000', '${MINIO_CONSOLE_PORT:-9001}:9001']
+    volumes: [miniodata:/data]
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.31.4
+    ports: ['${MAILPIT_UI_PORT:-8025}:8025', '${MAILPIT_SMTP_PORT:-1025}:1025']
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 'true'
+      MP_SMTP_AUTH_ALLOW_INSECURE: 'true'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # One-shot: apply migrations, then the idempotent dev seed. api waits for it to succeed.
+  migrate:
+    build: { <<: *app-build, target: api }
+    image: glasswork-api:dev
+    environment: *api-env
+    command:
+      [
+        'sh',
+        '-c',
+        'node node_modules/@glasswork/db/dist/migrate.js && node node_modules/@glasswork/db/dist/seed/index.js',
+      ]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: 'no'
+
+  api:
+    build: { <<: *app-build, target: api }
+    image: glasswork-api:dev
+    environment: *api-env
+    ports: ['${API_PORT:-4000}:4000']
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    restart: unless-stopped
+
+  worker:
+    build: { <<: *app-build, target: worker }
+    image: glasswork-worker:dev
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WORKER_HEALTH_PORT: 4001
+      REDIS_URL: redis://redis:6379
+      EMAIL_FROM: ${EMAIL_FROM:-Glasswork <no-reply@glasswork.local>}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-development}
+    ports: ['${WORKER_HEALTH_PORT:-4001}:4001']
+    depends_on:
+      redis: { condition: service_healthy }
+      mailpit: { condition: service_healthy }
+    restart: unless-stopped
+
+  web:
+    build: { <<: *app-build, target: web }
+    image: glasswork-web:dev
+    environment:
+      API_INTERNAL_URL: http://api:4000
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports: ['3000:3000']
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

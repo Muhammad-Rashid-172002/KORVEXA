@@ -66,7 +66,10 @@ export const workerEnvSchema = z.object({
 });
 export type WorkerEnv = z.infer<typeof workerEnvSchema>;
 
-export function parseEnv<T extends z.ZodTypeAny>(schema: T, source: NodeJS.ProcessEnv = process.env): z.infer<T> {
+export function parseEnv<T extends z.ZodTypeAny>(
+  schema: T,
+  source: NodeJS.ProcessEnv = process.env,
+): z.infer<T> {
   const result = schema.safeParse(source);
   if (!result.success) {
     const issues = result.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');

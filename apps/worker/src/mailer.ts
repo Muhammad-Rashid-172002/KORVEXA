@@ -21,7 +21,8 @@ export function createMailer(env: WorkerEnv): Mailer {
       },
     };
   }
-  if (!env.SMTP_HOST) throw new Error('Set RESEND_API_KEY (prod) or SMTP_HOST (local Mailpit) for email delivery');
+  if (!env.SMTP_HOST)
+    throw new Error('Set RESEND_API_KEY (prod) or SMTP_HOST (local Mailpit) for email delivery');
   const smtp = nodemailer.createTransport({ host: env.SMTP_HOST, port: env.SMTP_PORT, secure: false });
   return {
     transport: 'smtp',

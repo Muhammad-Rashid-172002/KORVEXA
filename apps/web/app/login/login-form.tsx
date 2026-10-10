@@ -13,7 +13,9 @@ import { WEB_URL } from '@/lib/config';
 export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const [error, setError] = useState<string | null>(params.get('error') ? 'Sign-in with that provider failed.' : null);
+  const [error, setError] = useState<string | null>(
+    params.get('error') ? 'Sign-in with that provider failed.' : null,
+  );
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -35,7 +37,11 @@ export function LoginForm() {
         setUnverifiedEmail(email);
         return;
       }
-      setError(err.status === 429 ? 'Too many attempts. Wait a minute and try again.' : 'Incorrect email or password.');
+      setError(
+        err.status === 429
+          ? 'Too many attempts. Wait a minute and try again.'
+          : 'Incorrect email or password.',
+      );
       return;
     }
     router.push('/dashboard');

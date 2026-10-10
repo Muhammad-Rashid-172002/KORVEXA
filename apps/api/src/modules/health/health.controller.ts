@@ -27,7 +27,8 @@ export class HealthController {
   async ready() {
     const checks = await Promise.allSettled([this.db.db.execute(sql`select 1`), this.redis.ping()]);
     const [pg, redis] = checks.map((c) => c.status === 'fulfilled');
-    if (!pg || !redis) throw new ServiceUnavailableException({ message: 'Dependencies unavailable', pg, redis });
+    if (!pg || !redis)
+      throw new ServiceUnavailableException({ message: 'Dependencies unavailable', pg, redis });
     return { status: 'ready', pg, redis };
   }
 }

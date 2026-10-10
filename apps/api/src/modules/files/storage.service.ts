@@ -51,7 +51,12 @@ export class StorageService implements OnModuleInit {
   presignPut(key: string, contentType: string, contentLength: number): Promise<string> {
     return getSignedUrl(
       this.signer,
-      new PutObjectCommand({ Bucket: this.bucket, Key: key, ContentType: contentType, ContentLength: contentLength }),
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType,
+        ContentLength: contentLength,
+      }),
       { expiresIn: UPLOAD_URL_TTL_SECONDS, signableHeaders: new Set(['content-type', 'content-length']) },
     );
   }

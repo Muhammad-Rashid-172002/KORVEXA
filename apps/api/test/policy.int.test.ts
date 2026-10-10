@@ -24,7 +24,15 @@ describe('authorization policies', () => {
     const id = uuidv7();
     await repo.create(
       { userId: alice.userId },
-      { id, storageKey: `u/${alice.userId}/${id}`, originalName: 'spec.pdf', mimeType: 'application/pdf', sizeBytes: 10, purpose: 'portfolio', status: 'clean' },
+      {
+        id,
+        storageKey: `u/${alice.userId}/${id}`,
+        originalName: 'spec.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 10,
+        purpose: 'portfolio',
+        status: 'clean',
+      },
     );
     aliceFileId = id;
   });
@@ -33,7 +41,11 @@ describe('authorization policies', () => {
   });
 
   it('owner can read their file and gets a short-lived download URL', async () => {
-    const res = await app.inject({ method: 'GET', url: `/v1/me/files/${aliceFileId}`, headers: { cookie: alice.cookie } });
+    const res = await app.inject({
+      method: 'GET',
+      url: `/v1/me/files/${aliceFileId}`,
+      headers: { cookie: alice.cookie },
+    });
     expect(res.statusCode).toBe(200);
     const body = res.json() as { id: string; downloadUrl: string };
     expect(body.id).toBe(aliceFileId);
@@ -42,7 +54,11 @@ describe('authorization policies', () => {
   });
 
   it("another user gets 404 for someone else's file (no existence leak)", async () => {
-    const res = await app.inject({ method: 'GET', url: `/v1/me/files/${aliceFileId}`, headers: { cookie: bob.cookie } });
+    const res = await app.inject({
+      method: 'GET',
+      url: `/v1/me/files/${aliceFileId}`,
+      headers: { cookie: bob.cookie },
+    });
     expect(res.statusCode).toBe(404);
     expect(res.body).not.toContain('spec.pdf');
   });
@@ -111,6 +127,8 @@ describe('authorization policies', () => {
 
   it('errors use the standard envelope with a request id', async () => {
     const res = await app.inject({ method: 'GET', url: '/v1/me', headers: { 'x-request-id': 'req-123' } });
-    expect(res.json()).toEqual({ error: { code: 'unauthorized', message: 'Sign in required', requestId: 'req-123' } });
+    expect(res.json()).toEqual({
+      error: { code: 'unauthorized', message: 'Sign in required', requestId: 'req-123' },
+    });
   });
 });

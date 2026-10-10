@@ -1,4 +1,14 @@
-import { accounts, authTokens, hashPassword, users, verifyPassword, profiles, auditLogs, sessions, type DbClient } from '@glasswork/db';
+import {
+  accounts,
+  authTokens,
+  hashPassword,
+  users,
+  verifyPassword,
+  profiles,
+  auditLogs,
+  sessions,
+  type DbClient,
+} from '@glasswork/db';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { bearer, openAPI } from 'better-auth/plugins';
@@ -71,12 +81,20 @@ export function createAuth(deps: { env: ApiEnv; db: DbClient; redis: Redis; emai
       autoSignInAfterVerification: true,
       expiresIn: 60 * 60,
       sendVerificationEmail: async ({ user, url }) => {
-        await emailQueue.add('verify-email', { template: 'verify-email', to: user.email, data: { name: user.name, url } });
+        await emailQueue.add('verify-email', {
+          template: 'verify-email',
+          to: user.email,
+          data: { name: user.name, url },
+        });
       },
     },
     socialProviders: {
       ...(oauth.google && {
-        google: { clientId: env.GOOGLE_CLIENT_ID!, clientSecret: env.GOOGLE_CLIENT_SECRET!, prompt: 'select_account' },
+        google: {
+          clientId: env.GOOGLE_CLIENT_ID!,
+          clientSecret: env.GOOGLE_CLIENT_SECRET!,
+          prompt: 'select_account',
+        },
       }),
       ...(oauth.github && {
         github: { clientId: env.GITHUB_CLIENT_ID!, clientSecret: env.GITHUB_CLIENT_SECRET! },
@@ -110,7 +128,10 @@ export function createAuth(deps: { env: ApiEnv; db: DbClient; redis: Redis; emai
       user: {
         create: {
           after: async (user) => {
-            await db.db.insert(profiles).values({ userId: user.id, displayName: user.name }).onConflictDoNothing();
+            await db.db
+              .insert(profiles)
+              .values({ userId: user.id, displayName: user.name })
+              .onConflictDoNothing();
             await db.db.insert(auditLogs).values({
               actorId: user.id,
               action: 'user.created',

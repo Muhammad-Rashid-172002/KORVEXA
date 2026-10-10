@@ -58,7 +58,9 @@ describe('authenticated Socket.io connection', () => {
     });
     expect(ready.userId).toBe(user.userId);
 
-    const ack = await new Promise<{ ok: true; at: string }>((resolve) => s.emit('ping', { echo: 'hi' }, resolve));
+    const ack = await new Promise<{ ok: true; at: string }>((resolve) =>
+      s.emit('ping', { echo: 'hi' }, resolve),
+    );
     expect(ack.ok).toBe(true);
   });
 });

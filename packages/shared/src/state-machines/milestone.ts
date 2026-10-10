@@ -68,6 +68,9 @@ export function projectProgress(
   const active = milestones.filter((m) => m.status !== 'cancelled' && m.status !== 'refunded');
   const total = active.reduce((s, m) => s + Number(m.amount), 0);
   if (total === 0) return 0;
-  const done = active.reduce((s, m) => s + Number(m.amount) * milestoneCompletion(m.status, m.taskDoneRatio), 0);
+  const done = active.reduce(
+    (s, m) => s + Number(m.amount) * milestoneCompletion(m.status, m.taskDoneRatio),
+    0,
+  );
   return Math.round((done / total) * 1000) / 10;
 }
