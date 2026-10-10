@@ -5,6 +5,7 @@ packages:
 minimumReleaseAgeExclude:
   - prettier@3.9.10
   - lucide-react@1.55.0
+  - nodemailer@10.1.0
 
 # pnpm blocks dependency build scripts by default; allow only the ones we need.
 allowBuilds:
@@ -30,3 +31,8 @@ peerDependencyRules:
   allowedVersions:
     # Codegen-only dev tool; works with TypeScript 6.
     openapi-typescript>typescript: '6'
+
+# Security patches for transitive deps (pnpm audit). Remove once upstream pins catch up.
+overrides:
+  fastify: 5.12.5
+  js-yaml@>=5.0.0 <5.4.1: 5.4.1
