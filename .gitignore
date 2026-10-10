@@ -20,3 +20,4 @@ blob-report/
 .vscode/*
 !.vscode/extensions.json
 *.rdb
+next-env.d.ts

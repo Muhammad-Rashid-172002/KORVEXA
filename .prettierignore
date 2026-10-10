@@ -10,3 +10,4 @@ packages/shared/src/api/schema.d.ts
 **/.next
 infra/docker/Dockerfile
 CLAUDE.md
+**/next-env.d.ts
