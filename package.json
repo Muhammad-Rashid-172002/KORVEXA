@@ -1,0 +1,41 @@
+{
+  "name": "glasswork",
+  "private": true,
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=22.18.0 <23"
+  },
+  "scripts": {
+    "dev": "pnpm infra:up && turbo run dev --filter=@glasswork/api --filter=@glasswork/worker --filter=@glasswork/web",
+    "dev:up": "docker compose -f infra/docker-compose.yml --env-file .env up --build -d --wait",
+    "dev:down": "docker compose -f infra/docker-compose.yml --env-file .env down",
+    "dev:logs": "docker compose -f infra/docker-compose.yml --env-file .env logs -f api worker web",
+    "infra:up": "docker compose -f infra/docker-compose.yml --env-file .env up -d --wait postgres redis minio minio-init mailpit",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration --concurrency=1",
+    "test:e2e": "pnpm --filter @glasswork/e2e test",
+    "db:generate": "pnpm --filter @glasswork/db generate",
+    "db:migrate": "pnpm --filter @glasswork/db migrate",
+    "db:seed": "pnpm --filter @glasswork/db seed",
+    "openapi": "pnpm --filter @glasswork/api openapi",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky || true"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.12.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "prettier": "3.9.10",
+    "turbo": "2.11.7",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,json,md,yml,yaml,css}": "prettier --write"
+  }
+}

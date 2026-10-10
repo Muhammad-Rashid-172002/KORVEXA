@@ -1,0 +1,50 @@
+{
+  "name": "@glasswork/shared",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./brand": {
+      "types": "./dist/brand.d.ts",
+      "default": "./dist/brand.js"
+    },
+    "./env": {
+      "types": "./dist/env.d.ts",
+      "default": "./dist/env.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "default": "./dist/api/index.js"
+    },
+    "./openapi.json": "./openapi.json"
+  },
+  "files": [
+    "dist",
+    "openapi.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && cp src/api/schema.d.ts dist/api/schema.d.ts",
+    "dev": "cp src/api/schema.d.ts dist/api/schema.d.ts 2>/dev/null; tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "gen:client": "openapi-typescript ./openapi.json -o ./src/api/schema.d.ts"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@glasswork/config": "workspace:*",
+    "@types/node": "22.20.5",
+    "eslint": "10.12.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  }
+}

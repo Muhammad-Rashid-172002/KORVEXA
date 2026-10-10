@@ -1,0 +1,9 @@
+pnpm-lock.yaml
+**/dist
+**/.next
+**/migrations/meta
+docs/BRIEF.md
+artifacts
+coverage
+packages/shared/openapi.json
+packages/shared/src/api/schema.d.ts

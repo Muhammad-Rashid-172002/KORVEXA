@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+  - e2e
+minimumReleaseAgeExclude:
+  - prettier@3.9.10
+
+# pnpm blocks dependency build scripts by default; allow only the ones we need.
+allowBuilds:
+  esbuild: true
