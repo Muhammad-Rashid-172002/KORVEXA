@@ -8,3 +8,10 @@ minimumReleaseAgeExclude:
 # pnpm blocks dependency build scripts by default; allow only the ones we need.
 allowBuilds:
   esbuild: true
+  '@swc/core': true
+  msgpackr-extract: true
+  protobufjs: true
+  # Not needed (telemetry / optional native ssh for testcontainers):
+  '@scarf/scarf': false
+  cpu-features: false
+  ssh2: false

@@ -29,6 +29,10 @@ export const apiEnvSchema = z.object({
   API_PUBLIC_URL: z.url().default('http://localhost:4000'),
   WEB_URL: z.url().default('http://localhost:3000'),
   CORS_ORIGINS: optional(),
+  /** Parent domain for cross-subdomain auth cookies in prod, e.g. `.glasswork.app`. Empty in dev. */
+  COOKIE_DOMAIN: optional(),
+  /** Set true behind a reverse proxy (Caddy) so client IPs come from X-Forwarded-For. */
+  TRUST_PROXY: bool(false),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
   BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET must be at least 32 characters'),
