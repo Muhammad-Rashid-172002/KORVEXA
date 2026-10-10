@@ -18,7 +18,8 @@ const meSchema = z.object({
   roles: z.array(z.enum(USER_ROLES)),
   adminScopes: z.array(z.enum(ADMIN_SCOPES)),
   activeMode: z.enum(ACTIVE_MODES),
-  displayName: z.string().nullable(),
+  // .min(1) keeps nestjs-zod on the anyOf path (a bare .nullable() string is mis-rendered as an array).
+  displayName: z.string().min(1).nullable(),
 });
 class MeDto extends createZodDto(meSchema) {}
 

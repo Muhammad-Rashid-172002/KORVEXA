@@ -4,6 +4,7 @@ packages:
   - e2e
 minimumReleaseAgeExclude:
   - prettier@3.9.10
+  - lucide-react@1.55.0
 
 # pnpm blocks dependency build scripts by default; allow only the ones we need.
 allowBuilds:
@@ -15,3 +16,5 @@ allowBuilds:
   '@scarf/scarf': false
   cpu-features: false
   ssh2: false
+  # Sentry CLI binary is only needed for source-map uploads (not configured yet).
+  '@sentry/cli': false
