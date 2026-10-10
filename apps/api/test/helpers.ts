@@ -1,8 +1,7 @@
-import { users, type DbClient } from '@glasswork/db';
+import { eq, users, type DbClient } from '@glasswork/db';
 import { QUEUES, type EmailJob } from '@glasswork/shared';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Queue } from 'bullmq';
-import { eq } from 'drizzle-orm';
 import { createApp } from '../src/bootstrap';
 import { DB } from '../src/infra/tokens';
 

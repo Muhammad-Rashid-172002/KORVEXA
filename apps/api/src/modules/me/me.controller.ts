@@ -1,7 +1,6 @@
-import { profiles, users, type DbClient } from '@glasswork/db';
+import { type DbClient, eq, profiles, users } from '@glasswork/db';
 import { Controller, Get, Inject, NotFoundException } from '@nestjs/common';
 import { ApiCookieAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { eq } from 'drizzle-orm';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import type { RequestActor } from '../../auth/session.service';

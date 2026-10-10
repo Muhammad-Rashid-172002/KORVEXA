@@ -1,6 +1,5 @@
-import { auditLogs, filesRepository, type DbClient } from '@glasswork/db';
+import { auditLogs, filesRepository, sql, type DbClient } from '@glasswork/db';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { sql } from 'drizzle-orm';
 import { uuidv7 } from 'uuidv7';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { RouteAuditService } from '../src/common/policy/route-audit.service';

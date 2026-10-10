@@ -1,6 +1,5 @@
-import { accounts, auditLogs, type DbClient } from '@glasswork/db';
+import { accounts, auditLogs, eq, type DbClient } from '@glasswork/db';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DB } from '../src/infra/tokens';
 import { cookieHeader, createTestApp, findEmailJob, ORIGIN, uniqueEmail } from './helpers';

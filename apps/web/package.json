@@ -12,6 +12,9 @@
   "dependencies": {
     "@glasswork/shared": "workspace:*",
     "@glasswork/ui": "workspace:*",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/core": "2.12.0",
+    "@opentelemetry/sdk-trace-base": "2.12.0",
     "@sentry/nextjs": "10.76.2",
     "better-auth": "1.7.7",
     "geist": "1.7.2",

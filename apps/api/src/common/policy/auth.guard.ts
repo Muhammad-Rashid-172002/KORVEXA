@@ -1,4 +1,4 @@
-import { users, type DbClient } from '@glasswork/db';
+import { eq, users, type DbClient } from '@glasswork/db';
 import {
   type CanActivate,
   createParamDecorator,
@@ -9,7 +9,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { eq } from 'drizzle-orm';
 import type { FastifyRequest } from 'fastify';
 import { SessionService, type RequestActor } from '../../auth/session.service';
 import { DB } from '../../infra/tokens';

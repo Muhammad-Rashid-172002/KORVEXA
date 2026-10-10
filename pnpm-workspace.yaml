@@ -18,3 +18,15 @@ allowBuilds:
   ssh2: false
   # Sentry CLI binary is only needed for source-map uploads (not configured yet).
   '@sentry/cli': false
+
+# Peers are declared explicitly. Auto-installing them made the API's production bundle pick up the
+# web app's optional better-auth peers (next/react/playwright, +450 MB).
+autoInstallPeers: false
+
+peerDependencyRules:
+  # Sentry's webpack plugin is unused (Next 16 builds with Turbopack).
+  ignoreMissing:
+    - webpack
+  allowedVersions:
+    # Codegen-only dev tool; works with TypeScript 6.
+    openapi-typescript>typescript: '6'

@@ -1,7 +1,6 @@
-import type { DbClient } from '@glasswork/db';
+import { type DbClient, sql } from '@glasswork/db';
 import { Controller, Get, HttpCode, Inject, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { sql } from 'drizzle-orm';
 import type { Redis } from 'ioredis';
 import { Public } from '../../common/policy/decorators';
 import { DB, REDIS } from '../../infra/tokens';
