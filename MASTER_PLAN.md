@@ -20,73 +20,94 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 ### 0.B Repo & tooling
 
-- [ ] `git init`, `.gitignore`, `.editorconfig`, `.nvmrc`, `packageManager` pin, README.md, SETUP.md
-- [ ] pnpm workspaces + Turborepo (`build`, `dev`, `lint`, `typecheck`, `test`, `test:e2e` pipelines)
-- [ ] Shared tsconfig base (strict), ESLint flat config, Prettier, lint-staged + husky pre-commit
-- [ ] `packages/shared`: brand.ts (Glasswork), env schema (zod), enums, state-machine definitions + unit tests, typed socket events
-- [ ] `packages/ui`: Tailwind v4 preset with brand tokens, shadcn/ui base (Button, Input, Card, Label, Form), dark + light theme
+- [x] `git init`, `.gitignore`, `.editorconfig`, `.nvmrc`, `packageManager` pin, README.md, SETUP.md
+- [x] pnpm workspaces + Turborepo (`build`, `dev`, `lint`, `typecheck`, `test`, `test:e2e` pipelines)
+- [x] Shared tsconfig base (strict), ESLint flat config, Prettier, lint-staged + husky pre-commit
+- [x] `packages/shared`: brand.ts (Glasswork), env schema (zod), enums, state-machine definitions + unit tests, typed socket events
+- [x] `packages/ui`: Tailwind v4 preset with brand tokens, shadcn/ui base (Button, Input, Card, Label, Alert, Badge), dark + light theme
 
 ### 0.C Infrastructure
 
-- [ ] `infra/docker-compose.yml`: postgres, redis, minio (+ bucket bootstrap), mailpit, api, worker, web, with healthchecks
-- [ ] Dockerfiles (multi-stage, non-root) for api, worker, web
-- [ ] `.env.example` (every variable documented); config validated with zod at boot (fail fast)
-- [ ] One command: `pnpm dev:up` (whole stack in Docker) plus `pnpm dev` (infra in Docker, apps on host with hot reload)
+- [~] `infra/docker-compose.yml`: postgres, redis, minio (+ bucket bootstrap), mailpit, api, worker, web, with healthchecks
+- [~] Dockerfiles (multi-stage, non-root) for api, worker, web
+- [x] `.env.example` (every variable documented); config validated with zod at boot (fail fast)
+- [x] One command: `pnpm dev:up` (whole stack in Docker) plus `pnpm dev` (infra in Docker, apps on host with hot reload)
 
 ### 0.D Database
 
-- [ ] `packages/db`: Drizzle schema for the Phase 0 tables (users, accounts, sessions, verifications, profiles, audit_logs, files) + enums for the whole ERD
-- [ ] First migration generated and committed; `pnpm db:migrate`
-- [ ] Seed script (dev only, refuses to run when NODE_ENV=production; every seeded row tagged `is_seed=true`)
+- [x] `packages/db`: Drizzle schema for the Phase 0 tables (users, accounts, sessions, verifications, profiles, audit_logs, files) + enums for the whole ERD
+- [x] First migration generated and committed; `pnpm db:migrate`
+- [x] Seed script (dev only, refuses to run when NODE_ENV=production; every seeded row tagged `is_seed=true`)
 
 ### 0.E API (NestJS + Fastify)
 
-- [ ] App bootstrap: Fastify adapter, pino logging, helmet/security headers, CORS allow-list, global zod validation, standard error format, `/v1` prefix, `/health` + `/ready`
-- [ ] OpenAPI generation (`/v1/docs` in dev; spec exported to `packages/shared/openapi.json`)
-- [ ] Rate limiting (Redis-backed) on auth routes
-- [ ] Sentry wiring (no-op when `SENTRY_DSN` is empty)
+- [x] App bootstrap: Fastify adapter, pino logging, helmet/security headers, CORS allow-list, global zod validation, standard error format, `/v1` prefix, `/health` + `/ready`
+- [x] OpenAPI generation (`/v1/docs` in dev; spec exported to `packages/shared/openapi.json`)
+- [x] Rate limiting (Redis-backed) on auth routes
+- [x] Sentry wiring (no-op when `SENTRY_DSN` is empty)
 
 ### 0.F Auth end-to-end
 
-- [ ] Better Auth mounted at `/v1/auth/*`, Drizzle adapter, argon2id password hashing
-- [ ] Register → verification email (React Email → Mailpit) → verify → login → logout
-- [ ] Google + GitHub OAuth wired (keys are TODO; buttons hidden when keys are absent)
-- [ ] httpOnly, Secure, SameSite=Lax session cookie; bearer plugin enabled for the future Flutter app
+- [x] Better Auth mounted at `/v1/auth/*`, Drizzle adapter, argon2id password hashing
+- [x] Register → verification email (React Email → Mailpit) → verify → login → logout
+- [x] Google + GitHub OAuth wired (keys are TODO; buttons hidden when keys are absent) — _not exercised against real providers until keys exist_
+- [x] httpOnly, Secure, SameSite=Lax session cookie; bearer plugin enabled for the future Flutter app
 
 ### 0.G Authorization proof
 
-- [ ] Policy layer (`@Policy()` decorator + guard + explicit policy functions) and a scoped repository pattern
-- [ ] One protected endpoint (`GET /v1/me/files/:id`) + policy tests: owner OK, other user 404, anonymous 401
+- [x] Policy layer (`@Policy()` decorator + guard + explicit policy functions) and a scoped repository pattern
+- [x] One protected endpoint (`GET /v1/me/files/:id`) + policy tests: owner OK, other user 404, anonymous 401
 
 ### 0.H Realtime
 
-- [ ] Socket.io gateway with Redis adapter, session-cookie handshake auth, rejects unauthenticated sockets, typed `ping`/`pong` event; tests for auth reject/accept
+- [x] Socket.io gateway with Redis adapter, session-cookie handshake auth, rejects unauthenticated sockets, typed `ping`/`pong` event; tests for auth reject/accept
 
 ### 0.I Files
 
-- [ ] Presigned PUT upload to MinIO (size + MIME allow-list, per-user key prefix), `files` row, presigned GET only for the owner; tests for the cross-user denial
+- [x] Presigned PUT upload to MinIO (size + MIME allow-list, per-user key prefix), `files` row, presigned GET only for the owner; tests for the cross-user denial
 
 ### 0.J Worker
 
-- [ ] BullMQ worker app: `email` queue (verification mail sent via the queue), graceful shutdown, health
+- [x] BullMQ worker app: `email` queue (verification mail sent via the queue), graceful shutdown, health
 
 ### 0.K Web (Next.js)
 
-- [ ] App Router shell with the "Glasswork by KorvenzaTech" header/footer from brand.ts, themes
-- [ ] Pages: /signup, /login, /verify-email, /dashboard (protected), logout; typed API client generated from OpenAPI
-- [ ] Demo widgets on /dashboard: socket connection status + file upload
+- [x] App Router shell with the "Glasswork by KorvenzaTech" header/footer from brand.ts, themes
+- [x] Pages: /signup, /login, /verify-email, /dashboard (protected), logout; typed API client generated from OpenAPI
+- [x] Demo widgets on /dashboard: socket connection status + file upload
 
 ### 0.L Quality & CI
 
-- [ ] Vitest unit tests (shared, api); integration tests against real Postgres/Redis (Testcontainers in CI, local services in the sandbox)
-- [ ] Playwright e2e: signup → Mailpit verify → login → dashboard → upload → logout; screenshots at 1440 and 390 into git-ignored `artifacts/`
-- [ ] GitHub Actions: install, lint, typecheck, unit, integration, e2e, build, `pnpm audit`
-- [ ] All green locally in the sandbox
+- [x] Vitest unit tests (shared, api); integration tests against real Postgres/Redis (Testcontainers in CI, local services in the sandbox)
+- [x] Playwright e2e: signup → Mailpit verify → login → dashboard → upload → logout; screenshots at 1440 and 390 into git-ignored `artifacts/`
+- [~] GitHub Actions: install, lint, typecheck, unit, integration, e2e, build, `pnpm audit` — _written; first run happens when the GitHub repo exists_
+- [x] All green locally in the sandbox
 
 ### 0.M Checkpoint report (CHECKPOINT B)
 
-- [ ] One-command run instructions, demo script, screenshots, test results, TODO keys/accounts list
+- [x] One-command run instructions, demo script, screenshots, test results, TODO keys/accounts list
 - [ ] Rashid confirms `pnpm dev:up` on the Mac → merge `phase/0-foundation` into `main`
+
+---
+
+### Phase 0 log (2026-10-11)
+
+**Verified in the build sandbox:** lint, typecheck and unit tests across 9 workspaces; 16 API integration tests (auth flow, policy, realtime, rate limit) on real Postgres + Redis; 8 Playwright e2e tests (desktop 1440 + mobile 390) against the production builds of api/worker/web; the same e2e also passed against `pnpm dev`; the Docker build steps (install → turbo build → `pnpm deploy` bundles) replayed outside Docker, with migrations, seed, API and worker run from the pruned bundles.
+
+**`[~]` = not verifiable in the sandbox** (it has no Docker engine): `docker compose up` itself, the MinIO/Mailpit images (the sandbox used S3/SMTP stand-ins), and the first CI run. Rashid's Mac checklist covers these.
+
+**Files (by area):** `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.env.example`, `README.md`, `SETUP.md`, `.github/workflows/ci.yml`, `infra/docker-compose.yml`, `infra/docker/Dockerfile`, `scripts/wait-for-stack.mjs`, `packages/{config,shared,db,emails,ui}/**`, `apps/{api,worker,web}/**`, `e2e/**`.
+
+**Known issues / follow-ups:**
+
+- MinIO image tag couldn't be verified from the sandbox; it's overridable with `MINIO_IMAGE`.
+- OAuth is untested until real Google/GitHub keys exist.
+- CSP uses `'unsafe-inline'` for scripts (Next.js hydration); nonce-based CSP is planned for Phase 9.
+- Rotating refresh tokens for mobile: Phase 1 (D-010).
+- No ClamAV yet; files are owner-only until Phase 4 (D-030).
+- Logo SVG not received; the header uses a text lockup.
+
+**Manual test:** see the Phase 0 checkpoint demo script (in the chat report and SETUP.md §2).
 
 ---
 

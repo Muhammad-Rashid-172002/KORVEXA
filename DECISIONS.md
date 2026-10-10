@@ -80,6 +80,22 @@ Rule I applied: take the latest stable release, but **skip majors less than ~6 w
 
 ---
 
+### Version changes made during the Phase 0 build (2026-10-11)
+
+| Change                                                                                                    | Why                                                                                                                 |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| ESLint **10.12.0** + @eslint/js 10.0.1 (was 9.39.5)                                                       | npm marks ESLint 9 as deprecated; 10 has been out since Feb 2026 and typescript-eslint 8.71 supports it.            |
+| nodemailer **10.1.0** (worker, SMTP to Mailpit)                                                           | Versions below 10.0.9 have high-severity advisories (`pnpm audit`). Security beats the "skip fresh majors" rule.    |
+| fastify **5.12.5** via pnpm override                                                                      | @nestjs/platform-fastify 11.2.7 pins 5.11.3, which has high-severity advisories. Patch-level within 5.x.            |
+| js-yaml 5.4.1 via override                                                                                | Moderate advisory in @nestjs/swagger's dependency.                                                                  |
+| socket.io **4.8.3** in the API                                                                            | Must match the version @nestjs/platform-socket.io 11.2.7 is built against (the web client stays on 4.8.4).          |
+| Base images: `node:22-bookworm-slim`, `postgres:17-alpine`, `redis:7.4-alpine`, `axllent/mailpit:v1.31.4` | Majors pinned and patches float, so security fixes arrive on rebuild. Digest pinning via Renovate comes in Phase 9. |
+| MinIO `minio/minio:RELEASE.2025-09-07T16-13-09Z` (overridable with `MINIO_IMAGE`)                         | Last community image we know of; I couldn't verify the tag from the sandbox. Local only.                            |
+
+**D-008 pnpm: explicit peer dependencies (`autoInstallPeers: false`).** Auto-installed peers made the API's production bundle pull in the web app's optional better-auth peers (Next.js, React, Playwright: 650 MB → 206 MB after the fix). Every peer is now declared where it's used, and `pnpm peers check` is clean. Build scripts are allow-listed in `pnpm-workspace.yaml` (`allowBuilds`).
+
+**D-009 One drizzle-orm instance.** Apps import query helpers (`eq`, `and`, `sql`, …) from `@glasswork/db`, never from `drizzle-orm` directly (enforced by ESLint). This avoids duplicate-instance type errors.
+
 ## 2. Folder structure
 
 ```

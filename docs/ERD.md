@@ -45,7 +45,7 @@ erDiagram
     sessions {
         uuid id PK
         uuid user_id FK
-        text token UK "hashed"
+        text token UK "opaque random; cookie is HMAC-signed"
         timestamptz expires_at
         text ip_address
         text user_agent
