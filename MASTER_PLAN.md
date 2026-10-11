@@ -3,6 +3,28 @@
 Source of truth for progress. Built from docs/BRIEF.md §12; decisions live in DECISIONS.md.
 Rule (brief §3): continue from the first unchecked item and never redo ticked work. Each ticked item records files changed, known issues and what to test manually.
 
+## ▶ RESUME HERE (updated 2026-10-11)
+
+Next: **Phase 0 verification on the real Docker stack** (0.M), then merge `phase/0-foundation` → `main`, then Phase 1 on `phase/1-accounts`.
+
+- Everything up to 0.L+ is written, and it was tested in a cloud sandbox: real Postgres 16 + Redis, with S3 and SMTP stand-ins, no Docker.
+- Not yet verified: `pnpm dev:up` on the Mac, i.e. RustFS, Mailpit, the Docker image builds, and the end-of-`dev:up` storage smoke test.
+- Mac run #1 failed only because the MinIO image was unavailable; fixed in 2a04f7a.
+- To verify: `pnpm dev:up`, then `pnpm turbo run lint typecheck test`, `pnpm test:integration` (Testcontainers), and `pnpm --filter @glasswork/e2e exec playwright install chromium && pnpm test:e2e`.
+
+## ⏳ WAITING ON RASHID
+
+| Item                                                                | Needed for                                           | Status                                                       |
+| ------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
+| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it | Partners deciding with accountant/lawyer                     |
+| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                     | Admin settings exist, set to 0                               |
+| Admin role mapping confirmation (Q5)                                | Admin area                                           | Provisional: Rashid=product, Taha=growth, Suliman=operations |
+| GitHub repo URL (Q7)                                                | CI first run, push                                   | Not created yet                                              |
+| KorvenzaTech K logo SVG                                             | Header lockup, product mark                          | Text lockup in use                                           |
+| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS            | TODO in brand.ts                                             |
+| Google + GitHub OAuth keys                                          | Social login                                         | Buttons hidden until set                                     |
+| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                     | Off locally (Mailpit / no-op Sentry)                         |
+
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason inline)
 
 ---
