@@ -9,3 +9,4 @@ export * from './money';
 export * from './room';
 export * from './chat';
 export * from './trust';
+export * from './ai';

@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
 /** BullMQ queue names shared by api (producer) and worker (consumer). */
-export const QUEUES = { email: 'email', milestones: 'milestones', scan: 'scan' } as const;
+export const QUEUES = { email: 'email', milestones: 'milestones', scan: 'scan', reports: 'reports' } as const;
+
+/** Weekly progress-report drafts: Mondays 07:00 UTC. */
+export const WEEKLY_REPORTS_CRON = '0 7 * * 1';
 
 /** Virus-scan job: the worker streams the object to ClamAV and reports back to the API. */
 export const scanJobSchema = z.object({ fileId: z.uuid(), storageKey: z.string().min(1) });

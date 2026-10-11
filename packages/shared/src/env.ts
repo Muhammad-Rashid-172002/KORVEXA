@@ -65,6 +65,15 @@ const apiEnvObject = z.object({
   /** Web push (VAPID). Push is disabled until both keys are set; generate with `npx web-push generate-vapid-keys`. */
   /** 'off' = uploads become downloadable immediately (dev). 'clamav' = uploads stay `uploaded` until the worker scans them. */
   SCAN_MODE: z.enum(['off', 'clamav']).default('off'),
+  /** 'stub' = deterministic offline answers (dev/CI, no network); 'anthropic' = Claude API; 'off' = AI features disabled. */
+  AI_PROVIDER: z.enum(['stub', 'anthropic', 'off']).default('stub'),
+  ANTHROPIC_API_KEY: optional(),
+  AI_MODEL: z.string().default('claude-opus-5-5'),
+  AI_EFFORT: z.enum(['low', 'medium', 'high']).default('medium'),
+  /** Hard spend ceilings, in US cents. Requests are refused (429) once reached; usage is measured from real token counts. */
+  AI_DAILY_USER_CAP_CENTS: z.coerce.number().int().nonnegative().default(100),
+  AI_DAILY_GLOBAL_CAP_CENTS: z.coerce.number().int().nonnegative().default(2000),
+  AI_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(30),
   VAPID_PUBLIC_KEY: optional(),
   VAPID_PRIVATE_KEY: optional(),
   VAPID_SUBJECT: z.string().default('mailto:support@localhost'),
@@ -92,7 +101,19 @@ export const apiEnvSchema = apiEnvObject.superRefine((env, ctx) => {
       message: 'live Stripe keys are refused until PAYMENTS_LIVE_ENABLED=true (DECISIONS D-020)',
     });
   }
+  if (env.AI_PROVIDER === 'anthropic' && !env.ANTHROPIC_API_KEY)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['ANTHROPIC_API_KEY'],
+      message: 'required when AI_PROVIDER=anthropic',
+    });
   if (env.NODE_ENV === 'production') {
+    if (env.AI_PROVIDER === 'stub')
+      ctx.addIssue({
+        code: 'custom',
+        path: ['AI_PROVIDER'],
+        message: 'the offline stub AI cannot run in production (use anthropic or off)',
+      });
     if (env.SCAN_MODE === 'off')
       ctx.addIssue({
         code: 'custom',

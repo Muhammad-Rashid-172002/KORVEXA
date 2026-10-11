@@ -29,6 +29,7 @@ import {
   type TaskCommentView,
   type TaskInput,
   type TaskPatch,
+  type TaskSource,
   type TaskStatus,
   type TaskView,
 } from '@glasswork/shared';
@@ -172,6 +173,51 @@ export class RoomService {
     });
     this.notifier.changed(projectId, 'task.created');
     return { taskId: task.id, ...(await this.board(actor, projectId)) };
+  }
+
+  /** Creates several to-do tasks in one transaction (e.g. confirmed AI suggestions from meeting notes). */
+  async createMany(
+    actor: RequestActor,
+    projectId: string,
+    items: { title: string; description?: string | null }[],
+    opts: { milestoneId?: string | null; source: TaskSource },
+  ): Promise<{ created: number }> {
+    await this.member(actor, projectId, { seller: true, write: true });
+    await this.validateTaskRefs(projectId, opts.milestoneId);
+    await this.db.db.transaction(async (tx) => {
+      const [max] = await tx
+        .select({ n: sql<number>`coalesce(max(${tasks.sortOrder}), -10)::int` })
+        .from(tasks)
+        .where(and(eq(tasks.projectId, projectId), eq(tasks.status, 'todo')));
+      let order = (max?.n ?? -10) + 10;
+      for (const it of items) {
+        const [t] = await tx
+          .insert(tasks)
+          .values({
+            projectId,
+            milestoneId: opts.milestoneId ?? null,
+            title: it.title,
+            description: it.description || null,
+            status: 'todo',
+            sortOrder: order,
+            source: opts.source,
+            createdBy: actor.userId,
+          })
+          .returning();
+        order += 10;
+        await recordChange(tx, {
+          projectId,
+          actorId: actor.userId,
+          type: 'task.created',
+          entityType: 'task',
+          entityId: t!.id,
+          after: { title: t!.title, status: t!.status, source: opts.source },
+          payload: { taskId: t!.id, title: t!.title, source: opts.source },
+        });
+      }
+    });
+    this.notifier.changed(projectId, 'task.created');
+    return { created: items.length };
   }
 
   async updateTask(actor: RequestActor, projectId: string, taskId: string, patch: TaskPatch) {
