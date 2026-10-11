@@ -1,31 +1,19 @@
-import { expect, test, type Browser, type Page } from '@playwright/test';
-import { API_URL, PNG_1PX, shot, signUpAndVerify, uniqueEmail } from './helpers';
+import { expect, test, type Browser } from '@playwright/test';
+import {
+  API_URL,
+  PNG_1PX,
+  publishedSeller,
+  SEED_PASSWORD,
+  shot,
+  signUpAndVerify,
+  uniqueEmail,
+} from './helpers';
 
-const SEED_PASSWORD = 'Glasswork-dev-123!';
 const word = () =>
   `zephyr${Math.random()
     .toString(36)
     .replace(/[^a-z]/g, '')
     .slice(0, 8)}`;
-
-async function api(page: Page, method: string, path: string, data?: unknown) {
-  const res = await page.request.fetch(`${API_URL}/v1${path}`, {
-    method,
-    data,
-    headers: { origin: 'http://localhost:3000' },
-  });
-  expect(res.ok(), `${method} ${path} → ${res.status()} ${await res.text()}`).toBeTruthy();
-}
-
-/** Signs up, becomes a seller and publishes the seller profile through the API (the wizard has its own e2e). */
-async function publishedSeller(page: Page, tag: string) {
-  await signUpAndVerify(page, uniqueEmail(tag), `Seller ${tag}`, 'e2e-password-123');
-  await api(page, 'POST', '/me/seller');
-  await api(page, 'PATCH', '/me/profile', { headline: 'Engineer', bio: 'Builds things', country: 'PK' });
-  await api(page, 'PUT', '/me/seller/skills', { skills: ['React'] });
-  await api(page, 'PATCH', '/me/seller', { hourlyRateAmount: 4000 });
-  await api(page, 'POST', '/me/seller/onboarding/complete');
-}
 
 async function adminPage(browser: Browser, baseURL: string | undefined) {
   const ctx = await browser.newContext({ baseURL });

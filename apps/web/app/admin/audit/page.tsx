@@ -48,9 +48,9 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
                 <td className="px-3 py-2 text-xs text-muted">{new Date(l.createdAt).toLocaleString()}</td>
                 <td className="px-3 py-2 font-mono text-xs">{l.action}</td>
                 <td className="px-3 py-2 text-xs">
-                  {l.entityType} {l.entityId?.slice(0, 8)}
+                  {l.entityType} {l.entityId?.slice(-8)}
                 </td>
-                <td className="px-3 py-2 text-xs text-muted">{l.actorId?.slice(0, 8) ?? 'system'}</td>
+                <td className="px-3 py-2 text-xs text-muted">{l.actorId?.slice(-8) ?? 'system'}</td>
               </tr>
             ))}
           </tbody>

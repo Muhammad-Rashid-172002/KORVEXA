@@ -62,7 +62,9 @@ jobs:
           cache: pnpm
       - run: cp .env.example .env
       # e2e signs up/in far more than 10×/min from one IP; the limiter itself is covered by an integration test.
-      - run: echo 'AUTH_RATE_LIMIT_MAX=500' >> .env
+      - run: |
+          echo 'AUTH_RATE_LIMIT_MAX=500' >> .env
+          echo 'RATE_LIMIT_PER_MINUTE=5000' >> .env
       - name: Start the stack
         run: pnpm dev:up
       - run: pnpm install --frozen-lockfile

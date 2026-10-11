@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: 'Admin · Payouts' };
 interface Payout {
   id: string;
   sellerId: string;
+  sellerName: string;
   amount: number;
   currency: string;
   status: string;
@@ -41,7 +42,8 @@ export default async function AdminPayouts() {
                     <Badge>{p.rail.replace(/_/g, ' ')}</Badge>
                   </div>
                   <p className="text-xs text-muted">
-                    Seller {p.sellerId.slice(0, 8)} · requested {new Date(p.createdAt).toLocaleString()}
+                    Seller {p.sellerName} ({p.sellerId.slice(-6)}) · requested{' '}
+                    {new Date(p.createdAt).toLocaleString()}
                   </p>
                   <PayoutActions id={p.id} amount={money(p.amount, p.currency)} />
                 </Card>

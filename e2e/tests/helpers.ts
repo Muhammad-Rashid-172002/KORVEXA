@@ -1,4 +1,5 @@
-import type { Page, TestInfo } from '@playwright/test';
+import { expect, type Browser, type Page, type TestInfo } from '@playwright/test';
+import { brand } from '@glasswork/shared/brand';
 import path from 'node:path';
 
 export const MAILPIT_URL = process.env.MAILPIT_URL ?? 'http://localhost:8025';
@@ -58,3 +59,80 @@ export const PNG_1PX = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
   'base64',
 );
+
+export const WEB_ORIGIN = { origin: 'http://localhost:3000' };
+/** Dev-seed password (mirrors packages/db seed: "<product>-dev-123!"). */
+export const SEED_PASSWORD = `${brand.productName}-dev-123!`;
+
+/** Calls the API with the page's cookies (same session as the browser). Fails the test on a non-2xx unless `allow` says so. */
+export async function apiCall<T = unknown>(
+  page: Page,
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  path: string,
+  data?: unknown,
+  headers: Record<string, string> = {},
+): Promise<T> {
+  const res = await page.request.fetch(`${API_URL}/v1${path}`, {
+    method,
+    data,
+    headers: { ...WEB_ORIGIN, ...headers },
+  });
+  expect(res.ok(), `${method} ${path} → ${res.status()} ${await res.text()}`).toBeTruthy();
+  return (await res.json().catch(() => ({}))) as T;
+}
+
+let idem = 0;
+export const idemKey = (p = 'e2e') => `${p}-${Date.now()}-${Math.floor(Math.random() * 1e6)}-${++idem}`;
+
+/** Signs up, becomes a seller and publishes the seller profile through the API (the wizard has its own e2e). */
+export async function publishedSeller(page: Page, tag: string) {
+  const email = uniqueEmail(tag);
+  await signUpAndVerify(page, email, `Seller ${tag}`, 'e2e-password-123');
+  await apiCall(page, 'POST', '/me/seller');
+  await apiCall(page, 'PATCH', '/me/profile', { headline: 'Engineer', bio: 'Builds things', country: 'PK' });
+  await apiCall(page, 'PUT', '/me/seller/skills', { skills: ['React'] });
+  await apiCall(page, 'PATCH', '/me/seller', { hourlyRateAmount: 4000 });
+  await apiCall(page, 'POST', '/me/seller/onboarding/complete');
+  return email;
+}
+
+/** A browser context signed in as the seeded dev admin (all scopes). */
+export async function adminContext(browser: Browser, baseURL: string | undefined) {
+  const ctx = await browser.newContext({ baseURL });
+  const page = await ctx.newPage();
+  const res = await page.request.post(`${API_URL}/v1/auth/sign-in/email`, {
+    data: { email: 'admin@dev.glasswork.test', password: SEED_PASSWORD },
+    headers: WEB_ORIGIN,
+  });
+  expect(res.ok(), `admin sign-in → ${res.status()}`).toBeTruthy();
+  return { ctx, page };
+}
+
+/** Creates a service for the signed-in seller, submits it and has the admin approve it. Returns slug + package id. */
+export async function liveService(seller: Page, admin: Page, title: string, priceCents: number) {
+  const cats = await apiCall<{ id: string; slug: string }[]>(seller, 'GET', '/categories');
+  const svc = await apiCall<{ id: string; slug: string; packages: { id: string }[] }>(
+    seller,
+    'POST',
+    '/me/services',
+    {
+      categoryId: cats[0]!.id,
+      title,
+      description:
+        'A complete production-ready build with tests, CI and clear milestones for every stage of delivery.',
+      packages: [
+        {
+          tier: 'basic',
+          title: 'Standard build',
+          description: 'Everything included in the build',
+          priceAmount: priceCents,
+          deliveryDays: 10,
+          revisions: 2,
+        },
+      ],
+    },
+  );
+  await apiCall(seller, 'POST', `/me/services/${svc.id}/submit`);
+  await apiCall(admin, 'POST', `/admin/services/${svc.id}/approve`);
+  return { serviceId: svc.id, slug: svc.slug, packageId: svc.packages[0]!.id };
+}

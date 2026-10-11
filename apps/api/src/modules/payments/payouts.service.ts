@@ -7,6 +7,7 @@ import {
   invoices,
   milestones,
   payouts,
+  profiles,
   projects,
   sql,
   transfers,
@@ -135,8 +136,15 @@ export class PayoutsService {
   }
 
   async adminList(status?: string) {
-    const rows = await this.db.db.select().from(payouts).orderBy(desc(payouts.id)).limit(100);
-    return rows.filter((r) => !status || r.status === status);
+    const rows = await this.db.db
+      .select({ payout: payouts, sellerName: profiles.displayName })
+      .from(payouts)
+      .innerJoin(profiles, eq(profiles.userId, payouts.sellerId))
+      .orderBy(desc(payouts.id))
+      .limit(100);
+    return rows
+      .filter((r) => !status || r.payout.status === status)
+      .map((r) => ({ ...r.payout, sellerName: r.sellerName }));
   }
 
   /** Operations marks a manual payout as paid (money leaves platform cash) or failed (reservation reversed). */
