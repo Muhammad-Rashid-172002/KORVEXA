@@ -14,5 +14,10 @@ export const emailJobSchema = z.discriminatedUnion('template', [
     to: z.email(),
     data: z.object({ name: z.string(), url: z.url() }),
   }),
+  z.object({
+    template: z.literal('org-invite'),
+    to: z.email(),
+    data: z.object({ inviterName: z.string(), orgName: z.string(), url: z.url() }),
+  }),
 ]);
 export type EmailJob = z.infer<typeof emailJobSchema>;

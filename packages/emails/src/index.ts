@@ -1,6 +1,7 @@
 import { brand, type EmailJob } from '@glasswork/shared';
 import { render } from '@react-email/render';
 import { createElement } from 'react';
+import { OrgInvite } from './templates/org-invite';
 import { ResetPassword } from './templates/reset-password';
 import { VerifyEmail } from './templates/verify-email';
 
@@ -25,6 +26,14 @@ export async function renderEmail(job: EmailJob): Promise<RenderedEmail> {
       const el = createElement(ResetPassword, job.data);
       return {
         subject: `Reset your ${brand.productName} password`,
+        html: await render(el),
+        text: await render(el, { plainText: true }),
+      };
+    }
+    case 'org-invite': {
+      const el = createElement(OrgInvite, job.data);
+      return {
+        subject: `${job.data.inviterName} invited you to ${job.data.orgName} on ${brand.productName}`,
         html: await render(el),
         text: await render(el, { plainText: true }),
       };

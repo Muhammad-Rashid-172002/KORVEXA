@@ -15,6 +15,20 @@
       "when": 1791673567236,
       "tag": "0001_audit_logs_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791721452593,
+      "tag": "0002_supreme_may_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791722453459,
+      "tag": "0003_yellow_patch",
+      "breakpoints": true
     }
   ]
 }

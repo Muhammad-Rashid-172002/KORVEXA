@@ -3,6 +3,8 @@ import { APP_FILTER, APP_GUARD, APP_PIPE, DiscoveryModule } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
 import { AllExceptionsFilter } from './common/errors/http-exception.filter';
 import { AuthGuard } from './common/policy/auth.guard';
 import { RouteAuditService } from './common/policy/route-audit.service';
@@ -12,6 +14,8 @@ import { FilesModule } from './modules/files/files.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { PublicConfigController } from './modules/public-config/public-config.controller';
+import { OrgsModule } from './modules/orgs/orgs.module';
+import { ProfilesModule } from './modules/profiles/profiles.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 
 const env = loadEnv();
@@ -32,6 +36,10 @@ const env = loadEnv();
     InfraModule,
     AuthModule,
     FilesModule,
+    ProfilesModule,
+    OrgsModule,
+    SessionsModule,
+    AdminModule,
     RealtimeModule,
   ],
   controllers: [HealthController, MeController, PublicConfigController],

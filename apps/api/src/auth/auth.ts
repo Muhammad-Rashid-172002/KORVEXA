@@ -7,11 +7,13 @@ import {
   profiles,
   auditLogs,
   sessions,
+  twoFactors,
   type DbClient,
 } from '@glasswork/db';
+import { brand } from '@glasswork/shared';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { bearer, openAPI } from 'better-auth/plugins';
+import { bearer, openAPI, twoFactor } from 'better-auth/plugins';
 import type { Redis } from 'ioredis';
 import { uuidv7 } from 'uuidv7';
 import { isOAuthEnabled, type ApiEnv } from '../config/env';
@@ -37,7 +39,13 @@ export function createAuth(deps: { env: ApiEnv; db: DbClient; redis: Redis; emai
     trustedOrigins: [env.WEB_URL, ...(env.CORS_ORIGINS?.split(',').map((o) => o.trim()) ?? [])],
     database: drizzleAdapter(db.db, {
       provider: 'pg',
-      schema: { user: users, session: sessions, account: accounts, verification: authTokens },
+      schema: {
+        user: users,
+        session: sessions,
+        account: accounts,
+        verification: authTokens,
+        twoFactor: twoFactors,
+      },
     }),
     secondaryStorage: {
       get: (key) => redis.get(`ba:${key}`),
@@ -143,7 +151,11 @@ export function createAuth(deps: { env: ApiEnv; db: DbClient; redis: Redis; emai
         },
       },
     },
-    plugins: [bearer(), ...(isProd ? [] : [openAPI({ path: '/reference' })])],
+    plugins: [
+      bearer(),
+      twoFactor({ issuer: brand.productName }),
+      ...(isProd ? [] : [openAPI({ path: '/reference' })]),
+    ],
   });
 }
 

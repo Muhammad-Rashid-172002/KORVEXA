@@ -58,3 +58,22 @@ export const VERIFICATION_KINDS = [
   'skill_test',
 ] as const;
 export type VerificationKind = (typeof VERIFICATION_KINDS)[number];
+
+export const ORG_KINDS = ['buyer_team', 'agency'] as const;
+export type OrgKind = (typeof ORG_KINDS)[number];
+
+export const ORG_ROLES = ['owner', 'admin', 'member'] as const;
+export type OrgRole = (typeof ORG_ROLES)[number];
+
+export const SELLER_AVAILABILITY = ['available', 'busy', 'away'] as const;
+export type SellerAvailability = (typeof SELLER_AVAILABILITY)[number];
+
+export const SELLER_ONBOARDING_STEPS = [
+  'profile',
+  'skills',
+  'portfolio',
+  'rates',
+  'payout',
+  'identity',
+] as const;
+export type SellerOnboardingStep = (typeof SELLER_ONBOARDING_STEPS)[number];

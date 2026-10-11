@@ -1,5 +1,15 @@
 import { sql } from 'drizzle-orm';
-import { boolean, check, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { createdAt, id, isSeed, updatedAt } from './_common';
 import { activeMode, adminScope, userRole } from './enums';
 
@@ -26,6 +36,7 @@ export const users = pgTable(
       .notNull()
       .default(sql`'{}'::admin_scope[]`),
     activeMode: activeMode().notNull().default('buyer'),
+    twoFactorEnabled: boolean().notNull().default(false),
     bannedAt: timestamp({ withTimezone: true }),
     isSeed: isSeed(),
     createdAt: createdAt(),
@@ -96,6 +107,9 @@ export const profiles = pgTable('profiles', {
     .primaryKey()
     .references(() => users.id, { onDelete: 'cascade' }),
   displayName: text().notNull(),
+  /** Public URL handle, set when the user publishes a profile. Lower-case. */
+  slug: text().unique(),
+  avatarFileId: uuid(),
   headline: text(),
   bio: text(),
   country: text(),
@@ -108,3 +122,22 @@ export const profiles = pgTable('profiles', {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+/** TOTP secrets + backup codes (Better Auth twoFactor plugin; values are encrypted by the plugin). */
+export const twoFactors = pgTable(
+  'two_factors',
+  {
+    id: id(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    secret: text().notNull(),
+    backupCodes: text().notNull(),
+    verified: boolean().notNull().default(true),
+    failedVerificationCount: integer().notNull().default(0),
+    lockedUntil: timestamp({ withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('two_factors_user_id_idx').on(t.userId)],
+);
