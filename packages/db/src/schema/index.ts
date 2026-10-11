@@ -4,3 +4,5 @@ export * from './files';
 export * from './platform';
 export * from './accounts';
 export * from './catalogue';
+export * from './commerce';
+export * from './money';
