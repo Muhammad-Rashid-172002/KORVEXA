@@ -1,6 +1,7 @@
+import { eq, users, type DbClient } from '@glasswork/db';
 import { Inject, Injectable } from '@nestjs/common';
 import type { IncomingHttpHeaders } from 'node:http';
-import { AUTH } from '../infra/tokens';
+import { AUTH, DB } from '../infra/tokens';
 import type { Auth } from './auth';
 
 /** The authenticated principal attached to requests and sockets. */
@@ -13,7 +14,10 @@ export interface RequestActor {
 
 @Injectable()
 export class SessionService {
-  constructor(@Inject(AUTH) private readonly auth: Auth) {}
+  constructor(
+    @Inject(AUTH) private readonly auth: Auth,
+    @Inject(DB) private readonly db: DbClient,
+  ) {}
 
   /** Resolves the session from a cookie or `Authorization: Bearer` header. Returns null when absent/invalid. */
   async resolve(rawHeaders: IncomingHttpHeaders): Promise<RequestActor | null> {
@@ -24,6 +28,12 @@ export class SessionService {
     }
     const result = await this.auth.api.getSession({ headers });
     if (!result) return null;
+    // A banned account is treated as signed out everywhere (HTTP and sockets), even with a still-valid cached session.
+    const [row] = await this.db.db
+      .select({ bannedAt: users.bannedAt })
+      .from(users)
+      .where(eq(users.id, result.user.id));
+    if (!row || row.bannedAt) return null;
     return {
       userId: result.user.id,
       email: result.user.email,

@@ -12,3 +12,4 @@ export * from './money';
 export * from './commerce';
 export * from './room';
 export * from './trust';
+export * from './chat-safety';
