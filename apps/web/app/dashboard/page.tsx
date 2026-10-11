@@ -42,6 +42,15 @@ export default async function DashboardPage() {
         <Link className="text-primary underline-offset-4 hover:underline" href="/settings">
           Settings
         </Link>
+        <Link className="text-primary underline-offset-4 hover:underline" href="/projects">
+          Projects
+        </Link>
+        <Link className="text-primary underline-offset-4 hover:underline" href="/requests">
+          Requests
+        </Link>
+        <Link className="text-primary underline-offset-4 hover:underline" href="/billing">
+          Billing
+        </Link>
         <Link className="text-primary underline-offset-4 hover:underline" href="/favorites">
           Favorites
         </Link>
@@ -51,6 +60,11 @@ export default async function DashboardPage() {
         {me.roles.includes('seller') && (
           <Link className="text-primary underline-offset-4 hover:underline" href="/seller/onboarding">
             Seller setup
+          </Link>
+        )}
+        {me.roles.includes('seller') && (
+          <Link className="text-primary underline-offset-4 hover:underline" href="/earnings">
+            Earnings
           </Link>
         )}
         {me.roles.includes('seller') && (

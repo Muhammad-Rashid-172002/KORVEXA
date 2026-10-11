@@ -22,6 +22,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link className="text-primary underline-offset-4 hover:underline" href="/admin/services">
             Moderation
           </Link>
+          <Link className="text-primary underline-offset-4 hover:underline" href="/admin/payouts">
+            Payouts
+          </Link>
+          <Link className="text-primary underline-offset-4 hover:underline" href="/admin/payments">
+            Payments
+          </Link>
+          <Link className="text-primary underline-offset-4 hover:underline" href="/admin/settings">
+            Fees
+          </Link>
           <Link className="text-primary underline-offset-4 hover:underline" href="/admin/audit">
             Audit log
           </Link>

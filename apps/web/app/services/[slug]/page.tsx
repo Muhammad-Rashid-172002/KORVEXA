@@ -1,15 +1,13 @@
 /* eslint-disable @next/next/no-img-element -- presigned storage URLs are short-lived and not optimisable by next/image */
 import { brand } from '@glasswork/shared/brand';
 import type { ServiceDetailView } from '@glasswork/shared';
-import { Alert } from '@glasswork/ui/components/alert';
 import { Badge } from '@glasswork/ui/components/badge';
-import { Card, CardTitle } from '@glasswork/ui/components/card';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { FavoriteButton } from '@/components/favorite-button';
+import { OrderPanel } from './order-panel';
 import { WEB_URL } from '@/lib/config';
-import { money } from '@/lib/format';
 import { publicGw } from '@/lib/public-api';
 
 export const dynamic = 'force-dynamic';
@@ -117,39 +115,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
         <div className="relative h-8">
           <FavoriteButton serviceId={s.id} title={s.title} />
         </div>
-        {s.packages.map((p) => (
-          <Card key={p.id} className="flex flex-col gap-2" data-testid={`package-${p.tier}`}>
-            <div className="flex items-start justify-between gap-3">
-              <CardTitle className="capitalize">
-                {p.tier}: {p.title}
-              </CardTitle>
-              <span className="text-lg font-semibold tabular-nums">{money(p.priceAmount, s.currency)}</span>
-            </div>
-            <p className="text-sm text-muted">{p.description}</p>
-            <p className="text-xs text-muted">
-              {p.deliveryDays}-day delivery · {p.revisions} revision{p.revisions === 1 ? '' : 's'}
-            </p>
-          </Card>
-        ))}
-        {s.extras.length > 0 && (
-          <Card className="flex flex-col gap-2">
-            <CardTitle>Extras</CardTitle>
-            <ul className="flex flex-col gap-1 text-sm">
-              {s.extras.map((e) => (
-                <li key={e.id} className="flex justify-between gap-3">
-                  <span>{e.title}</span>
-                  <span className="tabular-nums">
-                    +{money(e.priceAmount, s.currency)}
-                    {e.extraDays > 0 && ` · +${e.extraDays}d`}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
-        <Alert>
-          Ordering and milestone protection open with the payments release. For now you can save this service.
-        </Alert>
+        <OrderPanel service={s} />
       </aside>
     </div>
   );

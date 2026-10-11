@@ -8,12 +8,17 @@ export interface GwResult<T> {
 }
 
 /** Small JSON helper for the API routes that aren't in the generated OpenAPI client (cookie auth, credentials included). */
-export async function gw<T>(method: string, path: string, body?: unknown): Promise<GwResult<T>> {
+export async function gw<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<GwResult<T>> {
   try {
     const res = await fetch(`${API_URL}/v1${path}`, {
       method,
       credentials: 'include',
-      headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+      headers: { ...(body !== undefined && { 'content-type': 'application/json' }), ...headers },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const json = (await res.json().catch(() => null)) as unknown;
@@ -54,3 +59,6 @@ export async function uploadFile(file: File, purpose: 'avatar' | 'portfolio'): P
   if (!done.ok) throw new Error(done.error ?? 'Upload verification failed');
   return presign.data.file.id;
 }
+
+/** Fresh key for one user intent (order, funding, payout). Reuse it on retries so the server can deduplicate. */
+export const newIdempotencyKey = () => `web-${crypto.randomUUID()}`;
