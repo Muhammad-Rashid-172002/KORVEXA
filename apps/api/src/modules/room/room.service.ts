@@ -171,7 +171,7 @@ export class RoomService {
       return t!;
     });
     this.notifier.changed(projectId, 'task.created');
-    return task.id;
+    return { taskId: task.id, ...(await this.board(actor, projectId)) };
   }
 
   async updateTask(actor: RequestActor, projectId: string, taskId: string, patch: TaskPatch) {

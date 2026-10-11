@@ -3,3 +3,4 @@ export const REDIS = Symbol('REDIS');
 export const EMAIL_QUEUE = Symbol('EMAIL_QUEUE');
 export const AUTH = Symbol('AUTH');
 export const MILESTONE_QUEUE = Symbol('MILESTONE_QUEUE');
+export const SCAN_QUEUE = Symbol('SCAN_QUEUE');

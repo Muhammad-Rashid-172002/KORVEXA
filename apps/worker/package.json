@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1149.0",
     "@glasswork/emails": "workspace:*",
     "@glasswork/shared": "workspace:*",
     "@opentelemetry/api": "1.9.1",

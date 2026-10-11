@@ -63,6 +63,8 @@ const apiEnvObject = z.object({
   /** Shared secret the worker uses to call internal API routes (auto-approve timers). */
   INTERNAL_API_TOKEN: z.string().min(24).default('dev-only-internal-token-change-me-0123456789'),
   /** Web push (VAPID). Push is disabled until both keys are set; generate with `npx web-push generate-vapid-keys`. */
+  /** 'off' = uploads become downloadable immediately (dev). 'clamav' = uploads stay `uploaded` until the worker scans them. */
+  SCAN_MODE: z.enum(['off', 'clamav']).default('off'),
   VAPID_PUBLIC_KEY: optional(),
   VAPID_PRIVATE_KEY: optional(),
   VAPID_SUBJECT: z.string().default('mailto:support@localhost'),
@@ -91,6 +93,12 @@ export const apiEnvSchema = apiEnvObject.superRefine((env, ctx) => {
     });
   }
   if (env.NODE_ENV === 'production') {
+    if (env.SCAN_MODE === 'off')
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SCAN_MODE'],
+        message: 'uploads must be virus-scanned in production (SCAN_MODE=clamav)',
+      });
     if (env.PAYMENTS_PROVIDER === 'test')
       ctx.addIssue({
         code: 'custom',
@@ -118,6 +126,15 @@ export const workerEnvSchema = z.object({
   /** Where the worker calls internal API routes (auto-approve timers). */
   API_INTERNAL_URL: z.url().default('http://localhost:4000'),
   INTERNAL_API_TOKEN: z.string().min(24).default('dev-only-internal-token-change-me-0123456789'),
+  SCAN_MODE: z.enum(['off', 'clamav']).default('off'),
+  CLAMD_HOST: z.string().default('clamav'),
+  CLAMD_PORT: z.coerce.number().int().default(3310),
+  S3_ENDPOINT: z.url().optional(),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_BUCKET: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_FORCE_PATH_STYLE: bool(true),
 });
 export type WorkerEnv = z.infer<typeof workerEnvSchema>;
 

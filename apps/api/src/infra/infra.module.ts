@@ -1,13 +1,14 @@
 import { createDb, type DbClient } from '@glasswork/db';
-import { QUEUES, type EmailJob, type MilestoneJob } from '@glasswork/shared';
+import { QUEUES, type EmailJob, type MilestoneJob, type ScanJob } from '@glasswork/shared';
 import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import { ENV, loadEnv, type ApiEnv } from '../config/env';
-import { DB, EMAIL_QUEUE, MILESTONE_QUEUE, REDIS } from './tokens';
+import { DB, EMAIL_QUEUE, MILESTONE_QUEUE, REDIS, SCAN_QUEUE } from './tokens';
 
 export type EmailQueue = Queue<EmailJob>;
 export type MilestoneQueue = Queue<MilestoneJob>;
+export type ScanQueue = Queue<ScanJob>;
 
 /** Process-wide infrastructure clients: env, Postgres pool, Redis, BullMQ producers. */
 @Global()
@@ -48,8 +49,22 @@ export type MilestoneQueue = Queue<MilestoneJob>;
           },
         }),
     },
+    {
+      provide: SCAN_QUEUE,
+      inject: [ENV],
+      useFactory: (env: ApiEnv): ScanQueue =>
+        new Queue<ScanJob>(QUEUES.scan, {
+          connection: { url: env.REDIS_URL },
+          defaultJobOptions: {
+            attempts: 6,
+            backoff: { type: 'exponential', delay: 3_000 },
+            removeOnComplete: 1_000,
+            removeOnFail: 5_000,
+          },
+        }),
+    },
   ],
-  exports: [ENV, DB, REDIS, EMAIL_QUEUE, MILESTONE_QUEUE],
+  exports: [ENV, DB, REDIS, EMAIL_QUEUE, MILESTONE_QUEUE, SCAN_QUEUE],
 })
 export class InfraModule implements OnApplicationShutdown {
   constructor(
@@ -57,12 +72,14 @@ export class InfraModule implements OnApplicationShutdown {
     @Inject(REDIS) private readonly redis: Redis,
     @Inject(EMAIL_QUEUE) private readonly emailQueue: EmailQueue,
     @Inject(MILESTONE_QUEUE) private readonly milestoneQueue: MilestoneQueue,
+    @Inject(SCAN_QUEUE) private readonly scanQueue: ScanQueue,
   ) {}
 
   async onApplicationShutdown(): Promise<void> {
     await Promise.allSettled([
       this.emailQueue.close(),
       this.milestoneQueue.close(),
+      this.scanQueue.close(),
       this.redis.quit(),
       this.db.pool.end(),
     ]);

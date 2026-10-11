@@ -80,8 +80,13 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection {
   async handleConnection(socket: AppSocket): Promise<void> {
     const { actor } = socket.data;
     await socket.join(userRoom(actor.userId));
-    await this.redis.sadd(presenceKey(actor.userId), socket.id);
-    await this.redis.expire(presenceKey(actor.userId), PRESENCE_TTL_SECONDS);
+    // Presence is best-effort: a Redis hiccup must never reject the connection or crash the process.
+    await this.redis
+      .multi()
+      .sadd(presenceKey(actor.userId), socket.id)
+      .expire(presenceKey(actor.userId), PRESENCE_TTL_SECONDS)
+      .exec()
+      .catch((err: unknown) => this.logger.warn(`presence update failed: ${String(err)}`));
     socket.emit('session:ready', { userId: actor.userId, socketId: socket.id });
 
     // `disconnecting` still has the rooms; tell them the user went offline once their LAST socket is gone.

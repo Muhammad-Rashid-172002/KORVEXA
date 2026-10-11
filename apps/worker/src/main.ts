@@ -9,6 +9,7 @@ import { logger } from './logger';
 import { createMailer } from './mailer';
 import { createEmailProcessor } from './processors/email.processor';
 import { createMilestoneProcessor } from './processors/milestone.processor';
+import { createScanDeps, createScanProcessor } from './processors/scan.processor';
 
 const connection = { url: env.REDIS_URL };
 const mailer = createMailer(env);
@@ -16,6 +17,10 @@ const mailer = createMailer(env);
 const workers = [
   new Worker(QUEUES.email, createEmailProcessor(mailer), { connection, concurrency: 5 }),
   new Worker(QUEUES.milestones, createMilestoneProcessor(env), { connection, concurrency: 5 }),
+  // The scan worker only runs when virus scanning is on (SCAN_MODE=clamav); otherwise the API marks files clean itself.
+  ...(env.SCAN_MODE === 'clamav'
+    ? [new Worker(QUEUES.scan, createScanProcessor(createScanDeps(env)), { connection, concurrency: 2 })]
+    : []),
 ];
 
 for (const w of workers) {

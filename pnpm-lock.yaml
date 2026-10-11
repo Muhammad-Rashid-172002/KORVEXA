@@ -445,6 +445,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: 3.1149.0
+        version: 3.1149.0
       '@glasswork/emails':
         specifier: workspace:*
         version: link:../../packages/emails

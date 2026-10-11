@@ -1,7 +1,15 @@
 import { z } from 'zod';
 
 /** BullMQ queue names shared by api (producer) and worker (consumer). */
-export const QUEUES = { email: 'email', milestones: 'milestones' } as const;
+export const QUEUES = { email: 'email', milestones: 'milestones', scan: 'scan' } as const;
+
+/** Virus-scan job: the worker streams the object to ClamAV and reports back to the API. */
+export const scanJobSchema = z.object({ fileId: z.uuid(), storageKey: z.string().min(1) });
+export type ScanJob = z.infer<typeof scanJobSchema>;
+export const scanResultSchema = z.object({
+  status: z.enum(['clean', 'infected']),
+  signature: z.string().max(200).optional(),
+});
 
 /** Delayed jobs that call back into the API, which owns all money/state logic. */
 export const milestoneJobSchema = z.object({
