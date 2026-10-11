@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
+  activeRoom,
   adminContext,
   apiCall,
   idemKey,
@@ -11,51 +12,6 @@ import {
   signUpAndVerify,
   uniqueEmail,
 } from './helpers';
-
-interface ProjectLite {
-  id: string;
-  milestones: { id: string; position: number }[];
-}
-
-/** Seller + published service + buyer + an ACTIVE project (m1 funded, accepted) — built through the API for speed. */
-async function activeRoom(
-  { page, browser }: { page: Page; browser: import('@playwright/test').Browser },
-  info: import('@playwright/test').TestInfo,
-  tag: string,
-  priceCents = 100_000,
-) {
-  const baseURL = info.project.use.baseURL;
-  await publishedSeller(page, `${info.project.name}-${tag}-s`);
-  const admin = await adminContext(browser, baseURL);
-  const svc = await liveService(
-    page,
-    admin.page,
-    `Room ${tag} ${info.project.name} service ${Date.now() % 100000}`,
-    priceCents,
-  );
-  await admin.ctx.close();
-  const buyerCtx = await browser.newContext({ baseURL });
-  const buyer = await buyerCtx.newPage();
-  await signUpAndVerify(buyer, uniqueEmail(`${info.project.name}-${tag}-b`), 'Bea Buyer', 'e2e-password-123');
-  const order = await apiCall<{ projectId: string; firstMilestoneId: string }>(
-    buyer,
-    'POST',
-    '/orders',
-    { packageId: svc.packageId },
-    { 'idempotency-key': idemKey() },
-  );
-  const f = await apiCall<{ paymentId: string }>(
-    buyer,
-    'POST',
-    `/milestones/${order.firstMilestoneId}/fund`,
-    undefined,
-    { 'idempotency-key': idemKey() },
-  );
-  await apiCall(buyer, 'POST', `/payments/${f.paymentId}/simulate`, { outcome: 'succeeded' });
-  await apiCall(page, 'POST', `/projects/${order.projectId}/accept`);
-  const p = await apiCall<ProjectLite>(buyer, 'GET', `/projects/${order.projectId}`);
-  return { buyer, buyerCtx, projectId: order.projectId, milestones: p.milestones, svc };
-}
 
 const progress = (p: Page, pct: number) => expect(p.getByTestId('progress-value')).toHaveText(`${pct}%`);
 

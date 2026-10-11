@@ -5,7 +5,7 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Next: Phase 5 — Trust on branch `phase/5-trust` (in progress; see slices in the Phase 5 section).
+Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Phase 5 done and merged to `main`. Next: **Phase 6 — AI** on branch `phase/6-ai`.
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
@@ -257,16 +257,30 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 ## Phase 5 — Trust · branch `phase/5-trust`
 
-Slices: **A** schema · **B** reviews (private milestone feedback, public final review + sub-ratings, one seller reply) + seller levels (computed, criteria public) + search filters (rating/level/verified) · **C** verifications + badges · **D** change requests · **E** disputes (auto case file, evidence, admin resolution release/refund/split) · **F** chat safety warnings · **G** reports + ban tools · **H** web UI · **I** e2e + docs.
+- [x] Reviews: private per-milestone feedback, public final review with sub-ratings, one seller reply, only paying buyers with completed work
+- [x] Seller levels computed from real metrics, criteria published (`/seller-levels`); rating / level / verified-only search filters + "top rated" sort (deferred from Phase 2)
+- [x] Verifications + badges (identity, GitHub incl. automatic via OAuth link, Play/App Store link, portfolio reviewed, skill test); shown only when verified
+- [x] Change requests (price/time impact → milestones appended → funding required)
+- [x] Disputes: auto-built case file, evidence, admin resolution (release / refund / split) with exact ledger
+- [x] Chat safety warnings in pre-order chats (log + warn, never block)
+- [x] Reports (user/service/message/review) + admin handling; ban/unban; listing takedown
+- [x] CHECKPOINT (log only)
 
-- [ ] Reviews: per-milestone private feedback, public final review with sub-ratings, one seller reply, only paying buyers with completed work
-- [ ] Seller levels from real metrics, criteria published; rating/level/verified-only search filters (deferred from Phase 2)
-- [ ] Verifications + badges (identity, GitHub, Play/App Store link, portfolio reviewed, skill test) shown only when verified
-- [ ] Change requests (time/price impact → milestones updated → funding required)
-- [ ] Disputes: auto-built case file, evidence, admin resolution (refund/release/split)
-- [ ] Chat safety warnings (contact/payment details before an order; log, don't block)
-- [ ] Reports (user/gig/message/review) + admin handling + ban tools
-- [ ] CHECKPOINT (log only)
+### Phase 5 log (2026-10-11)
+
+**Tested on the real Docker stack:** unit (levels, chat-safety detector incl. false-positive cases, env), **135+ integration tests** (new: reviews/levels/verifications/search filters, change requests, disputes with release/refund/split ledger math, chat safety, reports, bans, takedown), Playwright e2e desktop + mobile for every flow above through the real UI.
+
+**Files (by area):** `packages/db/src/schema/trust.ts` (migration 0008), `packages/shared/src/{trust,chat-safety}.ts`, `apps/api/src/modules/trust/*`, `apps/api/src/modules/orders/{change-requests,disputes}.*` + `milestones.service.ts` (resolution), `apps/api/src/auth/session.service.ts` (ban check), web: `components/{trust,report-button}.tsx`, `components/room/{reviews-panel,changes,disputes}.tsx`, `app/{u/[slug],seller/verification,seller-levels}`, `app/admin/{disputes,verifications,reports}`, `e2e/tests/trust.spec.ts`.
+
+**Found by tests and fixed:** the admin nav overflowed on 390 px screens once it had nine links (links were off-screen and unclickable; now wraps); a chat-safety false positive on "signal handling"; mobile header collisions for anonymous visitors; prettier reflowing code broke several scripted edits (caught by lint/typecheck).
+
+**Known issues / follow-ups:**
+
+- Environment: the Mac's disk reached 100% because Docker build cache grew to ~74 GB from repeated rebuilds (tests then failed with ENOSPC). Run `docker builder prune` / Docker Desktop → Clean up occasionally.
+- A banned user can still submit the sign-in form (the resulting session is dead). Block at sign-in later.
+- No dispute withdraw; no seller "response time" metric; levels have no manual override by design.
+- Evidence/identity files rely on SCAN_MODE (off in dev); real ClamAV still unverified.
+- Reviews are not re-checkable after being posted (no edit/delete flow); moderation of a review is via reports only.
 
 ## Phase 6 — AI
 

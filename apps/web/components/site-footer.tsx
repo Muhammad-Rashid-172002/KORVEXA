@@ -9,6 +9,9 @@ export function SiteFooter() {
           {brand.lockup} · © {new Date().getFullYear()} {brand.legalEntity}
         </span>
         <span className="flex gap-4">
+          <Link className="hover:text-fg" href="/services">
+            Browse services
+          </Link>
           <Link className="hover:text-fg" href="/seller-levels">
             Seller levels
           </Link>

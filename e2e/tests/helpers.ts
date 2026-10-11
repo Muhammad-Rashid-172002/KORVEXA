@@ -147,3 +147,79 @@ export async function payTestCheckout(page: Page) {
     await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}/, { timeout: 4000 });
   }).toPass({ timeout: 30_000 });
 }
+
+export interface ProjectLite {
+  id: string;
+  milestones: { id: string; position: number }[];
+}
+
+/** Seller + published service + buyer + an ACTIVE project (m1 funded, accepted) — built through the API for speed. */
+export async function activeRoom(
+  { page, browser }: { page: Page; browser: Browser },
+  info: TestInfo,
+  tag: string,
+  priceCents = 100_000,
+) {
+  const baseURL = info.project.use.baseURL;
+  await publishedSeller(page, `${info.project.name}-${tag}-s`);
+  const admin = await adminContext(browser, baseURL);
+  const svc = await liveService(
+    page,
+    admin.page,
+    `Room ${tag} ${info.project.name} service ${Date.now() % 100000}`,
+    priceCents,
+  );
+  await admin.ctx.close();
+  const buyerCtx = await browser.newContext({ baseURL });
+  const buyer = await buyerCtx.newPage();
+  await signUpAndVerify(buyer, uniqueEmail(`${info.project.name}-${tag}-b`), 'Bea Buyer', 'e2e-password-123');
+  const order = await apiCall<{ projectId: string; firstMilestoneId: string }>(
+    buyer,
+    'POST',
+    '/orders',
+    { packageId: svc.packageId },
+    { 'idempotency-key': idemKey() },
+  );
+  const f = await apiCall<{ paymentId: string }>(
+    buyer,
+    'POST',
+    `/milestones/${order.firstMilestoneId}/fund`,
+    undefined,
+    { 'idempotency-key': idemKey() },
+  );
+  await apiCall(buyer, 'POST', `/payments/${f.paymentId}/simulate`, { outcome: 'succeeded' });
+  await apiCall(page, 'POST', `/projects/${order.projectId}/accept`);
+  const p = await apiCall<ProjectLite>(buyer, 'GET', `/projects/${order.projectId}`);
+  return { buyer, buyerCtx, projectId: order.projectId, milestones: p.milestones, svc };
+}
+
+/** A browser context signed in as the seeded dev admin THROUGH THE UI (for admin screens). */
+export async function adminUi(browser: Browser, baseURL: string | undefined) {
+  const ctx = await browser.newContext({ baseURL });
+  const page = await ctx.newPage();
+  await page.goto('/login');
+  await page.getByLabel('Email').fill('admin@dev.glasswork.test');
+  await page.getByLabel('Password').fill(SEED_PASSWORD);
+  await page.getByRole('button', { name: 'Log in' }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
+  return { ctx, page };
+}
+
+/** Drives every milestone of an active room (m1 accepted, not started) to released through the API. */
+export async function completeRoom(seller: Page, room: { buyer: Page; milestones: { id: string }[] }) {
+  for (const [i, m] of room.milestones.entries()) {
+    if (i > 0) {
+      const f = await apiCall<{ paymentId: string }>(
+        room.buyer,
+        'POST',
+        `/milestones/${m.id}/fund`,
+        undefined,
+        { 'idempotency-key': idemKey() },
+      );
+      await apiCall(room.buyer, 'POST', `/payments/${f.paymentId}/simulate`, { outcome: 'succeeded' });
+    }
+    await apiCall(seller, 'POST', `/milestones/${m.id}/start`);
+    await apiCall(seller, 'POST', `/milestones/${m.id}/submit`, {});
+    await apiCall(room.buyer, 'POST', `/milestones/${m.id}/approve`);
+  }
+}
