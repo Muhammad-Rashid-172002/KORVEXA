@@ -140,7 +140,7 @@ export class ChatService {
         );
       const members = await this.access.conversationMemberIds(c.id);
       const counterpartId = members.find((m) => m !== actor.userId) ?? actor.userId;
-      let title = '';
+      let title: string;
       if (c.kind === 'project' && c.projectId) {
         const [p] = await this.db.db
           .select({ title: projects.title })

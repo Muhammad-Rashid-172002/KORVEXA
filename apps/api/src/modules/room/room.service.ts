@@ -35,7 +35,7 @@ import {
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import type { RequestActor } from '../../auth/session.service';
 import { DB } from '../../infra/tokens';
-import { AccessService, type ProjectRole } from '../access/access.service';
+import { AccessService } from '../access/access.service';
 import { ProjectNotifier } from '../notifications/project-notifier.service';
 import { recordChange } from '../orders/commerce.util';
 import { StorageService } from '../files/storage.service';
