@@ -224,18 +224,21 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 **Manual test:** as a buyer open any live service → pick a package → Order & pay → "Pay (simulate success)" → on the project, the seller accepts, starts, submits; approve as buyer; seller `/earnings` → request payout; admin `/admin/payouts` → Mark paid; `/admin/payments` for ledger health; `/billing` for the receipt PDF. Also `/requests` for the requests board.
 
-## Phase 4 — Live Project Room
+## Phase 4 — Live Project Room · branch `phase/4-room` (MVP CHECKPOINT: report to Rashid at the end)
 
-- [ ] Overview: weighted % progress, current milestone, next deadline, health + reason, escrow vs released
-- [ ] Timeline: planned vs actual
-- [ ] Board: Kanban tasks linked to milestones (seller manages, buyer comments)
-- [ ] Deliverables: versioned uploads, approve / request revision, feedback pinned to file/region; ClamAV scan before download
+Sub-slices: **A** schema · **B** room API (overview+health, board, deliverables + file-access policy, previews, activity) · **C** chat + realtime (typing, read receipts, presence) · **D** notifications (in-app, email, prefs, web push) · **E** custom offers (from chat; moved from Phase 3) · **F** file-scan abstraction (ClamAV opt-in) · **G** web UI (Room tabs, inbox) · **H** e2e acceptance + demo script + screenshots.
+
+- [ ] Overview: weighted % progress (tasks feed in-progress ratio), current milestone, next deadline, health + reason (computed, tested), escrow vs released
+- [ ] Timeline: planned vs actual dates
+- [ ] Board: Kanban tasks linked to milestones (seller manages, buyer views + comments)
+- [ ] Deliverables: versioned uploads, approve / request revision, feedback pinned to file/region; scan before download
 - [ ] Preview links (staging, Figma, APK/TestFlight, video) with "last updated"
 - [ ] Activity feed (filterable)
-- [ ] Realtime chat: files, read receipts, typing, presence
+- [ ] Realtime chat: files, read receipts, typing, presence (every socket event authorised)
 - [ ] Notifications: in-app, email, web push; per-type preferences
+- [ ] Custom offers from chat
 - [ ] ACCEPTANCE: a buyer follows a 3-milestone project end to end with accurate progress at every step (Playwright)
-- [ ] CHECKPOINT
+- [ ] CHECKPOINT: report + demo script + screenshots
 
 ## Phase 5 — Trust
 
