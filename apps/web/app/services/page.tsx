@@ -1,4 +1,4 @@
-import { SERVICE_SORTS, type ServicePageView } from '@glasswork/shared';
+import { SELLER_LEVELS, SERVICE_SORTS, type ServicePageView } from '@glasswork/shared';
 import { Button } from '@glasswork/ui/components/button';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -18,12 +18,24 @@ const SORT_LABELS: Record<(typeof SERVICE_SORTS)[number], string> = {
   newest: 'Newest',
   price_asc: 'Price: low to high',
   price_desc: 'Price: high to low',
+  rating: 'Top rated',
 };
 
 export default async function ServicesPage({ searchParams }: { searchParams: Promise<Params> }) {
   const p = await searchParams;
   const qs = new URLSearchParams();
-  for (const k of ['q', 'category', 'minPrice', 'maxPrice', 'maxDelivery', 'sort', 'cursor'] as const) {
+  for (const k of [
+    'q',
+    'category',
+    'minPrice',
+    'maxPrice',
+    'maxDelivery',
+    'minRating',
+    'level',
+    'verifiedOnly',
+    'sort',
+    'cursor',
+  ] as const) {
     const v = p[k]?.trim();
     if (v) qs.set(k, k === 'minPrice' || k === 'maxPrice' ? String(Math.round(Number(v) * 100) || '') : v);
   }
@@ -101,6 +113,45 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
           />
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">
+          Minimum rating
+          <select
+            name="minRating"
+            defaultValue={p.minRating ?? ''}
+            className="h-10 rounded-md border border-border bg-bg px-3 text-sm text-fg"
+          >
+            <option value="">Any</option>
+            {[4.5, 4, 3].map((r) => (
+              <option key={r} value={r}>
+                {r}+ stars
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-muted">
+          Seller level
+          <select
+            name="level"
+            defaultValue={p.level ?? ''}
+            className="h-10 rounded-md border border-border bg-bg px-3 text-sm text-fg"
+          >
+            <option value="">Any</option>
+            {SELLER_LEVELS.filter((l) => l.key !== 'new').map((l) => (
+              <option key={l.key} value={l.key}>
+                {l.label} or higher
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 pt-5 text-sm">
+          <input
+            type="checkbox"
+            name="verifiedOnly"
+            value="true"
+            defaultChecked={p.verifiedOnly === 'true'}
+          />
+          Verified sellers only
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-muted">
           Sort
           <select
             name="sort"
@@ -128,8 +179,11 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
       </div>
 
       <p className="text-xs text-muted">
-        Rating, seller level and “verified only” filters arrive with reviews and verification (Phase 5); they
-        are not shown yet because there is no real data behind them.
+        Ratings, levels and badges are computed from real reviews and checks.{' '}
+        <Link className="text-primary underline-offset-4 hover:underline" href="/seller-levels">
+          See how levels work
+        </Link>
+        .
       </p>
 
       {items.length === 0 ? (

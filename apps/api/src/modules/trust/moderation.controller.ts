@@ -1,5 +1,6 @@
 import { reportDecisionSchema, reportInputSchema } from '@glasswork/shared';
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { disputeEvidence, eq, files, type DbClient } from '@glasswork/db';
+import { Body, Controller, Get, Inject, NotFoundException, Param, Post, Query } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -7,6 +8,8 @@ import type { RequestActor } from '../../auth/session.service';
 import { AdminScopeService } from '../../common/policy/admin-scope.service';
 import { CurrentActor } from '../../common/policy/auth.guard';
 import { Policy } from '../../common/policy/decorators';
+import { DB } from '../../infra/tokens';
+import { StorageService } from '../files/storage.service';
 import { ReportsService } from './reports.service';
 
 class IdDto extends createZodDto(z.object({ id: z.uuid() })) {}
@@ -23,6 +26,8 @@ export class ModerationController {
   constructor(
     private readonly reports: ReportsService,
     private readonly scopes: AdminScopeService,
+    private readonly storage: StorageService,
+    @Inject(DB) private readonly db: DbClient,
   ) {}
 
   @Policy('any signed-in user may report things they can see; rate limited and de-duplicated')
@@ -63,5 +68,22 @@ export class ModerationController {
   async takedown(@CurrentActor() a: RequestActor, @Param() p: IdDto, @Body() b: ReasonDto) {
     await this.scopes.require(a, ['operations', 'product']);
     return this.reports.takedown(a, p.id, b.reason);
+  }
+
+  /** Admins may open ONLY files that were submitted as dispute evidence (a narrow, audited exception to owner-only files). */
+  @Policy('operations or product admins open dispute evidence files', ['admin'])
+  @Get('admin/disputes/evidence/:id/download')
+  async evidenceFile(@CurrentActor() a: RequestActor, @Param() p: IdDto) {
+    await this.scopes.require(a, ['operations', 'product']);
+    const [row] = await this.db.db
+      .select({ f: files })
+      .from(disputeEvidence)
+      .innerJoin(files, eq(files.id, disputeEvidence.fileId))
+      .where(eq(disputeEvidence.id, p.id));
+    if (!row || row.f.status !== 'clean') throw new NotFoundException('Evidence file not available');
+    return {
+      url: await this.storage.presignGet(row.f.storageKey, row.f.originalName),
+      expiresInSeconds: 300,
+    };
   }
 }

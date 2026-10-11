@@ -6,6 +6,7 @@ import { Card } from '@glasswork/ui/components/card';
 import Link from 'next/link';
 import { money } from '@/lib/format';
 import { FavoriteButton } from './favorite-button';
+import { LevelBadge, Stars } from './trust';
 
 export function ServiceCard({ s, showFavorite = true }: { s: ServiceCardView; showFavorite?: boolean }) {
   return (
@@ -17,9 +18,14 @@ export function ServiceCard({ s, showFavorite = true }: { s: ServiceCardView; sh
           <div className="aspect-video w-full rounded-t-xl bg-surface-2" aria-hidden />
         )}
         <div className="flex flex-col gap-2 px-4 pb-4">
-          <p className="text-xs text-muted">
+          <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
             {s.seller.displayName} · {s.category.name}
           </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Stars value={s.trust.avgRating} count={s.trust.reviewCount || undefined} />
+            {s.trust.level !== 'new' && <LevelBadge level={s.trust.level} label={s.trust.levelLabel} />}
+            {s.trust.verified && <Badge className="border-success/50 text-success">Verified</Badge>}
+          </div>
           <h3 className="line-clamp-2 text-sm font-medium">{s.title}</h3>
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="text-sm font-semibold tabular-nums">From {money(s.fromPrice, s.currency)}</span>

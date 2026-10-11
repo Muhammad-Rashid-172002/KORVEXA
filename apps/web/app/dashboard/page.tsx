@@ -66,6 +66,11 @@ export default async function DashboardPage() {
           </Link>
         )}
         {me.roles.includes('seller') && (
+          <Link className="text-primary underline-offset-4 hover:underline" href="/seller/verification">
+            Trust &amp; verification
+          </Link>
+        )}
+        {me.roles.includes('seller') && (
           <Link className="text-primary underline-offset-4 hover:underline" href="/earnings">
             Earnings
           </Link>
