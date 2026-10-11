@@ -7,3 +7,4 @@ export * from './realtime';
 export * from './settings';
 export * from './state-machines';
 export * from './accounts';
+export * from './catalogue';
