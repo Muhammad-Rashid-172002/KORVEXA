@@ -5,23 +5,23 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–1 done and merged to `main`. Next: **Phase 2 — Services & discovery** on branch `phase/2-services`.
+Phases 0–2 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Next: **Phase 3 — Orders & payments (Stripe test mode)** on branch `phase/3-payments`.
 
-- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 34 integration tests, 16 Playwright e2e tests (desktop + mobile).
+- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 49 integration tests, 20 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
 
 ## ⏳ WAITING ON RASHID
 
-| Item                                                                | Needed for                                           | Status                                                       |
-| ------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
-| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it | Partners deciding with accountant/lawyer                     |
-| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                     | Admin settings exist, set to 0                               |
-| Admin role mapping confirmation (Q5)                                | Admin area                                           | Provisional: Rashid=product, Taha=growth, Suliman=operations |
-| GitHub repo URL (Q7)                                                | CI first run, push                                   | Not created yet                                              |
-| KorvenzaTech K logo SVG                                             | Header lockup, product mark                          | Text lockup in use                                           |
-| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS            | TODO in brand.ts                                             |
-| Google + GitHub OAuth keys                                          | Social login                                         | Buttons hidden until set                                     |
-| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                     | Off locally (Mailpit / no-op Sentry)                         |
+| Item                                                                | Needed for                                           | Status                                                                                                                                           |
+| ------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it | Partners deciding with accountant/lawyer                                                                                                         |
+| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                     | Admin settings exist, set to 0                                                                                                                   |
+| Admin role mapping confirmation (Q5)                                | Admin area                                           | Provisional: Rashid=product, Taha=growth, Suliman=operations                                                                                     |
+| GitHub repo URL (Q7)                                                | CI first run, push                                   | A remote `origin` → github.com/Muhammad-Rashid-172002/KORVEXA exists (not added by me). Confirm it is the intended repo; nothing has been pushed |
+| KorvenzaTech K logo SVG                                             | Header lockup, product mark                          | Text lockup in use                                                                                                                               |
+| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS            | TODO in brand.ts                                                                                                                                 |
+| Google + GitHub OAuth keys                                          | Social login                                         | Buttons hidden until set                                                                                                                         |
+| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                     | Off locally (Mailpit / no-op Sentry)                                                                                                             |
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason inline)
 
@@ -163,15 +163,33 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 **Manual test:** sign up → `/settings` → Become a seller → switch mode → `/seller/onboarding` → fill the steps → Publish → open the public link in a private window. Then `/orgs` → create a team → invite an email (check Mailpit). Log in as `admin@dev.glasswork.test` / `Glasswork-dev-123!` → `/admin`.
 
-## Phase 2 — Services & discovery
+## Phase 2 — Services & discovery · branch `phase/2-services`
 
-- [ ] Services (gigs) CRUD with Basic/Standard/Premium packages, extras, FAQs, gallery, requirements form, delivery times
-- [ ] Gig moderation queue (admin)
-- [ ] SearchService (Postgres FTS + pg_trgm) behind an interface; filters (category, budget, delivery time, seller level, verified only, rating) and sorting
-- [ ] Public SEO gig/seller pages with JSON-LD structured data, sitemap
-- [ ] Favorites, saved searches
-- [ ] "Operated by KorvenzaTech" label; ranking-neutrality test
-- [ ] CHECKPOINT
+- [x] Services (gigs) CRUD with Basic/Standard/Premium packages, extras, FAQs, gallery (up to 6 images), requirements form, delivery times — `/sell/services`
+- [x] Gig moderation queue (admin) — `/admin/services` (approve/reject with reason; scopes operations|product)
+- [x] SearchService (Postgres FTS + pg_trgm) behind an interface; filters: category, budget, delivery time; sort: best match / newest / price. _Seller level, verified-only and rating filters deferred to Phase 5 (no real data yet, D-061)_
+- [x] Public SEO gig pages with JSON-LD (`Service` + `Offer`s) and `sitemap.xml`; `robots.ts`
+- [x] Favorites, saved searches — `/favorites`
+- [x] "Operated by KorvenzaTech" label; ranking-neutrality test (D-063)
+- [x] CHECKPOINT (log only)
+
+### Phase 2 log (2026-10-11)
+
+**Tested on the real Docker stack:** lint/typecheck/unit, 49 integration tests (15 new: ownership 404s, validation, moderation + scope checks, FTS/typo/category/price/delivery/sort/pagination, banned seller hidden, ranking neutrality, favorites, saved searches), Playwright e2e on desktop + mobile: seller creates a service with a gallery image → submits → admin approves → anonymous visitor finds it with filters, sees JSON-LD, sitemap lists it → buyer favorites + saves a search → seller pauses and it vanishes.
+
+**Files (by area):** `packages/db/src/schema/catalogue.ts`, migration `0004` (pg_trgm, tables, categories), `packages/shared/src/catalogue.ts`, `apps/api/src/modules/services/*`, `apps/web/app/{services,sell/services,favorites,admin/services}`, `apps/web/components/{service-card,favorite-button}.tsx`, `apps/web/app/{sitemap,robots}.ts`, `e2e/tests/services.spec.ts`.
+
+**Bugs found by e2e and fixed:** favorite button acted as "unfavorite" if clicked before the favorites list loaded (now disabled while loading); "Save this search" was nested inside the filter `<form>` and reloaded the page (moved out); mobile header overlap from the new Browse link (icon on narrow screens); an empty `public/` broke the Docker build (`.gitkeep`).
+
+**Known issues / follow-ups:**
+
+- No prefix search (D-060); offset cursors.
+- Ordering is not possible yet: the detail page says so explicitly. Checkout arrives in Phase 3.
+- Seller public profile page (`/u/…`) has no JSON-LD or link list of the seller's services yet.
+- Requirements-form field type is always "long text" in the editor (API supports text/longtext/file).
+- Gallery editor can only add/clear images (no reorder).
+
+**Manual test:** sign in as `seller@dev.glasswork.test` → `/sell/services` → New service → Submit → sign in as `admin@dev.glasswork.test` → `/admin/services` → Approve → open `/services` signed out, search/filter, open the service → sign in as a buyer → ♥ favorite, "Save this search" → `/favorites`.
 
 ## Phase 3 — Orders & payments (Stripe test mode)
 

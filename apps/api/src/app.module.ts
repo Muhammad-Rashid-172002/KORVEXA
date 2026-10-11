@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ServicesModule } from './modules/services/services.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { AllExceptionsFilter } from './common/errors/http-exception.filter';
 import { AuthGuard } from './common/policy/auth.guard';
@@ -39,6 +40,7 @@ const env = loadEnv();
     ProfilesModule,
     OrgsModule,
     SessionsModule,
+    ServicesModule,
     AdminModule,
     RealtimeModule,
   ],

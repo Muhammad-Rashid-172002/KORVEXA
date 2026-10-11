@@ -3,3 +3,4 @@ export * from './auth';
 export * from './files';
 export * from './platform';
 export * from './accounts';
+export * from './catalogue';

@@ -1,5 +1,6 @@
 'use client';
 import { Button } from '@glasswork/ui/components/button';
+import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
 import { ThemeToggle } from './theme-toggle';
@@ -9,6 +10,12 @@ export function HeaderNav() {
   const { data: session, isPending } = authClient.useSession();
   return (
     <nav className="flex items-center gap-1" aria-label="Main">
+      <Button asChild variant="ghost" size="sm" className="whitespace-nowrap px-2.5 sm:px-3">
+        <Link href="/services" aria-label="Browse services">
+          <Search size={16} aria-hidden className="sm:hidden" />
+          <span className="max-sm:hidden">Browse</span>
+        </Link>
+      </Button>
       {!isPending && session ? (
         <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
           <Link href="/dashboard">Dashboard</Link>
