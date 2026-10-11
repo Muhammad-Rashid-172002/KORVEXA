@@ -52,6 +52,7 @@ test.describe('Phase 4 Live Project Room', () => {
     await page.getByLabel('Status of Set up the repository').selectOption('done');
     await progress(buyer, 9); // 1 of 2 tasks → 0.5 × 60% × $300/$1,000
     await page.getByLabel('Status of Build the landing page').selectOption('in_review');
+    await expect(page.getByTestId('column-in_review')).toContainText('Build the landing page');
     await page.getByLabel('Status of Build the landing page').selectOption('done');
     await progress(buyer, 18); // all tasks done → 60% of the milestone
 

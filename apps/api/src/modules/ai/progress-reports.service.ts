@@ -93,9 +93,7 @@ export function rulesReport(f: ReportFacts): ReportContent {
     done.length
       ? `Between ${f.period.start} and ${f.period.end} we completed ${done.length} item${done.length === 1 ? '' : 's'} on ${f.project.title}.`
       : `There was no recorded progress on ${f.project.title} between ${f.period.start} and ${f.period.end}.`,
-    next.length
-      ? `Next we will continue with ${cap(next, 1)[0]!.replace(/^(Continue|In review|Coming up): /, '')}.`
-      : '',
+    next.length ? `Up next: ${cap(next, 1)[0]!.replace(/^(Continue|In review|Coming up): /, '')}.` : '',
     decisions.length ? 'There are decisions waiting for you.' : '',
   ].filter(Boolean);
   return {

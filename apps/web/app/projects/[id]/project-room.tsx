@@ -10,6 +10,8 @@ import { Activity } from '@/components/room/activity';
 import { Board } from '@/components/room/board';
 import { Changes } from '@/components/room/changes';
 import { Disputes } from '@/components/room/disputes';
+import { MeetingNotes } from '@/components/room/meeting-notes';
+import { Reports } from '@/components/room/reports';
 import { ReviewsPanel } from '@/components/room/reviews-panel';
 import { ChatPanel } from '@/components/room/chat-panel';
 import { Deliverables } from '@/components/room/deliverables';
@@ -28,6 +30,7 @@ const TAB_LABELS: Record<Tab, string> = {
   previews: 'Previews',
   changes: 'Changes',
   disputes: 'Disputes',
+  reports: 'Reports',
   activity: 'Activity',
   chat: 'Chat',
 };
@@ -182,7 +185,10 @@ function Inner({
       )}
       {tab === 'timeline' && <Timeline milestones={p.milestones} />}
       {tab === 'board' && (
-        <Board projectId={p.id} isSeller={isSeller} milestones={p.milestones} editable={editable} />
+        <div className="flex flex-col gap-6">
+          <Board projectId={p.id} isSeller={isSeller} milestones={p.milestones} editable={editable} />
+          {isSeller && editable && <MeetingNotes projectId={p.id} milestones={p.milestones} />}
+        </div>
       )}
       {tab === 'deliverables' && (
         <Deliverables projectId={p.id} isSeller={isSeller} milestones={p.milestones} editable={editable} />
@@ -192,6 +198,7 @@ function Inner({
       )}
       {tab === 'changes' && <Changes projectId={p.id} editable={p.status === 'active'} />}
       {tab === 'disputes' && <Disputes projectId={p.id} />}
+      {tab === 'reports' && <Reports projectId={p.id} isSeller={isSeller} />}
       {tab === 'activity' && <Activity projectId={p.id} />}
       {tab === 'chat' &&
         (conversationId ? (

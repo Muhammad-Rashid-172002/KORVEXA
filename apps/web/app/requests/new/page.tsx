@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { serverGw } from '@/lib/server-gw';
 import { NewRequestForm } from './new-request-form';
@@ -15,6 +16,13 @@ export default async function NewRequestPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Post a request</h1>
         <p className="text-sm text-muted">
           Describe what you need. Sellers reply with a plan, milestones and a price.
+        </p>
+        <p className="mt-2 text-sm">
+          Not sure how to describe it?{' '}
+          <Link className="text-primary underline-offset-4 hover:underline" href="/requests/new/ai">
+            Let the AI brief builder help
+          </Link>
+          .
         </p>
       </div>
       <NewRequestForm />

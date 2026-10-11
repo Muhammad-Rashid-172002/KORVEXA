@@ -228,16 +228,21 @@ export function RequestDetail({ brief: b }: { brief: BriefView }) {
               Proposals ({b.proposals?.length ?? 0})
             </h2>
             {b.status === 'open' && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={async () => {
-                  await gw('POST', `/briefs/${b.id}/close`);
-                  refresh();
-                }}
-              >
-                Close request
-              </Button>
+              <div className="flex gap-2">
+                <Button asChild size="sm" variant="secondary">
+                  <Link href={`/match?briefId=${b.id}`}>Find matching sellers</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={async () => {
+                    await gw('POST', `/briefs/${b.id}/close`);
+                    refresh();
+                  }}
+                >
+                  Close request
+                </Button>
+              </div>
             )}
           </div>
           {(b.proposals ?? []).length === 0 ? (

@@ -72,11 +72,12 @@ export async function apiCall<T = unknown>(
   data?: unknown,
   headers: Record<string, string> = {},
 ): Promise<T> {
-  const res = await page.request.fetch(`${API_URL}/v1${path}`, {
-    method,
-    data,
-    headers: { ...WEB_ORIGIN, ...headers },
-  });
+  // A hung call must fail fast and say WHICH call, instead of burning the whole test timeout.
+  const res = await page.request
+    .fetch(`${API_URL}/v1${path}`, { method, data, headers: { ...WEB_ORIGIN, ...headers }, timeout: 20_000 })
+    .catch((e: unknown) => {
+      throw new Error(`${method} ${path} did not complete: ${e instanceof Error ? e.message : String(e)}`);
+    });
   expect(res.ok(), `${method} ${path} → ${res.status()} ${await res.text()}`).toBeTruthy();
   return (await res.json().catch(() => ({}))) as T;
 }

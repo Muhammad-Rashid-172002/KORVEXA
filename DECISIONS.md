@@ -384,6 +384,26 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 ---
 
+## 9g. Phase 6 — AI (2026-10-12)
+
+**D-091 One door to the model.** All AI goes through `AiService` → `AiProvider` (`stub` | `anthropic` | `off`, env `AI_PROVIDER`). The model never gets tools; user text is passed inside tagged blocks described as data; every answer is validated against a zod schema (structured outputs via the official `@anthropic-ai/sdk`). Default model `claude-opus-5-5`, effort `medium`, both configurable. Refusals and truncations become a clean 503. ⚠ The Anthropic calls are **unverified against the live API** (no key yet); they are unit-tested with a fake client only. Server-side refusal fallbacks are not enabled.
+
+**D-092 Metering and caps.** Every call (including failures) writes `ai_usage` with real token counts and cost in micro-USD (integer, rounded up; unknown models are priced as the most expensive known). Before each call: per-user hourly rate limit (default 30), per-user daily cap (default $1) and platform daily cap (default $20), all UTC, all 429 with a clear message. These are pre-checks, so one in-flight call can overshoot slightly. Admins (operations/product) see cost per feature per day, never prompts or outputs.
+
+**D-093 Stub provider.** In dev/CI the stub returns deterministic answers from the same real data (rules-based fallbacks) and simulates token usage so caps are testable. It is refused in production; `off` disables features. Rules text is never labelled "AI".
+
+**D-094 Brief builder.** Idea → up to 4 clarifying questions → structured brief (goals, stories, platforms, integrations, milestones, budget/timeline **estimates**, open questions). The buyer edits, then posts it as an ordinary request (`briefs.aiGenerated`). Estimates are labelled "not a quote" everywhere.
+
+**D-095 Matching is rules first, AI explains.** Ranking is deterministic from real data (skills 35%, reviews 20%, budget fit 15%, verified 10%, reply speed 10%, availability 10%); a seller with no relevant skill is never suggested; no reviews scores low-neutral. The AI only writes the explanation from the factor JSON; if it fails, a plain-language summary of the same factors is shown. Response time is a real median first-reply time from direct chats others started (90 days).
+
+**D-096 Progress reports.** Facts come from real rows (tasks, milestone dates, change requests, disputes). Drafts are private to the seller; the seller edits and sends; only then does the buyer see it and get notified. Weekly: a BullMQ scheduler (Mon 07:00 UTC) calls an internal route that drafts for active projects with activity and no report in 6 days; it never sends. If the AI is capped or off, the draft uses the rules text.
+
+**D-097 Meeting notes to tasks.** The seller pastes notes (recording and transcripts arrive with video in Phase 7); suggestions are not saved until the seller confirms; created tasks have `source = meeting_ai`. Non-seller participants get 422, outsiders 404.
+
+**D-098 Seller analytics.** Earnings (transfers net of commission, USD only for now), escrow held, proposal conversion, median reply time, on-time rate, repeat buyers, completed count and rating are computed live, with seed data excluded (D-027). Nothing to measure shows `null` ("not enough data yet"), never zero.
+
+---
+
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):
