@@ -21,3 +21,7 @@ blob-report/
 !.vscode/extensions.json
 *.rdb
 next-env.d.ts
+
+# Screenshots / generated outputs — never commit
+Claude outputs/
+screenshots/

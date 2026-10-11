@@ -7,10 +7,10 @@
   },
   "scripts": {
     "dev": "pnpm infra:up && turbo run dev --filter=@glasswork/api --filter=@glasswork/worker --filter=@glasswork/web",
-    "dev:up": "docker compose -f infra/docker-compose.yml --env-file .env up --build -d && node scripts/wait-for-stack.mjs",
+    "dev:up": "node scripts/dev-pull.mjs && docker compose -f infra/docker-compose.yml --env-file .env up --build --pull missing -d && node scripts/wait-for-stack.mjs",
     "dev:down": "docker compose -f infra/docker-compose.yml --env-file .env down",
     "dev:logs": "docker compose -f infra/docker-compose.yml --env-file .env logs -f api worker web",
-    "infra:up": "docker compose -f infra/docker-compose.yml --env-file .env up -d --wait postgres redis minio minio-init mailpit",
+    "infra:up": "node scripts/dev-pull.mjs --infra && docker compose -f infra/docker-compose.yml --env-file .env up -d --wait postgres redis rustfs mailpit",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
@@ -24,7 +24,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky || true",
-    "dev:reset": "docker compose -f infra/docker-compose.yml --env-file .env down -v"
+    "dev:reset": "docker compose -f infra/docker-compose.yml --env-file .env down -v",
+    "dev:pull": "node scripts/dev-pull.mjs",
+    "smoke:storage": "docker compose -f infra/docker-compose.yml --env-file .env exec -T api node dist/scripts/storage-smoke.js"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

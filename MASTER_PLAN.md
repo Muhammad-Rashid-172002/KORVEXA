@@ -28,7 +28,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 ### 0.C Infrastructure
 
-- [~] `infra/docker-compose.yml`: postgres, redis, minio (+ bucket bootstrap), mailpit, api, worker, web, with healthchecks
+- [~] `infra/docker-compose.yml`: postgres, redis, rustfs (bucket bootstrapped by the API), mailpit, api, worker, web, with healthchecks
 - [~] Dockerfiles (multi-stage, non-root) for api, worker, web
 - [x] `.env.example` (every variable documented); config validated with zod at boot (fail fast)
 - [x] One command: `pnpm dev:up` (whole stack in Docker) plus `pnpm dev` (infra in Docker, apps on host with hot reload)
@@ -64,7 +64,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 ### 0.I Files
 
-- [x] Presigned PUT upload to MinIO (size + MIME allow-list, per-user key prefix), `files` row, presigned GET only for the owner; tests for the cross-user denial
+- [x] Presigned PUT upload to S3 storage (RustFS locally) (size + MIME allow-list, per-user key prefix), `files` row, presigned GET only for the owner; tests for the cross-user denial
 
 ### 0.J Worker
 
@@ -83,6 +83,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [~] GitHub Actions: install, lint, typecheck, unit, integration, e2e, build, `pnpm audit` — _written; first run happens when the GitHub repo exists_
 - [x] All green locally in the sandbox
 
+### 0.L+ Fixes after Mac run #1
+
+- [x] Replace MinIO with RustFS; storage smoke test; `pnpm dev:pull` with retries; slow-network pnpm settings; ignore `Claude outputs/` and screenshot folders
+
 ### 0.M Checkpoint report (CHECKPOINT B)
 
 - [x] One-command run instructions, demo script, screenshots, test results, TODO keys/accounts list
@@ -94,13 +98,13 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 **Verified in the build sandbox:** lint, typecheck and unit tests across 9 workspaces; 16 API integration tests (auth flow, policy, realtime, rate limit) on real Postgres + Redis; 8 Playwright e2e tests (desktop 1440 + mobile 390) against the production builds of api/worker/web; the same e2e also passed against `pnpm dev`; the Docker build steps (install → turbo build → `pnpm deploy` bundles) replayed outside Docker, with migrations, seed, API and worker run from the pruned bundles.
 
-**`[~]` = not verifiable in the sandbox** (it has no Docker engine): `docker compose up` itself, the MinIO/Mailpit images (the sandbox used S3/SMTP stand-ins), and the first CI run. Rashid's Mac checklist covers these.
+**`[~]` = not verifiable in the sandbox** (it has no Docker engine): `docker compose up` itself, the RustFS/Mailpit images (the sandbox used S3/SMTP stand-ins), and the first CI run. Rashid's Mac checklist covers these.
 
 **Files (by area):** `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.env.example`, `README.md`, `SETUP.md`, `.github/workflows/ci.yml`, `infra/docker-compose.yml`, `infra/docker/Dockerfile`, `scripts/wait-for-stack.mjs`, `packages/{config,shared,db,emails,ui}/**`, `apps/{api,worker,web}/**`, `e2e/**`.
 
 **Known issues / follow-ups:**
 
-- MinIO image tag couldn't be verified from the sandbox; it's overridable with `MINIO_IMAGE`.
+- 2026-10-11 Mac run #1 failed: the MinIO image is no longer pullable. Fixed by switching local storage to RustFS 1.0.1 (D-046), adding `pnpm dev:pull` with retries (D-047), and adding a storage smoke test at the end of `dev:up`. RustFS itself can't run in the sandbox (no Docker, no access to its binaries), so the smoke test on the Mac is the first real RustFS check.
 - OAuth is untested until real Google/GitHub keys exist.
 - CSP uses `'unsafe-inline'` for scripts (Next.js hydration); nonce-based CSP is planned for Phase 9.
 - Rotating refresh tokens for mobile: Phase 1 (D-010).

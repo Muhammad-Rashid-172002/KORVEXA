@@ -1,5 +1,5 @@
 # Glasswork local stack. One command from the repo root:  pnpm dev:up
-# (= docker compose -f infra/docker-compose.yml --env-file .env up --build -d, then waits for health)
+# (= pull images with retries, docker compose up --build -d, wait for health, storage smoke test)
 #
 # Browser-facing URLs:  web http://localhost:3000 · api http://localhost:4000 (docs /v1/docs)
 #                       mail http://localhost:8025 · storage console http://localhost:9001
@@ -34,7 +34,7 @@ x-api-env: &api-env
   GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
   GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
   GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
-  S3_ENDPOINT: http://minio:9000
+  S3_ENDPOINT: http://rustfs:9000
   S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
   S3_REGION: ${S3_REGION:-us-east-1}
   S3_BUCKET: ${S3_BUCKET:-glasswork-dev}
@@ -72,21 +72,29 @@ services:
       timeout: 3s
       retries: 20
 
-  # Local S3. MinIO stopped publishing community images in late 2025; we pin the last known tag.
-  # If it can't be pulled, set MINIO_IMAGE in .env (see SETUP.md → Troubleshooting). Prod uses R2.
-  minio:
-    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-09-07T16-13-09Z}
-    command: ['server', '/data', '--console-address', ':9001']
+  # Local S3-compatible storage: RustFS (DECISIONS D-046). Path-style URLs; its root keys are the app's
+  # S3 keys (local only). Production uses Cloudflare R2.
+  rustfs:
+    image: ${STORAGE_IMAGE:-rustfs/rustfs:1.0.1}
     environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-glasswork}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-glasswork-dev-secret}
-    ports: ['${MINIO_API_PORT:-9000}:9000', '${MINIO_CONSOLE_PORT:-9001}:9001']
-    volumes: [miniodata:/data]
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY_ID:-glasswork}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_ACCESS_KEY:-glasswork-dev-secret}
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ENABLE: 'true'
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      # Browser uploads go straight to storage with presigned URLs, so the S3 API must answer CORS for the web app.
+      RUSTFS_CORS_ALLOWED_ORIGINS: ${WEB_URL:-http://localhost:3000}
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: '*'
+      RUSTFS_OBS_LOGGER_LEVEL: warn
+    ports: ['${STORAGE_API_PORT:-9000}:9000', '${STORAGE_CONSOLE_PORT:-9001}:9001']
+    volumes: [storagedata:/data]
     healthcheck:
-      test: ['CMD', 'mc', 'ready', 'local']
+      test: ['CMD', 'curl', '-fsS', 'http://127.0.0.1:9000/health']
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 24
+      start_period: 10s
 
   mailpit:
     image: axllent/mailpit:v1.31.4
@@ -100,8 +108,8 @@ services:
       timeout: 3s
       retries: 20
 
-  # One-shot: apply migrations, then the idempotent dev seed. api waits for it to succeed.
-  migrate:
+  # On start the API applies migrations and the idempotent dev seed, then serves (local stack only).
+  api:
     build: { <<: *app-build, target: api }
     image: glasswork-api:dev
     environment: *api-env
@@ -109,21 +117,25 @@ services:
       [
         'sh',
         '-c',
-        'node node_modules/@glasswork/db/dist/migrate.js && node node_modules/@glasswork/db/dist/seed/index.js',
+        'node node_modules/@glasswork/db/dist/migrate.js && node node_modules/@glasswork/db/dist/seed/index.js && exec node --enable-source-maps dist/main.js',
       ]
-    depends_on:
-      postgres: { condition: service_healthy }
-    restart: 'no'
-
-  api:
-    build: { <<: *app-build, target: api }
-    image: glasswork-api:dev
-    environment: *api-env
     ports: ['${API_PORT:-4000}:4000']
     depends_on:
-      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      minio: { condition: service_healthy }
+      rustfs: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:4000/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
     restart: unless-stopped
 
   worker:
@@ -160,4 +172,4 @@ services:
 volumes:
   pgdata:
   redisdata:
-  miniodata:
+  storagedata:

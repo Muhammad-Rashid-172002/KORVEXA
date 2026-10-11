@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # One Dockerfile, three runtime targets: api, worker, web. The build stage runs once and is shared.
 #   docker build -f infra/docker/Dockerfile --target api .
 ARG NODE_IMAGE=node:22-bookworm-slim
@@ -32,7 +31,7 @@ RUN --mount=type=cache,id=glasswork-pnpm,target=/pnpm/store \
     pnpm --filter @glasswork/api deploy --prod /out/api && \
     pnpm --filter @glasswork/worker deploy --prod /out/worker
 
-# ── api (also runs migrations/seed via `migrate` in compose) ──────────────────
+# ── api (compose runs migrations + dev seed before starting it) ───────────────
 FROM ${NODE_IMAGE} AS api
 ENV NODE_ENV=production
 WORKDIR /app

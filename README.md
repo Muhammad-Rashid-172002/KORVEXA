@@ -9,7 +9,7 @@ A marketplace for software projects where buyers hire verified sellers and can a
 ```bash
 cp .env.example .env
 pnpm install          # once: installs workspace tooling
-pnpm dev:up           # builds and starts postgres, redis, minio, mailpit, api, worker, web
+pnpm dev:up           # pulls images (with retries), builds and starts postgres, redis, rustfs, mailpit, api, worker, web
 ```
 
 | What           | URL                                                   |
@@ -18,7 +18,7 @@ pnpm dev:up           # builds and starts postgres, redis, minio, mailpit, api, 
 | API + Swagger  | http://localhost:4000 · http://localhost:4000/v1/docs |
 | Auth reference | http://localhost:4000/v1/auth/reference (dev only)    |
 | Mailpit        | http://localhost:8025 (verification emails land here) |
-| MinIO console  | http://localhost:9001 (credentials from `.env`)       |
+| RustFS console | http://localhost:9001 (S3 keys from `.env`)           |
 
 Seeded dev users (password `Glasswork-dev-123!`): `buyer@`, `seller@`, `admin@`, `support@dev.glasswork.test`.
 
@@ -50,7 +50,9 @@ docs/           Brief, ERD, state machines
 
 | Command                       | What it does                                                       |
 | ----------------------------- | ------------------------------------------------------------------ |
-| `pnpm dev:up`                 | Whole stack in Docker, waits until healthy                         |
+| `pnpm dev:pull`               | Pull all images one by one with retries (slow-internet friendly)   |
+| `pnpm dev:up`                 | Pull, build and start the stack; waits for health + storage smoke  |
+| `pnpm smoke:storage`          | Re-run the storage check (presigned upload/download + CORS)        |
 | `pnpm dev`                    | Infra in Docker + apps locally with hot reload                     |
 | `pnpm lint` / `typecheck`     | ESLint / TypeScript across the monorepo                            |
 | `pnpm test`                   | Unit tests (Vitest)                                                |

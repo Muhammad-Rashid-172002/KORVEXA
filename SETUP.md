@@ -20,14 +20,39 @@ pnpm install
 pnpm dev:up
 ```
 
-The first `dev:up` builds the images (about 3–6 minutes). Later runs reuse the cache. The command waits until API, worker, web and Mailpit answer, then prints the URLs.
+What `pnpm dev:up` does:
 
-What happens on start:
+1. **`pnpm dev:pull`** downloads the images one at a time, retrying each up to 5 times with backoff (5s, 15s, 30s, 60s). Images you already have are skipped. If one still fails, it prints which one and the exact retry command.
+2. `docker compose up --build` builds the api/worker/web images. The first build downloads the npm packages for Linux inside Docker; they're cached for later builds.
+3. postgres, redis, rustfs (storage) and mailpit start and become healthy.
+4. `api` applies migrations, runs the idempotent dev seed, creates the storage bucket if it's missing, then starts. `worker` and `web` follow.
+5. It waits until everything answers, runs a **storage smoke test** inside the api container (presigned upload/download and CORS), then prints the URLs.
 
-1. postgres, redis, minio and mailpit start and become healthy.
-2. `migrate` (one-shot) applies migrations and runs the idempotent dev seed.
-3. `api` starts after `migrate` succeeds and creates the storage bucket if it's missing.
-4. `worker` and `web` start.
+### First-run download size (linux/amd64, compressed)
+
+| Item                                                                                         | Approx.          |
+| -------------------------------------------------------------------------------------------- | ---------------- |
+| `postgres:17-alpine`                                                                         | 117 MB           |
+| `rustfs/rustfs:1.0.1`                                                                        | 111 MB           |
+| `node:22-bookworm-slim` (base for app images)                                                | 80 MB            |
+| `axllent/mailpit:v1.31.4`                                                                    | 17 MB            |
+| `redis:7.4-alpine`                                                                           | 16 MB            |
+| npm packages inside the Docker build (Linux builds, separate from your Mac's `pnpm install`) | ~300–400 MB      |
+| **Total**                                                                                    | **≈ 650–750 MB** |
+
+Optional: Playwright's Chromium for `pnpm test:e2e` adds about 110 MB. Later runs download almost nothing unless images or dependencies change.
+
+**Slow connection tips:** run `pnpm dev:pull` on its own first (safe to re-run; it resumes). If the build stops while downloading npm packages, just run `pnpm dev:up` again: downloaded packages stay in Docker's build cache. pnpm itself retries each package 6 times with long timeouts (`pnpm-workspace.yaml`).
+
+## 2a. Local services
+
+| Service        | URL                   | Notes                                                                                       |
+| -------------- | --------------------- | ------------------------------------------------------------------------------------------- |
+| Web            | http://localhost:3000 |                                                                                             |
+| API            | http://localhost:4000 | Swagger at `/v1/docs`, auth reference at `/v1/auth/reference`                               |
+| Mailpit        | http://localhost:8025 | All outgoing email in dev                                                                   |
+| RustFS console | http://localhost:9001 | Log in with `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` from `.env`; bucket `glasswork-dev` |
+| RustFS S3 API  | http://localhost:9000 | Path-style, used by presigned URLs                                                          |
 
 ## 3. Hot-reload development
 
@@ -84,12 +109,20 @@ Sentry is off unless `SENTRY_DSN` (api/worker/web server) or `NEXT_PUBLIC_SENTRY
 
 ## 9. Troubleshooting
 
-| Symptom                                 | Fix                                                                                                                                                                                                   |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `minio` image can't be pulled           | MinIO stopped publishing community images. Set `MINIO_IMAGE=` in `.env` to another tag you can pull (e.g. a newer `minio/minio:RELEASE.*`, or `cgr.dev/chainguard/minio:latest`), then `pnpm dev:up`. |
-| Port already in use (5432, 6379, 3000…) | Stop the local service, or change `POSTGRES_PORT`, `REDIS_PORT`, etc. in `.env`. For 3000/4000, also update `WEB_URL` / `API_PUBLIC_URL`.                                                             |
-| "Invalid environment configuration"     | A required variable is missing; compare `.env` with `.env.example`.                                                                                                                                   |
-| No verification email                   | Open Mailpit (http://localhost:8025) and check `pnpm dev:logs` for worker errors.                                                                                                                     |
-| Login says "verify your email first"    | Click the link in Mailpit; the link expires after 1 hour (use "Resend link").                                                                                                                         |
-| `429 Too many requests` on login        | Auth rate limit (`AUTH_RATE_LIMIT_MAX` per minute per IP). Wait a minute.                                                                                                                             |
-| Start from scratch                      | `pnpm dev:reset && pnpm dev:up` (deletes all local data).                                                                                                                                             |
+| Symptom                                 | Fix                                                                                                                                                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Port already in use (5432, 6379, 3000…) | Stop the local service, or change `POSTGRES_PORT`, `REDIS_PORT`, etc. in `.env`. For 3000/4000, also update `WEB_URL` / `API_PUBLIC_URL`.                                                                          |
+| "Invalid environment configuration"     | A required variable is missing; compare `.env` with `.env.example`.                                                                                                                                                |
+| No verification email                   | Open Mailpit (http://localhost:8025) and check `pnpm dev:logs` for worker errors.                                                                                                                                  |
+| Login says "verify your email first"    | Click the link in Mailpit; the link expires after 1 hour (use "Resend link").                                                                                                                                      |
+| `429 Too many requests` on login        | Auth rate limit (`AUTH_RATE_LIMIT_MAX` per minute per IP). Wait a minute.                                                                                                                                          |
+| Start from scratch                      | `pnpm dev:reset && pnpm dev:up` (deletes all local data).                                                                                                                                                          |
+| Storage smoke test fails                | Run `pnpm smoke:storage` to repeat it; check `docker compose -f infra/docker-compose.yml --env-file .env logs rustfs`. A CORS failure means `WEB_URL` in `.env` doesn't match the address you open in the browser. |
+
+### An image fails to download
+
+1. Re-run `pnpm dev:pull`. Finished images are skipped and Docker keeps partial layers, so each retry continues where it stopped.
+2. Retry a single image directly: `docker pull <image>` (the script prints the exact command).
+3. Still failing:
+   - **"connection reset" / timeout**: network problem. Try again later or on another connection. Docker Desktop → Settings → Docker Engine also lets you set `"max-concurrent-downloads": 1`, which helps on very slow links.
+   - **"not found" / "pull access denied"**: the tag was removed from the registry. For storage only, set `STORAGE_IMAGE` in `.env` to another RustFS tag listed at hub.docker.com/r/rustfs/rustfs/tags, then re-run. For the others, tell me and I'll re-pin.

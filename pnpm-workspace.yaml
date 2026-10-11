@@ -36,3 +36,10 @@ peerDependencyRules:
 overrides:
   fastify: 5.12.5
   js-yaml@>=5.0.0 <5.4.1: 5.4.1
+
+# Patient network settings for slow or flaky connections (also used inside the Docker build).
+fetchRetries: 6
+fetchRetryMintimeout: 10000
+fetchRetryMaxtimeout: 120000
+fetchTimeout: 600000
+networkConcurrency: 8

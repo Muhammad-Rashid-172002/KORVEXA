@@ -15,7 +15,7 @@ export const UPLOAD_URL_TTL_SECONDS = 15 * 60;
 export const DOWNLOAD_URL_TTL_SECONDS = 5 * 60;
 
 /**
- * S3-compatible storage (MinIO locally, Cloudflare R2 in prod). Two clients: `internal` talks to the
+ * S3-compatible storage (RustFS locally, Cloudflare R2 in prod). Two clients: `internal` talks to the
  * storage from inside the network; `public` only signs URLs with the host the browser can reach.
  */
 @Injectable()
