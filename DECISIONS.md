@@ -290,6 +290,22 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 ---
 
+## 9c. Phase 2 — services & discovery (2026-10-11)
+
+**D-060 Search = Postgres FTS + pg_trgm behind `SearchService`.** Weighted `tsvector` (title A, description B) as a generated column with a GIN index, `websearch_to_tsquery` for the query, and `similarity(title, q)` (trigram GIN index) so small typos still match. Rank = `ts_rank_cd + similarity`. `PostgresSearchService` is injected through the abstract `SearchService`, so Meilisearch can replace it without touching controllers. Cursors are opaque offsets (capped at 10k): relevance scores aren't keyset-friendly. ⚠ Prefix/partial-word search ("zebr" → "zebra") is not supported; that is a known limit of this approach and a reason to revisit Meilisearch if discovery quality matters.
+
+**D-061 Filters shipped vs. deferred.** Shipped: text, category, budget (any package within range), delivery time, sort (best match, newest, price ↑/↓). **Deferred with a visible note:** rating, seller level and verified-only. Their data (reviews, verifications, levels) doesn't exist until Phase 5, and showing filters over empty data would be fabricated UX (brief principle 4).
+
+**D-062 Moderation lifecycle.** `draft → pending_review → live` (or `rejected` with a reason, resubmittable), `live ⇄ paused`. Sellers cannot self-approve; `operations` or `product` admins approve/reject (audited with before/after status). **Editing a live service sends it back to `pending_review` and hides it**, so approved text can't be swapped after approval. A service is publicly visible only if it is `live`, its seller finished onboarding and the seller isn't banned. Deleting is blocked while live/pending (Phase 3 will also block it when orders exist).
+
+**D-063 "Operated by KorvenzaTech" (D-002 implemented).** `services.operated_by_platform` is a display flag settable only by `product` admins (audited). The search ORDER BY is documented as forbidden from reading it, and an integration test flips the flag on identical listings and asserts the result order never changes. Terms wording comes in Phase 8.
+
+**D-064 Categories are reference data in the migration** (idempotent `INSERT … ON CONFLICT DO NOTHING`), not dev seed, because production needs them. They are a taxonomy, not marketplace content. Listing images reuse the `portfolio` upload purpose (owner-only until published, then served via short-lived presigned URLs like D-050).
+
+**D-065 Public pages are never cached** (`cache: 'no-store'`) because they embed 5-minute presigned image URLs. When a CDN is added (Phase 9) images should move behind a public-read prefix or signed-cookie scheme. `robots.ts` disallows everything on localhost/staging and only opens public discovery routes once `NEXT_PUBLIC_WEB_URL` is a real domain; `sitemap.xml` lists live services.
+
+---
+
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):
