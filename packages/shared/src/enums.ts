@@ -77,3 +77,9 @@ export const SELLER_ONBOARDING_STEPS = [
   'identity',
 ] as const;
 export type SellerOnboardingStep = (typeof SELLER_ONBOARDING_STEPS)[number];
+
+export const SERVICE_STATUSES = ['draft', 'pending_review', 'live', 'paused', 'rejected'] as const;
+export type ServiceStatus = (typeof SERVICE_STATUSES)[number];
+
+export const PACKAGE_TIERS = ['basic', 'standard', 'premium'] as const;
+export type PackageTier = (typeof PACKAGE_TIERS)[number];

@@ -5,6 +5,8 @@ import {
   FILE_STATUSES,
   ORG_KINDS,
   ORG_ROLES,
+  PACKAGE_TIERS,
+  SERVICE_STATUSES,
   SELLER_AVAILABILITY,
   USER_ROLES,
 } from '@glasswork/shared';
@@ -19,3 +21,5 @@ export const fileStatus = pgEnum('file_status', FILE_STATUSES);
 export const orgKind = pgEnum('org_kind', ORG_KINDS);
 export const orgRole = pgEnum('org_role', ORG_ROLES);
 export const sellerAvailability = pgEnum('seller_availability', SELLER_AVAILABILITY);
+export const serviceStatus = pgEnum('service_status', SERVICE_STATUSES);
+export const packageTier = pgEnum('package_tier', PACKAGE_TIERS);
