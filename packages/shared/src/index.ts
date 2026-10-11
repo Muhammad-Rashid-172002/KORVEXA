@@ -11,3 +11,4 @@ export * from './catalogue';
 export * from './money';
 export * from './commerce';
 export * from './room';
+export * from './trust';

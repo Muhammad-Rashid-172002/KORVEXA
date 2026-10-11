@@ -3,8 +3,12 @@ import {
   ADMIN_SCOPES,
   FILE_PURPOSES,
   BRIEF_STATUSES,
+  CHANGE_REQUEST_STATUSES,
   CONVERSATION_KINDS,
   DELIVERABLE_STATUSES,
+  DISPUTE_OUTCOMES,
+  DISPUTE_STATUSES,
+  EVIDENCE_KINDS,
   ESCROW_STATUSES,
   FILE_STATUSES,
   HEALTH_STATES,
@@ -20,6 +24,9 @@ import {
   PAYOUT_RAILS,
   PAYOUT_STATUSES,
   PREVIEW_KINDS,
+  REPORT_STATUSES,
+  REPORT_TARGETS,
+  REVIEW_VISIBILITIES,
   PROJECT_STATUSES,
   PROPOSAL_STATUSES,
   SERVICE_STATUSES,
@@ -28,6 +35,8 @@ import {
   TRANSFER_STATUSES,
   SELLER_AVAILABILITY,
   USER_ROLES,
+  VERIFICATION_KINDS,
+  VERIFICATION_STATUSES,
 } from '@glasswork/shared';
 import { pgEnum } from 'drizzle-orm/pg-core';
 
@@ -61,3 +70,12 @@ export const deliverableStatus = pgEnum('deliverable_status', DELIVERABLE_STATUS
 export const conversationKind = pgEnum('conversation_kind', CONVERSATION_KINDS);
 export const messageKind = pgEnum('message_kind', MESSAGE_KINDS);
 export const offerStatus = pgEnum('offer_status', OFFER_STATUSES);
+export const reviewVisibility = pgEnum('review_visibility', REVIEW_VISIBILITIES);
+export const verificationKind = pgEnum('verification_kind', VERIFICATION_KINDS);
+export const verificationStatus = pgEnum('verification_status', VERIFICATION_STATUSES);
+export const changeRequestStatus = pgEnum('change_request_status', CHANGE_REQUEST_STATUSES);
+export const disputeStatus = pgEnum('dispute_status', DISPUTE_STATUSES);
+export const disputeOutcome = pgEnum('dispute_outcome', DISPUTE_OUTCOMES);
+export const evidenceKind = pgEnum('evidence_kind', EVIDENCE_KINDS);
+export const reportTarget = pgEnum('report_target', REPORT_TARGETS);
+export const reportStatus = pgEnum('report_status', REPORT_STATUSES);

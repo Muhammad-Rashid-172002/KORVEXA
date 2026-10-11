@@ -41,6 +41,7 @@ import { randomBytes } from 'node:crypto';
 import type { RequestActor } from '../../auth/session.service';
 import { DB } from '../../infra/tokens';
 import { StorageService } from '../files/storage.service';
+import { SellerStatsService } from '../trust/stats.service';
 import { SearchService } from './search.service';
 
 const slugBase = (s: string) =>
@@ -58,6 +59,7 @@ export class ServicesService {
     @Inject(DB) private readonly db: DbClient,
     private readonly storage: StorageService,
     private readonly search: SearchService,
+    private readonly stats: SellerStatsService,
   ) {}
 
   // ---- public ---------------------------------------------------------------
@@ -473,6 +475,7 @@ export class ServicesService {
     const imgBy = new Map<string, string>();
     for (const i of firstImages) if (!imgBy.has(i.serviceId)) imgBy.set(i.serviceId, i.fileId);
     const rowBy = new Map(rows.map((r) => [r.s.id, r]));
+    const trust = await this.stats.get(rows.map((r) => r.s.sellerId));
 
     const out: ServiceCardView[] = [];
     for (const id of ids) {
@@ -496,6 +499,13 @@ export class ServicesService {
         imageUrl: await this.url(imgBy.get(id) ?? null),
         operatedByPlatform: r.s.operatedByPlatform,
         status: r.s.status,
+        trust: {
+          level: trust.get(r.s.sellerId)?.level ?? 'new',
+          levelLabel: trust.get(r.s.sellerId)?.levelLabel ?? 'New seller',
+          avgRating: trust.get(r.s.sellerId)?.avgRating ?? null,
+          reviewCount: trust.get(r.s.sellerId)?.reviewCount ?? 0,
+          verified: (trust.get(r.s.sellerId)?.badges.length ?? 0) > 0,
+        },
       });
     }
     return out;
