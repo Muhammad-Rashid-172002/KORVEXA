@@ -56,7 +56,14 @@ describe('payment safety rails in the env schema', () => {
         STRIPE_WEBHOOK_SECRET: 'whsec_x',
         INTERNAL_API_TOKEN: 'a-real-random-token-with-24-plus-chars',
         SCAN_MODE: 'clamav',
+        AI_PROVIDER: 'off',
       }).success,
     ).toBe(true);
+  });
+
+  it('AI: the offline stub is refused in production and the anthropic provider needs its key', () => {
+    expect(messages({ NODE_ENV: 'production' }).join()).toMatch(/offline stub AI cannot run in production/);
+    expect(messages({ AI_PROVIDER: 'anthropic' }).join()).toMatch(/ANTHROPIC_API_KEY/);
+    expect(parse({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'sk-ant-test' }).success).toBe(true);
   });
 });

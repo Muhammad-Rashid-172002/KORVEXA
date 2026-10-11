@@ -5,24 +5,25 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Phase 5 done and merged to `main`. Next: **Phase 6 — AI** on branch `phase/6-ai`.
+Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Phase 5 done and merged to `main`. Phase 6 done. Next: **Phase 7 — Meetings & integrations** on branch `phase/7-meetings`.
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
 
 ## ⏳ WAITING ON RASHID
 
-| Item                                                                | Needed for                                                                                         | Status                                                                                                                                           |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it                                               | Partners deciding with accountant/lawyer                                                                                                         |
-| Stripe TEST keys (`sk_test_…`) + webhook secret                     | Verifying the real Stripe adapter (checkout/refund); the built-in test provider works without them | Not provided; app runs on the test provider                                                                                                      |
-| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                                                                   | Admin settings exist, set to 0                                                                                                                   |
-| Admin role mapping confirmation (Q5)                                | Admin area                                                                                         | Provisional: Rashid=product, Taha=growth, Suliman=operations                                                                                     |
-| GitHub repo URL (Q7)                                                | CI first run, push                                                                                 | A remote `origin` → github.com/Muhammad-Rashid-172002/KORVEXA exists (not added by me). Confirm it is the intended repo; nothing has been pushed |
-| KorvenzaTech K logo SVG                                             | Header lockup, product mark                                                                        | Text lockup in use                                                                                                                               |
-| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS                                                          | TODO in brand.ts                                                                                                                                 |
-| Google + GitHub OAuth keys                                          | Social login                                                                                       | Buttons hidden until set                                                                                                                         |
-| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                                                                   | Off locally (Mailpit / no-op Sentry)                                                                                                             |
+| Item                                                                  | Needed for                                                                                         | Status                                                                                                                                           |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Legal entity + country for the Stripe platform account (Q1)           | Live payments (Phase 3+); test mode works without it                                               | Partners deciding with accountant/lawyer                                                                                                         |
+| Stripe TEST keys (`sk_test_…`) + webhook secret                       | Verifying the real Stripe adapter (checkout/refund); the built-in test provider works without them | Not provided; app runs on the test provider                                                                                                      |
+| Fee values: buyer service fee %, seller commission %, minimums (Q4)   | Phase 3 checkout                                                                                   | Admin settings exist, set to 0                                                                                                                   |
+| Admin role mapping confirmation (Q5)                                  | Admin area                                                                                         | Provisional: Rashid=product, Taha=growth, Suliman=operations                                                                                     |
+| GitHub repo URL (Q7)                                                  | CI first run, push                                                                                 | A remote `origin` → github.com/Muhammad-Rashid-172002/KORVEXA exists (not added by me). Confirm it is the intended repo; nothing has been pushed |
+| KorvenzaTech K logo SVG                                               | Header lockup, product mark                                                                        | Text lockup in use                                                                                                                               |
+| Domain (Q3), registered company name + address (Q2)                   | brand.ts, legal pages, cookies, email DNS                                                          | TODO in brand.ts                                                                                                                                 |
+| Google + GitHub OAuth keys                                            | Social login                                                                                       | Buttons hidden until set                                                                                                                         |
+| Anthropic API key (`ANTHROPIC_API_KEY`, then `AI_PROVIDER=anthropic`) | Real AI answers (Phase 6)                                                                          | Not provided; runs on the offline stub                                                                                                           |
+| Resend API key + sender domain (Q9), Sentry DSNs                      | Production email, error tracking                                                                   | Off locally (Mailpit / no-op Sentry)                                                                                                             |
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason inline)
 
@@ -282,15 +283,29 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - Evidence/identity files rely on SCAN_MODE (off in dev); real ClamAV still unverified.
 - Reviews are not re-checkable after being posted (no edit/delete flow); moderation of a review is via reports only.
 
-## Phase 6 — AI
+## Phase 6 — AI · branch `phase/6-ai`
 
-- [ ] AI module: Claude API server-side, per-user rate limits, daily cost caps, usage table
-- [ ] AI Brief Builder
-- [ ] AI Matching with explanations
-- [ ] Weekly + on-demand progress reports (seller edits before sending)
-- [ ] Meeting notes → Board tasks
-- [ ] Seller analytics dashboard (real data only)
-- [ ] CHECKPOINT
+- [x] AI module: Claude API server-side, per-user rate limits, daily cost caps, usage table
+- [x] AI Brief Builder
+- [x] AI Matching with explanations
+- [x] Weekly + on-demand progress reports (seller edits before sending)
+- [x] Meeting notes → Board tasks
+- [x] Seller analytics dashboard (real data only)
+- [x] CHECKPOINT (log only)
+
+### Phase 6 log (2026-10-12)
+
+**Tested on the real Docker stack:** unit (cost maths, env rails, provider with a fake Anthropic client, rules fallbacks, worker processor), 13 AI integration tests (ownership, caps, rate limit, matching, report privacy/immutability, weekly job, meeting notes, analytics, admin usage) and Playwright e2e on desktop + mobile for all six flows.
+
+**Files:** `packages/shared/src/ai.ts`, `packages/db/src/schema/ai.ts` (migration 0009), `apps/api/src/modules/ai/*`, `room.service.ts` (`createMany`), worker `reports.processor.ts` + weekly scheduler; web `app/requests/new/ai`, `app/match`, `app/seller/analytics`, `components/room/{reports,meeting-notes}.tsx`; `e2e/tests/ai.spec.ts`.
+
+**Known issues / waiting:**
+
+- Needs `ANTHROPIC_API_KEY` and `AI_PROVIDER=anthropic` to use the real model; the live API path is unverified.
+- Caps are pre-checks (a concurrent call can overshoot slightly). Analytics earnings are USD only.
+- Meeting notes are pasted text until video/recording (Phase 7).
+- e2e is timing-sensitive under heavy machine load (a load average near 200 from macOS storage indexing made 4 older tests time out); `pnpm --filter @glasswork/e2e exec playwright test --workers=1` passes 58/58. The AI cap test cleans up its own spend rows because the platform daily cap is shared.
+- Environment: the Mac disk reached ~100% from Docker build cache; run `docker builder prune --keep-storage 8GB` now and then.
 
 ## Phase 7 — Meetings & integrations
 

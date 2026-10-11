@@ -303,6 +303,14 @@ export const NOTIFICATION_TYPES = {
   },
   'dispute.opened': { label: 'A dispute was opened', defaults: { inApp: true, email: true, push: true } },
   'dispute.resolved': { label: 'A dispute was resolved', defaults: { inApp: true, email: true, push: true } },
+  'report.draft': {
+    label: 'A progress report draft is ready to review',
+    defaults: { inApp: true, email: false, push: false },
+  },
+  'report.sent': {
+    label: 'You received a progress report',
+    defaults: { inApp: true, email: true, push: false },
+  },
 } as const satisfies Record<string, NotificationTypeDef>;
 export type NotificationType = keyof typeof NOTIFICATION_TYPES;
 
