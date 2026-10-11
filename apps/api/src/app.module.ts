@@ -16,6 +16,8 @@ import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { PublicConfigController } from './modules/public-config/public-config.controller';
 import { OrgsModule } from './modules/orgs/orgs.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 
@@ -41,6 +43,8 @@ const env = loadEnv();
     OrgsModule,
     SessionsModule,
     ServicesModule,
+    PaymentsModule,
+    OrdersModule,
     AdminModule,
     RealtimeModule,
   ],

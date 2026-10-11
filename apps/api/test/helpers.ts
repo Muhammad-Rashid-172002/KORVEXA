@@ -8,7 +8,8 @@ import { DB } from '../src/infra/tokens';
 export const ORIGIN = { origin: 'http://localhost:3000' };
 
 export async function createTestApp(): Promise<NestFastifyApplication> {
-  const app = await createApp({ logger: false });
+  // abortOnError:false so DI/boot failures surface as a normal test error instead of killing the worker silently.
+  const app = await createApp({ logger: false, abortOnError: false });
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
   return app;
@@ -68,3 +69,49 @@ export async function findEmailJob(
     await queue.close();
   }
 }
+
+export type TestUser = Awaited<ReturnType<typeof signUpVerified>>;
+export type Verb = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+/** Builds a `call(user, method, url, payload, headers)` helper bound to an app (URLs are relative to /v1). */
+export function makeCaller(app: NestFastifyApplication) {
+  return (
+    u: TestUser | null,
+    method: Verb,
+    url: string,
+    payload?: unknown,
+    headers: Record<string, string> = {},
+  ) =>
+    app.inject({
+      method,
+      url: `/v1${url}`,
+      headers: { ...ORIGIN, ...(u && { cookie: u.cookie }), ...headers },
+      ...(payload !== undefined && { payload: payload as object }),
+    });
+}
+
+/** Opts a user into selling and publishes the seller profile through the real endpoints. */
+export async function publishSeller(call: ReturnType<typeof makeCaller>, u: TestUser) {
+  await call(u, 'POST', '/me/seller');
+  await call(u, 'PATCH', '/me/profile', { headline: 'Engineer', bio: 'Builds things', country: 'PK' });
+  await call(u, 'PUT', '/me/seller/skills', { skills: ['React'] });
+  await call(u, 'PATCH', '/me/seller', { hourlyRateAmount: 4000 });
+  const r = await call(u, 'POST', '/me/seller/onboarding/complete');
+  if (r.statusCode !== 201) throw new Error(`publishSeller failed: ${r.statusCode} ${r.body}`);
+}
+
+/** Grants admin role + scopes directly in the DB (tests only). */
+export async function makeAdmin(
+  app: NestFastifyApplication,
+  u: TestUser,
+  scopes: ('product' | 'growth' | 'operations')[],
+) {
+  const { db } = app.get<DbClient>(DB);
+  await db
+    .update(users)
+    .set({ roles: ['buyer', 'admin'], adminScopes: scopes })
+    .where(eq(users.id, u.userId));
+}
+
+let keyCounter = 0;
+export const idemKey = (p = 'k') => `${p}-${Date.now()}-${++keyCounter}-test`;

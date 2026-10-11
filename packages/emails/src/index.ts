@@ -1,6 +1,7 @@
 import { brand, type EmailJob } from '@glasswork/shared';
 import { render } from '@react-email/render';
 import { createElement } from 'react';
+import { MilestoneReminder } from './templates/milestone-reminder';
 import { OrgInvite } from './templates/org-invite';
 import { ResetPassword } from './templates/reset-password';
 import { VerifyEmail } from './templates/verify-email';
@@ -26,6 +27,14 @@ export async function renderEmail(job: EmailJob): Promise<RenderedEmail> {
       const el = createElement(ResetPassword, job.data);
       return {
         subject: `Reset your ${brand.productName} password`,
+        html: await render(el),
+        text: await render(el, { plainText: true }),
+      };
+    }
+    case 'milestone-reminder': {
+      const el = createElement(MilestoneReminder, job.data);
+      return {
+        subject: `Review needed: ${job.data.milestoneTitle} (${job.data.daysLeft} day${job.data.daysLeft === 1 ? '' : 's'} left)`,
         html: await render(el),
         text: await render(el, { plainText: true }),
       };

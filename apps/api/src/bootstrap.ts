@@ -16,7 +16,9 @@ import { RedisIoAdapter } from './modules/realtime/redis-io.adapter';
 import { setupOpenApi } from './openapi-setup';
 
 /** Builds the fully configured (not yet listening) app. Shared by main.ts and integration tests. */
-export async function createApp(opts: { logger?: boolean } = {}): Promise<NestFastifyApplication> {
+export async function createApp(
+  opts: { logger?: boolean; abortOnError?: boolean } = {},
+): Promise<NestFastifyApplication> {
   const env = loadEnv();
   const adapter = new FastifyAdapter({
     trustProxy: env.TRUST_PROXY,
@@ -32,7 +34,10 @@ export async function createApp(opts: { logger?: boolean } = {}): Promise<NestFa
 
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter, {
     bufferLogs: true,
+    // Raw request bodies are required to verify payment-webhook signatures.
+    rawBody: true,
     logger: opts.logger === false ? false : undefined,
+    ...(opts.abortOnError === false && { abortOnError: false }),
   });
   if (opts.logger !== false) app.useLogger(app.get(Logger));
 

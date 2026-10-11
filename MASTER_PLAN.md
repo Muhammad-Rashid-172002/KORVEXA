@@ -5,7 +5,7 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–2 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Next: **Phase 3 — Orders & payments (Stripe test mode)** on branch `phase/3-payments`.
+Phases 0–2 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Next: **Phase 3 — Orders & payments** on branch `phase/3-payments`; S1+S2 (schema + money-core API, 72 integration tests) are committed, continue with S3 (briefs/proposals) → S4 (web UI) → S5 (e2e + docs).
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 49 integration tests, 20 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
@@ -191,18 +191,22 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 **Manual test:** sign in as `seller@dev.glasswork.test` → `/sell/services` → New service → Submit → sign in as `admin@dev.glasswork.test` → `/admin/services` → Approve → open `/services` signed out, search/filter, open the service → sign in as a buyer → ♥ favorite, "Save this search" → `/favorites`.
 
-## Phase 3 — Orders & payments (Stripe test mode)
+## Phase 3 — Orders & payments (Stripe test mode) · branch `phase/3-payments`
 
-- [ ] PaymentsService + PayoutsService interfaces; Stripe adapter (test mode)
-- [ ] Package checkout → project + milestones; idempotency keys
-- [ ] Milestone funding (charge to the platform balance) + escrow_holds
-- [ ] Double-entry ledger (append-only) + balance invariants test
-- [ ] Payout-method onboarding (Connect Express where supported; payout rail per DECISIONS D-020)
-- [ ] Release on approval → transfer/payout; auto-approve timer (worker)
-- [ ] Webhooks: signature verification, raw event store, idempotent processing, admin replay
-- [ ] Fee settings + transparent fee breakdown before payment; invoices/receipts PDF
-- [ ] Buyer requests board + proposals with milestone plans; custom offers from chat
-- [ ] CHECKPOINT
+Sub-slices: **S1** schema ✔ · **S2** money core API ✔ · **S3** briefs + proposals · **S4** web UI (checkout, project money view, earnings, admin) · **S5** e2e + docs.
+
+- [x] PaymentsService/provider interfaces; adapters: built-in `test` provider (default, no keys) + Stripe (Checkout Sessions; webhook signature verified by unit tests, API calls untested until keys exist)
+- [x] Package checkout → project + 3 milestones (exact integer split, DB prices only); `Idempotency-Key` on orders, funding, payouts
+- [x] Milestone funding (one charge per milestone) + escrow_holds; seller commission fixed at funding
+- [x] Double-entry ledger (append-only, DB zero-sum trigger) + global invariant tests
+- [~] Payout rails: manual-bank implemented (request → ops marks paid/failed); Stripe Connect Express not wired (needs Q1/Q6, listed as unavailable in the UI payload)
+- [x] Release on approval → transfer + seller balance; auto-approve timer (worker → internal API, reminders day 2/4)
+- [x] Webhooks: signature verification, raw event store, idempotent processing, admin replay
+- [x] Fee settings (admin, product scope) + transparent breakdown endpoint; invoices/receipts PDF
+- [ ] Buyer requests board + proposals with milestone plans (S3)
+- [ ] Custom offers from chat — **moved to Phase 4** (needs chat), see D-066
+- [ ] Web UI for all of the above (S4) and e2e (S5)
+- [ ] CHECKPOINT (log only)
 
 ## Phase 4 — Live Project Room
 

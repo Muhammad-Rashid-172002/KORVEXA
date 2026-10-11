@@ -73,6 +73,8 @@ export const escrowHolds = pgTable('escrow_holds', {
     .notNull()
     .references(() => payments.id, { onDelete: 'restrict' }),
   amount: bigint({ mode: 'number' }).notNull(),
+  /** Fixed when the milestone is funded so later fee-setting changes never alter an in-flight milestone. */
+  sellerCommissionAmount: bigint({ mode: 'number' }).notNull().default(0),
   currency: char({ length: 3 }).notNull().default('USD'),
   status: escrowStatus().notNull().default('held'),
   releasedAt: timestamp({ withTimezone: true }),

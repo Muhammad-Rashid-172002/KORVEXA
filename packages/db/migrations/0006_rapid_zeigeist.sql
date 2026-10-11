@@ -1,0 +1,1 @@
+ALTER TABLE "escrow_holds" ADD COLUMN "seller_commission_amount" bigint DEFAULT 0 NOT NULL;

@@ -43,6 +43,12 @@ x-api-env: &api-env
   S3_FORCE_PATH_STYLE: 'true'
   S3_AUTO_CREATE_BUCKET: 'true'
   RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-300}
+  PAYMENTS_PROVIDER: ${PAYMENTS_PROVIDER:-test}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  PAYMENTS_LIVE_ENABLED: ${PAYMENTS_LIVE_ENABLED:-false}
+  TEST_PAYMENTS_WEBHOOK_SECRET: ${TEST_PAYMENTS_WEBHOOK_SECRET:-dev-only-test-payments-secret}
+  INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-only-internal-token-change-me-0123456789}
   SENTRY_DSN: ${SENTRY_DSN:-}
   SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-development}
 
@@ -150,12 +156,15 @@ services:
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       RESEND_API_KEY: ${RESEND_API_KEY:-}
+      API_INTERNAL_URL: http://api:4000
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-only-internal-token-change-me-0123456789}
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-development}
     ports: ['${WORKER_HEALTH_PORT:-4001}:4001']
     depends_on:
       redis: { condition: service_healthy }
       mailpit: { condition: service_healthy }
+      api: { condition: service_healthy }
     restart: unless-stopped
 
   web:

@@ -43,6 +43,13 @@
       "when": 1791726897990,
       "tag": "0005_whole_may_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791727150483,
+      "tag": "0006_rapid_zeigeist",
+      "breakpoints": true
     }
   ]
 }

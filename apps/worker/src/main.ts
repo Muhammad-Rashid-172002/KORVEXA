@@ -8,15 +8,19 @@ import { env } from './env';
 import { logger } from './logger';
 import { createMailer } from './mailer';
 import { createEmailProcessor } from './processors/email.processor';
+import { createMilestoneProcessor } from './processors/milestone.processor';
 
 const connection = { url: env.REDIS_URL };
 const mailer = createMailer(env);
 
-const workers = [new Worker(QUEUES.email, createEmailProcessor(mailer), { connection, concurrency: 5 })];
+const workers = [
+  new Worker(QUEUES.email, createEmailProcessor(mailer), { connection, concurrency: 5 }),
+  new Worker(QUEUES.milestones, createMilestoneProcessor(env), { connection, concurrency: 5 }),
+];
 
 for (const w of workers) {
-  w.on('completed', (job, result: { id: string }) =>
-    logger.info({ queue: w.name, jobId: job.id, jobName: job.name, messageId: result.id }, 'job completed'),
+  w.on('completed', (job, result: unknown) =>
+    logger.info({ queue: w.name, jobId: job.id, jobName: job.name, result }, 'job completed'),
   );
   w.on('failed', (job, err) => {
     logger.error(
