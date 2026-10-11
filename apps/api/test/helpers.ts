@@ -1,4 +1,6 @@
-import { eq, users, type DbClient } from '@glasswork/db';
+import { eq, filesRepository, users, type DbClient } from '@glasswork/db';
+import type { FilePurpose, FileStatus } from '@glasswork/shared';
+import { uuidv7 } from 'uuidv7';
 import { QUEUES, type EmailJob } from '@glasswork/shared';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Queue } from 'bullmq';
@@ -115,3 +117,84 @@ export async function makeAdmin(
 
 let keyCounter = 0;
 export const idemKey = (p = 'k') => `${p}-${Date.now()}-${++keyCounter}-test`;
+
+/** Inserts a file row directly (tests don't talk to object storage). */
+export async function createFile(
+  app: NestFastifyApplication,
+  owner: TestUser,
+  purpose: FilePurpose,
+  opts: { status?: FileStatus; name?: string; mimeType?: string } = {},
+) {
+  const id = uuidv7();
+  await filesRepository(app.get<DbClient>(DB).db).create(
+    { userId: owner.userId },
+    {
+      id,
+      storageKey: `u/${owner.userId}/${id}`,
+      originalName: opts.name ?? 'file.pdf',
+      mimeType: opts.mimeType ?? 'application/pdf',
+      sizeBytes: 100,
+      purpose,
+      status: opts.status ?? 'clean',
+    },
+  );
+  return id;
+}
+
+/**
+ * A running marketplace for tests: published seller with a live service, a buyer, an outsider and an operations
+ * admin. `activeProject()` returns a project whose first milestone is funded, accepted by the seller and started.
+ */
+export async function bootMarket(app: NestFastifyApplication) {
+  const call = makeCaller(app);
+  const json = <T>(r: { json: () => unknown }) => r.json() as T;
+  const users = await Promise.all(
+    ['Seller', 'Buyer', 'Other', 'Ops'].map((name) => signUpVerified(app, { name })),
+  );
+  const [seller, buyer, other, ops] = users as [TestUser, TestUser, TestUser, TestUser];
+  await makeAdmin(app, ops, ['operations']);
+  await publishSeller(call, seller);
+  const cats = json<{ id: string }[]>(await call(null, 'GET', '/categories'));
+  const created = json<{ id: string; packages: { id: string }[] }>(
+    await call(seller, 'POST', '/me/services', {
+      categoryId: cats[0]!.id,
+      title: 'Room test service with plenty of detail',
+      description:
+        'A complete production-ready build with tests, CI and clear milestones for every stage of delivery.',
+      packages: [
+        {
+          tier: 'basic',
+          title: 'Standard',
+          description: 'Everything included in the build',
+          priceAmount: 100_000,
+          deliveryDays: 10,
+          revisions: 2,
+        },
+      ],
+    }),
+  );
+  await call(seller, 'POST', `/me/services/${created.id}/submit`);
+  await call(ops, 'POST', `/admin/services/${created.id}/approve`);
+  const packageId = created.packages[0]!.id;
+
+  const fund = async (u: TestUser, milestoneId: string) => {
+    const f = json<{ paymentId: string }>(
+      await call(u, 'POST', `/milestones/${milestoneId}/fund`, undefined, {
+        'idempotency-key': idemKey('fund'),
+      }),
+    );
+    const r = await call(u, 'POST', `/payments/${f.paymentId}/simulate`, { outcome: 'succeeded' });
+    if (r.statusCode !== 201) throw new Error(`fund failed ${r.statusCode} ${r.body}`);
+  };
+  const activeProject = async () => {
+    const o = json<{ projectId: string; firstMilestoneId: string }>(
+      await call(buyer, 'POST', '/orders', { packageId }, { 'idempotency-key': idemKey('order') }),
+    );
+    await fund(buyer, o.firstMilestoneId);
+    await call(seller, 'POST', `/projects/${o.projectId}/accept`);
+    await call(seller, 'POST', `/milestones/${o.firstMilestoneId}/start`);
+    const p = json<{ milestones: { id: string }[] }>(await call(buyer, 'GET', `/projects/${o.projectId}`));
+    return { projectId: o.projectId, milestoneIds: p.milestones.map((m) => m.id) };
+  };
+  return { call, json, seller, buyer, other, ops, packageId, fund, activeProject };
+}

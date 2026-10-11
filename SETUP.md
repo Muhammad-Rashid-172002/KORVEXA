@@ -138,3 +138,9 @@ To try Stripe **test mode** (needs your own test keys; this part is not yet veri
 3. `pnpm dev:up`. Live keys (`sk_live_…`) are refused unless `PAYMENTS_LIVE_ENABLED=true`, which must stay false until the legal entity is decided.
 
 Fees are zero placeholders; change them in **Admin → Fees** (product scope). Payouts are manual: sellers request them on `/earnings`, Operations marks them paid on **Admin → Payouts**.
+
+## Realtime, notifications and file scanning
+
+- **Live Project Room / chat / bell** use one authenticated WebSocket (`/v1/realtime`); nothing to configure locally.
+- **Web push** is off until you set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (generate with `npx web-push generate-vapid-keys`) and `VAPID_SUBJECT` in `.env`, then enable it under **Settings → Notifications**.
+- **Virus scanning** is off locally (`SCAN_MODE=off`). To try it: `docker compose -f infra/docker-compose.yml --env-file .env --profile scan up -d clamav`, wait for it to become healthy (first start downloads signatures), set `SCAN_MODE=clamav` in `.env`, then `pnpm dev:up`. Uploads then stay "Scanning…" until the worker reports a verdict. Production refuses `SCAN_MODE=off`.

@@ -116,3 +116,24 @@ export type BriefStatus = (typeof BRIEF_STATUSES)[number];
 
 export const PROPOSAL_STATUSES = ['sent', 'withdrawn', 'accepted', 'declined'] as const;
 export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
+
+export const TASK_STATUSES = ['todo', 'in_progress', 'in_review', 'done'] as const;
+export type TaskStatus = (typeof TASK_STATUSES)[number];
+
+export const TASK_SOURCES = ['manual', 'meeting_ai'] as const;
+export type TaskSource = (typeof TASK_SOURCES)[number];
+
+export const PREVIEW_KINDS = ['staging', 'figma', 'apk', 'testflight', 'video', 'other'] as const;
+export type PreviewKind = (typeof PREVIEW_KINDS)[number];
+
+export const DELIVERABLE_STATUSES = ['submitted', 'approved', 'revision_requested', 'superseded'] as const;
+export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+
+export const CONVERSATION_KINDS = ['direct', 'project'] as const;
+export type ConversationKind = (typeof CONVERSATION_KINDS)[number];
+
+export const MESSAGE_KINDS = ['text', 'custom_offer', 'system'] as const;
+export type MessageKind = (typeof MESSAGE_KINDS)[number];
+
+export const OFFER_STATUSES = ['sent', 'accepted', 'declined', 'withdrawn'] as const;
+export type OfferStatus = (typeof OFFER_STATUSES)[number];

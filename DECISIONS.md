@@ -335,6 +335,28 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 ---
 
+## 9e. Phase 4 — Live Project Room (2026-10-11)
+
+**D-073 One access policy for REST and sockets.** `AccessService` is the only place that answers "may this user see that?" (project role, conversation membership, file readability). Controllers and the Socket.io gateway both call it. Everything unauthorised, malformed or unknown looks identical to the caller (404 / `{ok:false}`), so existence never leaks. **File reads:** a file is downloadable only when it is `clean` AND (owned by the caller, or delivered in a project they participate in, or attached to a conversation they belong to). The old owner-only `/me/files/:id` is unchanged.
+
+**D-074 Health is computed, never stored.** `computeHealth` (shared, unit-tested) derives on-track / at-risk / blocked + a plain-English reason from facts on every read: paused/disputed/cancelled → blocked; next milestone waiting for the buyer to fund → blocked; past planned date, >3 days waiting for review, or 3+ revision rounds → at risk. The `projects.health` columns are therefore unused. **Progress** now feeds task completion into in-progress milestones (up to 60% of a milestone), then submitted 80%, approved/released 100%, weighted by amount; the acceptance test asserts exact values at every step.
+
+**D-075 Realtime model.** One authenticated socket per page. Rooms: `user:{id}`, `conv:{id}`, `project:{id}`; the server verifies membership on every `room:join` and only relays typing for rooms the socket joined. Every client payload is zod-validated. The server emits a lightweight `project:event` and clients refetch (no state duplication, no polling); messages and notifications are pushed directly. Presence is **per user across sockets** (online while any socket is connected; "offline" is emitted to rooms when the last socket closes), kept in Redis sets so it works across API instances. Closing a browser abruptly can take socket.io's ping timeout (~45 s) to register.
+
+**D-076 Chat.** Project chat is created lazily for exactly the project's participants; direct chats exist per buyer↔seller pair (only with a published seller, so strangers can't be spammed). 30 messages/minute/user (429). Attachments are the sender's own clean `message` files, readable by conversation members only. Read receipts only move forward. Notifications for chat collapse into one unread row per conversation. `safety_flags` is reserved for Phase 5 chat-safety checks.
+
+**D-077 Custom offers (moved from Phase 3).** A published seller sends an offer (title, description, milestone plan) in a direct chat; the buyer accepts with an `Idempotency-Key`, which creates the project through the same factory as orders and proposals. Decline (buyer) / withdraw (seller) are final and post a system message.
+
+**D-078 Deliverables.** Versioned per milestone; a new upload supersedes earlier ones; the milestone decision is mirrored onto the latest version (revision requested / approved). Submitting a milestone does **not** yet require a deliverable (a link-only or service-only delivery is legitimate); revisit in Phase 9. Feedback is pinned with an anchor (`page`, `region` as 0–1 fractions, `timecode`); the UI offers click-to-pin on images and page/time inputs for others. Preview links are https-only (no `javascript:`/`http:`) and carry "last updated".
+
+**D-079 Notifications.** One service fans out per recipient to in-app (+ realtime), email (queue) and web push, honouring per-type preferences with sensible defaults (money/milestone/offer emails on; chat/comment emails off). Web push needs VAPID keys, is disabled without them, and **is verified only at the unit level (mocked push service); a real browser has not been tested** (needs HTTPS or localhost with keys).
+
+**D-080 File scanning (ClamAV) is opt-in.** `SCAN_MODE=off` (default, dev) marks uploads clean immediately; `SCAN_MODE=clamav` keeps them `uploaded` (not downloadable) until the worker streams the object to clamd (`zINSTREAM`) and reports a verdict to the API (token-authenticated internal route; verdicts are final; infected objects are deleted best-effort). Production **refuses** `SCAN_MODE=off`. The clamd client is tested against a protocol-faithful fake server (clean, EICAR/FOUND, chunking, error replies never treated as clean); **the real ClamAV container has not been run** (≈1–1.5 GB RAM, large image: `docker compose --profile scan up -d clamav`).
+
+**D-081 Mobile header.** Browse and Dashboard collapse to icons below 640 px so the "by KorvenzaTech" lockup stays intact next to the notification bell.
+
+---
+
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):

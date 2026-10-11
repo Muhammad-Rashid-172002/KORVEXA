@@ -77,7 +77,7 @@ export interface ServiceCardView {
   slug: string;
   title: string;
   category: { slug: string; name: string };
-  seller: { slug: string | null; displayName: string; avatarUrl: string | null };
+  seller: { id: string; slug: string | null; displayName: string; avatarUrl: string | null };
   fromPrice: number;
   currency: string;
   minDeliveryDays: number;

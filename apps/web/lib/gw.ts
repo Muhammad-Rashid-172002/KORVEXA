@@ -1,3 +1,4 @@
+import type { FilePurpose } from '@glasswork/shared';
 import { API_URL } from './config';
 
 export interface GwResult<T> {
@@ -38,7 +39,7 @@ export async function gw<T>(
 }
 
 /** Presigned upload → PUT to storage → complete. Returns the new file id. */
-export async function uploadFile(file: File, purpose: 'avatar' | 'portfolio'): Promise<string> {
+export async function uploadFile(file: File, purpose: FilePurpose): Promise<string> {
   const presign = await gw<{
     file: { id: string };
     upload: { url: string; headers: Record<string, string> };

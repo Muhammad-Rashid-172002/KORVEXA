@@ -27,6 +27,8 @@ import { DB, EMAIL_QUEUE, MILESTONE_QUEUE } from '../../infra/tokens';
 import { FeesService } from '../payments/fees.service';
 import { accounts, LedgerService } from '../payments/ledger.service';
 import { PaymentsService } from '../payments/payments.service';
+import { ProjectNotifier } from '../notifications/project-notifier.service';
+import { RoomService } from '../room/room.service';
 import { recordChange } from './commerce.util';
 import { ProjectsService } from './projects.service';
 
@@ -50,6 +52,7 @@ export class MilestonesService {
     private readonly payments: PaymentsService,
     private readonly ledger: LedgerService,
     private readonly fees: FeesService,
+    private readonly notifier: ProjectNotifier,
   ) {}
 
   // ---- project-level: accept / decline -------------------------------------------
@@ -85,6 +88,7 @@ export class MilestonesService {
         after: { status: next },
       });
     });
+    await this.notifier.event(projectId, actor.userId, 'project.accepted');
     return this.projectsSvc.view(actor, projectId);
   }
 
@@ -132,6 +136,11 @@ export class MilestonesService {
         payload: { reason },
       });
     });
+    await this.notifier.event(
+      projectId,
+      actor.userId,
+      role === 'seller' ? 'project.declined' : 'project.withdrawn',
+    );
     return this.projectsSvc.view(actor, projectId);
   }
 
@@ -153,6 +162,7 @@ export class MilestonesService {
         payload: { milestoneId: m.id, title: m.title },
       });
     });
+    this.notifier.changed(projectId, 'milestone.started');
     return this.projectsSvc.view(actor, projectId);
   }
 
@@ -180,6 +190,7 @@ export class MilestonesService {
       scheduled = { id: m.id, at: autoApproveAt };
     });
     if (scheduled) await this.scheduleTimers(scheduled.id, scheduled.at);
+    await this.notifier.event(projectId, actor.userId, 'milestone.submitted', milestoneId);
     return this.projectsSvc.view(actor, projectId);
   }
 
@@ -201,7 +212,9 @@ export class MilestonesService {
         after: { status: next },
         payload: { milestoneId: m.id, title: m.title, note },
       });
+      await RoomService.mirrorDecision(tx, m.id, 'revision_requested');
     });
+    await this.notifier.event(projectId, actor.userId, 'milestone.revision_requested', milestoneId);
     return this.projectsSvc.view(actor, projectId);
   }
 
@@ -224,8 +237,10 @@ export class MilestonesService {
         after: { status: next },
         payload: { milestoneId: locked.m.id, title: locked.m.title },
       });
+      await RoomService.mirrorDecision(tx, locked.m.id, 'approved');
       await this.releaseTx(tx, { ...locked, m: { ...locked.m, status: next } }, actor.userId);
     });
+    await this.notifier.event(projectId, actor.userId, 'milestone.released', milestoneId);
     return this.projectsSvc.view(actor, projectId);
   }
 
@@ -233,7 +248,8 @@ export class MilestonesService {
 
   /** Idempotent. Skips unless the milestone is still `submitted`, due, and the project is active (timer frozen while paused). */
   async autoApprove(milestoneId: string): Promise<{ result: 'approved' | 'skipped'; reason?: string }> {
-    return this.db.db.transaction(async (tx) => {
+    let projectId: string | undefined;
+    const out = await this.db.db.transaction(async (tx) => {
       const locked = await this.lock(tx, milestoneId);
       if (!locked) return { result: 'skipped' as const, reason: 'not found' };
       const { m, p } = locked;
@@ -257,9 +273,13 @@ export class MilestonesService {
         after: { status: next },
         payload: { milestoneId: m.id, title: m.title },
       });
+      await RoomService.mirrorDecision(tx, m.id, 'approved');
       await this.releaseTx(tx, { m: { ...m, status: next }, p }, null);
+      projectId = p.id;
       return { result: 'approved' as const };
     });
+    if (projectId) await this.notifier.event(projectId, null, 'milestone.released', milestoneId);
+    return out;
   }
 
   /** Reminder email to the buyer while a submitted milestone is still waiting (days 2 and 4). */

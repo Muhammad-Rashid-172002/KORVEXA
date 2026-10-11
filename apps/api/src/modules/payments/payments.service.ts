@@ -32,6 +32,7 @@ import { FeesService } from './fees.service';
 import { accounts, LedgerService } from './ledger.service';
 import { InvalidWebhookSignatureError, PaymentsProvider, type ParsedEvent } from './payments.provider';
 import { TestPaymentsProvider } from './test-payments.provider';
+import { ProjectNotifier } from '../notifications/project-notifier.service';
 
 export interface FundingResult {
   paymentId: string;
@@ -51,6 +52,7 @@ export class PaymentsService {
     private readonly provider: PaymentsProvider,
     private readonly ledger: LedgerService,
     private readonly fees: FeesService,
+    private readonly notifier: ProjectNotifier,
   ) {}
 
   // ---- money in: start a checkout ------------------------------------------------
@@ -249,9 +251,10 @@ export class PaymentsService {
   }
 
   private async applyStoredEvent(storedId: string, parsed: ParsedEvent) {
+    let funded: { projectId: string; milestoneId: string; payerId: string } | null = null;
     try {
       await this.db.db.transaction(async (tx) => {
-        if (parsed.type === 'payment.succeeded') await this.applySucceeded(tx, parsed);
+        if (parsed.type === 'payment.succeeded') funded = await this.applySucceeded(tx, parsed);
         else if (parsed.type === 'payment.failed') await this.applyFailed(tx, parsed);
         await tx
           .update(webhookEvents)
@@ -265,6 +268,8 @@ export class PaymentsService {
       // 500 so the provider retries; the stored event also lets an admin replay it.
       throw err;
     }
+    const f = funded as { projectId: string; milestoneId: string; payerId: string } | null;
+    if (f) await this.notifier.event(f.projectId, f.payerId, 'milestone.funded', f.milestoneId);
   }
 
   private async applyFailed(tx: DbTx, parsed: ParsedEvent) {
@@ -275,11 +280,14 @@ export class PaymentsService {
       .where(and(eq(payments.id, parsed.paymentId), eq(payments.status, 'pending')));
   }
 
-  private async applySucceeded(tx: DbTx, parsed: ParsedEvent) {
+  private async applySucceeded(
+    tx: DbTx,
+    parsed: ParsedEvent,
+  ): Promise<{ projectId: string; milestoneId: string; payerId: string } | null> {
     if (!parsed.paymentId) throw new Error('payment.succeeded event without a payment id');
     const [pay] = await tx.select().from(payments).where(eq(payments.id, parsed.paymentId)).for('update');
     if (!pay) throw new Error(`Unknown payment ${parsed.paymentId}`);
-    if (pay.status === 'succeeded') return; // idempotent
+    if (pay.status === 'succeeded') return null; // idempotent
     if (pay.status !== 'pending')
       throw new Error(`Payment ${pay.id} is ${pay.status}; manual review required`);
     const expected = pay.amount + pay.buyerFeeAmount;
@@ -347,6 +355,7 @@ export class PaymentsService {
       before: { status: 'pending' },
       after: { status: next, paymentId: pay.id, amount: pay.amount, buyerFee: pay.buyerFeeAmount },
     });
+    return { projectId: p.id, milestoneId: m.id, payerId: pay.payerId };
   }
 
   /** Provider refund (idempotent per payment) — called by MilestonesService before it books the reversal. */

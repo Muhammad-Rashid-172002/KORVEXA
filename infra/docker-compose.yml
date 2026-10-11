@@ -43,6 +43,10 @@ x-api-env: &api-env
   S3_FORCE_PATH_STYLE: 'true'
   S3_AUTO_CREATE_BUCKET: 'true'
   RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-300}
+  SCAN_MODE: ${SCAN_MODE:-off}
+  VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+  VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+  VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:support@localhost}
   PAYMENTS_PROVIDER: ${PAYMENTS_PROVIDER:-test}
   STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
   STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
@@ -158,6 +162,15 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       API_INTERNAL_URL: http://api:4000
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-only-internal-token-change-me-0123456789}
+      SCAN_MODE: ${SCAN_MODE:-off}
+      CLAMD_HOST: clamav
+      CLAMD_PORT: 3310
+      S3_ENDPOINT: http://rustfs:9000
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-glasswork-dev}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-glasswork}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-glasswork-dev-secret}
+      S3_FORCE_PATH_STYLE: 'true'
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-development}
     ports: ['${WORKER_HEALTH_PORT:-4001}:4001']
@@ -165,6 +178,20 @@ services:
       redis: { condition: service_healthy }
       mailpit: { condition: service_healthy }
       api: { condition: service_healthy }
+    restart: unless-stopped
+
+  # Opt-in antivirus (≈1–1.5 GB RAM, large image): `docker compose --profile scan up -d clamav`, then set SCAN_MODE=clamav.
+  clamav:
+    image: clamav/clamav:1.4
+    profiles: ['scan']
+    ports: ['3310:3310']
+    volumes: [clamdata:/var/lib/clamav]
+    healthcheck:
+      test: ['CMD-SHELL', 'clamdcheck.sh']
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
     restart: unless-stopped
 
   web:
@@ -182,3 +209,4 @@ volumes:
   pgdata:
   redisdata:
   storagedata:
+  clamdata:

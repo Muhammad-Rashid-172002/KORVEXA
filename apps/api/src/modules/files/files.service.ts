@@ -3,7 +3,10 @@ import type { CursorPage, PresignUploadInput } from '@glasswork/shared';
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { uuidv7 } from 'uuidv7';
 import type { RequestActor } from '../../auth/session.service';
-import { DB } from '../../infra/tokens';
+import { ENV, type ApiEnv } from '../../config/env';
+import type { ScanQueue } from '../../infra/infra.module';
+import { DB, SCAN_QUEUE } from '../../infra/tokens';
+import { AccessService } from '../access/access.service';
 import type { FileDto, FileWithUrlDto, PresignUploadResponseDto } from './files.dto';
 import { DOWNLOAD_URL_TTL_SECONDS, StorageService, UPLOAD_URL_TTL_SECONDS } from './storage.service';
 
@@ -25,6 +28,9 @@ export class FilesService {
   constructor(
     @Inject(DB) private readonly db: DbClient,
     private readonly storage: StorageService,
+    private readonly access: AccessService,
+    @Inject(ENV) private readonly env: ApiEnv,
+    @Inject(SCAN_QUEUE) private readonly scanQueue: ScanQueue,
   ) {
     this.repo = filesRepository(db.db);
   }
@@ -70,11 +76,14 @@ export class FilesService {
       throw new UnprocessableEntityException('Uploaded object does not match the declared size/type');
     }
 
-    // TODO(Phase 4): enqueue ClamAV scan; until then files are only ever visible to their owner (D-030).
+    // SCAN_MODE=clamav: the file stays `uploaded` (not downloadable by anyone) until the worker reports a verdict.
+    const scanning = this.env.SCAN_MODE === 'clamav';
     const updated = await this.repo.updateOwned({ userId: actor.userId }, id, {
-      status: 'clean',
+      status: scanning ? 'uploaded' : 'clean',
       uploadedAt: new Date(),
     });
+    if (scanning)
+      await this.scanQueue.add('scan', { fileId: id, storageKey: file.storageKey }, { jobId: `scan-${id}` });
     await this.db.db.insert(auditLogs).values({
       actorId: actor.userId,
       action: 'file.uploaded',
@@ -97,6 +106,17 @@ export class FilesService {
       downloadUrlExpiresAt: downloadable
         ? new Date(Date.now() + DOWNLOAD_URL_TTL_SECONDS * 1000).toISOString()
         : null,
+    };
+  }
+
+  /** Single readable-file policy (AccessService). Unknown, not-yet-clean and unauthorised files all look the same: 404. */
+  async downloadReadable(actor: RequestActor, id: string) {
+    const file = await this.access.readableFile(actor.userId, id);
+    if (!file) throw new NotFoundException('File not found');
+    return {
+      url: await this.storage.presignGet(file.storageKey, file.originalName),
+      expiresAt: new Date(Date.now() + DOWNLOAD_URL_TTL_SECONDS * 1000).toISOString(),
+      name: file.originalName,
     };
   }
 

@@ -136,3 +136,14 @@ export async function liveService(seller: Page, admin: Page, title: string, pric
   await apiCall(admin, 'POST', `/admin/services/${svc.id}/approve`);
   return { serviceId: svc.id, slug: svc.slug, packageId: svc.packages[0]!.id };
 }
+
+/**
+ * Presses "Pay (simulate success)" on the test checkout page and waits for the project page. The click can land
+ * before the client component hydrates, so it retries; this is safe because webhook processing is idempotent.
+ */
+export async function payTestCheckout(page: Page) {
+  await expect(async () => {
+    await page.getByRole('button', { name: 'Pay (simulate success)' }).click({ timeout: 3000 });
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}/, { timeout: 4000 });
+  }).toPass({ timeout: 30_000 });
+}

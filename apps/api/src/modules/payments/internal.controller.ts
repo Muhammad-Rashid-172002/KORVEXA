@@ -1,16 +1,10 @@
-import { Controller, ForbiddenException, Headers, Inject, Param, Post } from '@nestjs/common';
+import { Controller, Headers, Inject, Param, Post } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
-import { timingSafeEqual } from 'node:crypto';
+import { requireInternalToken } from '../../common/internal-auth';
 import { z } from 'zod';
 import { Public } from '../../common/policy/decorators';
 import { ENV, type ApiEnv } from '../../config/env';
 import { MilestonesService } from '../orders/milestones.service';
-
-const safeEqual = (a: string, b: string) => {
-  const x = Buffer.from(a);
-  const y = Buffer.from(b);
-  return x.length === y.length && timingSafeEqual(x, y);
-};
 
 /** Worker → API callbacks for delayed jobs. Authenticated by a shared secret, never exposed to browsers. */
 @ApiExcludeController()
@@ -22,7 +16,7 @@ export class InternalController {
   ) {}
 
   private check(token: string | undefined) {
-    if (!token || !safeEqual(token, this.env.INTERNAL_API_TOKEN)) throw new ForbiddenException();
+    requireInternalToken(token, this.env.INTERNAL_API_TOKEN);
   }
 
   @Public()

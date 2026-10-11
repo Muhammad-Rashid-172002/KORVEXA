@@ -56,6 +56,17 @@ export default async function SettingsPage() {
         </Link>
       </Card>
 
+      <Card className="flex flex-col gap-3">
+        <CardTitle>Notifications</CardTitle>
+        <CardDescription>Choose what reaches you in the app, by email and as browser push.</CardDescription>
+        <Link
+          className="text-sm text-primary underline-offset-4 hover:underline"
+          href="/settings/notifications"
+        >
+          Notification settings →
+        </Link>
+      </Card>
+
       <SecurityPanel sessions={sessions.data ?? []} twoFactorEnabled={me.twoFactorEnabled} />
     </div>
   );

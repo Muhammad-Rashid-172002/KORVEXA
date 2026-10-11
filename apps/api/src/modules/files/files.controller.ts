@@ -35,6 +35,15 @@ export class FilesController {
     return this.files.completeUpload(actor, p.id, req.ip);
   }
 
+  /** Presigned download for any file the caller may read: their own, or one delivered/attached in a project or chat they belong to. */
+  @Policy(
+    'owner, project participants (deliverables) or conversation members (attachments) — clean files only',
+  )
+  @Get('files/:id/download')
+  download(@CurrentActor() actor: RequestActor, @Param() p: FileIdParamDto) {
+    return this.files.downloadReadable(actor, p.id);
+  }
+
   @Policy('list only files owned by the signed-in user')
   @Get('me/files')
   @ApiOkResponse({ type: FilePageDto })

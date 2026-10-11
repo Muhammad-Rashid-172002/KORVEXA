@@ -49,6 +49,8 @@ export interface MilestoneView {
   revisionNote: string | null;
   /** Fee breakdown the buyer sees before paying this milestone. */
   quote: FeeQuote;
+  /** Board tasks linked to this milestone. */
+  tasks: { done: number; total: number };
   payment: { id: string; status: string; checkoutUrl: string | null } | null;
   /** What the viewer may do right now (server-computed). */
   actions: MilestoneAction[];
@@ -77,6 +79,9 @@ export interface ProjectView {
   completedAt: string | null;
   canAccept: boolean;
   canDecline: boolean;
+  /** First milestone that is not yet released/cancelled/refunded. */
+  currentMilestoneId: string | null;
+  nextDeadline: { milestoneId: string; title: string; date: string } | null;
 }
 
 export interface ProjectListItem {

@@ -45,6 +45,9 @@ export default async function DashboardPage() {
         <Link className="text-primary underline-offset-4 hover:underline" href="/projects">
           Projects
         </Link>
+        <Link className="text-primary underline-offset-4 hover:underline" href="/messages">
+          Messages
+        </Link>
         <Link className="text-primary underline-offset-4 hover:underline" href="/requests">
           Requests
         </Link>

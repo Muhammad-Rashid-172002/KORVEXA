@@ -13,6 +13,7 @@ import {
   projects,
   servicePackages,
   serviceExtras,
+  tasks,
   services,
   sellerProfiles,
   users,
@@ -22,6 +23,7 @@ import {
 import {
   DEFAULT_MILESTONE_TEMPLATE,
   availableEvents,
+  computeHealth,
   milestoneMachine,
   projectProgress,
   quoteFees,
@@ -131,7 +133,7 @@ export class ProjectsService {
       currency: string;
       plan: NewMilestone[];
       requirements: Record<string, unknown>;
-      source: 'order' | 'proposal';
+      source: 'order' | 'proposal' | 'offer';
     },
     tx?: DbTx,
   ) {
@@ -175,7 +177,12 @@ export class ProjectsService {
       await recordChange(t, {
         projectId: project.id,
         actorId: p.buyerId,
-        type: p.source === 'order' ? 'project.ordered' : 'project.proposal_accepted',
+        type:
+          p.source === 'order'
+            ? 'project.ordered'
+            : p.source === 'proposal'
+              ? 'project.proposal_accepted'
+              : 'project.offer_accepted',
         entityType: 'project',
         entityId: project.id,
         after: { status: project.status, total, milestones: rows.length },
@@ -310,6 +317,14 @@ export class ProjectsService {
           .where(eq(services.id, pr.serviceId))
       : [];
     const settings = await this.fees.settings();
+    const taskRows = await this.db.db
+      .select({ milestoneId: tasks.milestoneId, status: tasks.status })
+      .from(tasks)
+      .where(eq(tasks.projectId, pr.id));
+    const taskCounts = (milestoneId: string) => {
+      const mine = taskRows.filter((t) => t.milestoneId === milestoneId);
+      return { done: mine.filter((t) => t.status === 'done').length, total: mine.length };
+    };
 
     const milestoneViews: MilestoneView[] = ms.map((m) => {
       const pay =
@@ -331,12 +346,30 @@ export class ProjectsService {
         submissionNote: m.submissionNote,
         revisionNote: m.revisionNote,
         quote: quoteFees(m.amount, settings),
+        tasks: taskCounts(m.id),
         payment: pay
           ? { id: pay.id, status: pay.status, checkoutUrl: pay.status === 'pending' ? pay.checkoutUrl : null }
           : null,
         actions: this.actionsFor(pr.status, role, m.position, m.status),
       };
     });
+    // Health is derived from facts on every read (never stored), so it cannot go stale.
+    const health = computeHealth({
+      projectStatus: pr.status,
+      projectCreatedAt: pr.createdAt,
+      now: new Date(),
+      milestones: ms.map((m) => ({
+        position: m.position,
+        status: m.status,
+        plannedDue: m.plannedDue,
+        submittedAt: m.actualSubmittedAt,
+        revisionCount: m.revisionCount,
+      })),
+    });
+    const open = ms.filter((m) => !['released', 'cancelled', 'refunded'].includes(m.status));
+    const dated = open
+      .filter((m) => m.plannedDue)
+      .sort((a, b) => (a.plannedDue! < b.plannedDue! ? -1 : 1))[0];
     const held = holds.filter((h) => h.status === 'held').reduce((s, h) => s + h.amount, 0);
     const released = holds.filter((h) => h.status === 'released').reduce((s, h) => s + h.amount, 0);
     const req = pr.requirements as ProjectView['requirements'];
@@ -346,12 +379,19 @@ export class ProjectsService {
       code: pr.code,
       title: pr.title,
       status: pr.status,
-      health: pr.health,
-      healthReason: pr.healthReason,
+      health: health.health,
+      healthReason: health.reason,
       totalAmount: pr.totalAmount,
       currency: pr.currency,
       progress: projectProgress(
-        ms.map((m) => ({ amount: BigInt(m.amount), status: m.status as MilestoneStatus })),
+        ms.map((m) => {
+          const t = taskCounts(m.id);
+          return {
+            amount: BigInt(m.amount),
+            status: m.status as MilestoneStatus,
+            taskDoneRatio: t.total ? t.done / t.total : 0,
+          };
+        }),
       ),
       myRole: role,
       buyer: { id: pr.buyerId, name: buyer?.name ?? 'Unknown' },
@@ -365,6 +405,8 @@ export class ProjectsService {
       completedAt: pr.completedAt?.toISOString() ?? null,
       canAccept: role === 'seller' && pr.status === 'requirements_submitted' && first?.status === 'funded',
       canDecline: pr.status === 'requirements_submitted',
+      currentMilestoneId: open[0]?.id ?? null,
+      nextDeadline: dated ? { milestoneId: dated.id, title: dated.title, date: dated.plannedDue! } : null,
     };
   }
 

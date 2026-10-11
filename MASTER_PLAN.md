@@ -5,7 +5,7 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–3 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Next: **Phase 4 — Live Project Room** (the MVP checkpoint) on branch `phase/4-room`.
+Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Next: Phase 5 — Trust on branch `phase/5-trust`.
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
@@ -224,18 +224,36 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 **Manual test:** as a buyer open any live service → pick a package → Order & pay → "Pay (simulate success)" → on the project, the seller accepts, starts, submits; approve as buyer; seller `/earnings` → request payout; admin `/admin/payouts` → Mark paid; `/admin/payments` for ledger health; `/billing` for the receipt PDF. Also `/requests` for the requests board.
 
-## Phase 4 — Live Project Room
+## Phase 4 — Live Project Room · branch `phase/4-room` (MVP CHECKPOINT)
 
-- [ ] Overview: weighted % progress, current milestone, next deadline, health + reason, escrow vs released
-- [ ] Timeline: planned vs actual
-- [ ] Board: Kanban tasks linked to milestones (seller manages, buyer comments)
-- [ ] Deliverables: versioned uploads, approve / request revision, feedback pinned to file/region; ClamAV scan before download
-- [ ] Preview links (staging, Figma, APK/TestFlight, video) with "last updated"
-- [ ] Activity feed (filterable)
-- [ ] Realtime chat: files, read receipts, typing, presence
-- [ ] Notifications: in-app, email, web push; per-type preferences
-- [ ] ACCEPTANCE: a buyer follows a 3-milestone project end to end with accurate progress at every step (Playwright)
-- [ ] CHECKPOINT
+- [x] Overview: weighted % progress (task completion feeds in-progress milestones), current milestone, next deadline, computed health + reason, escrow held vs released
+- [x] Timeline: planned vs actual per milestone
+- [x] Board: Kanban tasks linked to milestones (seller manages incl. drag & drop, buyer views + comments)
+- [x] Deliverables: versioned uploads, request-changes/approve mirrored per version, feedback pinned (image click / page / timecode); downloads only when scanned clean
+- [x] Preview links (staging, Figma, APK/TestFlight, video) with "last updated"
+- [x] Activity feed (filterable, paginated)
+- [x] Realtime chat: attachments, read receipts, typing, presence; every socket event authorised
+- [x] Notifications: in-app (live bell + inbox), email, per-type preferences; web push implemented (**unverified in a real browser**, needs VAPID keys)
+- [x] Custom offers from chat (moved from Phase 3)
+- [x] File-scan pipeline (SCAN_MODE=clamav, worker + clamd client; **real ClamAV not run**)
+- [x] ACCEPTANCE: a buyer follows a 3-milestone project end to end with accurate progress at every step, live (Playwright desktop + mobile, buyer never reloads)
+- [x] CHECKPOINT: report to Rashid
+
+### Phase 4 log (2026-10-11)
+
+**Tested on the real Docker stack:** lint/typecheck/unit, **integration** (new: 13 room, 14 chat/realtime/offers incl. real Socket.io clients, 4 scan, plus push sender / clamd / scan processor unit tests), Playwright e2e **desktop + mobile**: acceptance flow with exact progress 0 → 9 → 18 → 24 → 18 → 24 → 30 → 62 → 70 → 94 → 100 %, chat (typing, seen, presence, attachment download), live notification bell + preferences, direct message → custom offer → project, outsiders get 404.
+
+**Files (by area):** `packages/db/src/schema/{room,chat}.ts` (migration 0007), `packages/shared/src/{room.ts,realtime.ts}`, `apps/api/src/modules/{access,notifications,room,chat,realtime}`, file scan: `apps/api/src/modules/files/internal-files.controller.ts`, `apps/worker/src/{clamd.ts,processors/scan.processor.ts}`, web: `apps/web/app/projects/[id]/*`, `components/room/*`, `lib/{realtime,use-load}.ts*`, `app/{messages,notifications,settings/notifications}`, `public/sw.js`, `e2e/tests/room.spec.ts`.
+
+**Found by tests and fixed:** DI failure from a test-seam constructor param; fire-and-forget Redis presence calls racing shutdown; infected-file verdict failed when storage deletion failed (now best-effort); mobile header overlap (bell) and board "Post" overflow; e2e hydration race on the test checkout button.
+
+**Known issues / follow-ups:**
+
+- Web push and the real ClamAV daemon are unverified (see D-079/D-080).
+- Presence is per user (not per room) and abrupt disconnects take up to ~45 s to show offline.
+- A milestone can be submitted without a deliverable (D-078).
+- Feedback region is a point pin (no drag-rectangle); PDF page anchors are numeric inputs, not a PDF viewer.
+- No chat-safety warnings yet (Phase 5); no meeting/video (Phase 7).
 
 ## Phase 5 — Trust
 

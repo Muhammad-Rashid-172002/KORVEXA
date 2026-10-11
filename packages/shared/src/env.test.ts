@@ -47,6 +47,7 @@ describe('payment safety rails in the env schema', () => {
     const m = messages({ NODE_ENV: 'production' }).join();
     expect(m).toMatch(/simulated test provider cannot run in production/);
     expect(m).toMatch(/INTERNAL_API_TOKEN/);
+    expect(m).toMatch(/virus-scanned in production/);
     expect(
       parse({
         NODE_ENV: 'production',
@@ -54,6 +55,7 @@ describe('payment safety rails in the env schema', () => {
         STRIPE_SECRET_KEY: 'sk_test_x',
         STRIPE_WEBHOOK_SECRET: 'whsec_x',
         INTERNAL_API_TOKEN: 'a-real-random-token-with-24-plus-chars',
+        SCAN_MODE: 'clamav',
       }).success,
     ).toBe(true);
   });

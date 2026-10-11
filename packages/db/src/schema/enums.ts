@@ -3,11 +3,15 @@ import {
   ADMIN_SCOPES,
   FILE_PURPOSES,
   BRIEF_STATUSES,
+  CONVERSATION_KINDS,
+  DELIVERABLE_STATUSES,
   ESCROW_STATUSES,
   FILE_STATUSES,
   HEALTH_STATES,
   LEDGER_ACCOUNT_TYPES,
+  MESSAGE_KINDS,
   MILESTONE_STATUSES,
+  OFFER_STATUSES,
   ORG_KINDS,
   ORG_ROLES,
   PACKAGE_TIERS,
@@ -15,9 +19,12 @@ import {
   PAYMENT_STATUSES,
   PAYOUT_RAILS,
   PAYOUT_STATUSES,
+  PREVIEW_KINDS,
   PROJECT_STATUSES,
   PROPOSAL_STATUSES,
   SERVICE_STATUSES,
+  TASK_SOURCES,
+  TASK_STATUSES,
   TRANSFER_STATUSES,
   SELLER_AVAILABILITY,
   USER_ROLES,
@@ -47,3 +54,10 @@ export const payoutRail = pgEnum('payout_rail', PAYOUT_RAILS);
 export const ledgerAccountType = pgEnum('ledger_account_type', LEDGER_ACCOUNT_TYPES);
 export const briefStatus = pgEnum('brief_status', BRIEF_STATUSES);
 export const proposalStatus = pgEnum('proposal_status', PROPOSAL_STATUSES);
+export const taskStatus = pgEnum('task_status', TASK_STATUSES);
+export const taskSource = pgEnum('task_source', TASK_SOURCES);
+export const previewKind = pgEnum('preview_kind', PREVIEW_KINDS);
+export const deliverableStatus = pgEnum('deliverable_status', DELIVERABLE_STATUSES);
+export const conversationKind = pgEnum('conversation_kind', CONVERSATION_KINDS);
+export const messageKind = pgEnum('message_kind', MESSAGE_KINDS);
+export const offerStatus = pgEnum('offer_status', OFFER_STATUSES);
