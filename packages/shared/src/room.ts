@@ -167,7 +167,7 @@ export const eventsQuerySchema = z.object({
 export const EVENT_FILTER_PREFIXES: Record<(typeof EVENT_FILTERS)[number], readonly string[]> = {
   all: [],
   money: ['payment.', 'milestone.funded', 'milestone.released', 'milestone.refunded'],
-  milestones: ['milestone.', 'project.'],
+  milestones: ['milestone.', 'project.', 'change.'],
   tasks: ['task.'],
   files: ['deliverable.', 'preview.'],
   chat: ['chat.'],

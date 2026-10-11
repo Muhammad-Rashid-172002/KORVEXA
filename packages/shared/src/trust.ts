@@ -160,3 +160,96 @@ export interface SellerStatsView extends SellerStats {
   levelLabel: string;
   subRatings: { communication: number | null; quality: number | null; timeliness: number | null };
 }
+
+// ---- change requests --------------------------------------------------------------------------
+
+export const changeRequestInputSchema = z
+  .object({
+    title: z.string().trim().min(3).max(120),
+    description: z.string().trim().min(10).max(3000),
+    /** Days added to every still-open milestone's planned date. */
+    daysDelta: z.number().int().min(0).max(90).default(0),
+    /** New milestones created on acceptance; their sum is the price impact. */
+    milestones: z
+      .array(
+        z.object({
+          title: z.string().trim().min(2).max(100),
+          acceptanceCriteria: z.string().trim().max(1000).nullable().optional(),
+          amount: z.number().int().min(500).max(10_000_000),
+          days: z.number().int().min(1).max(180),
+        }),
+      )
+      .max(5)
+      .default([]),
+  })
+  .refine((v) => v.milestones.length > 0 || v.daysDelta > 0, {
+    message: 'A change must add work (milestones) or time (days)',
+    path: ['milestones'],
+  });
+export type ChangeRequestInput = z.infer<typeof changeRequestInputSchema>;
+
+export interface ChangeRequestView {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  priceDeltaAmount: number;
+  daysDelta: number;
+  milestones: { title: string; amount: number; days: number }[];
+  status: 'proposed' | 'accepted' | 'declined' | 'withdrawn';
+  requestedBy: { id: string; name: string };
+  /** True when the viewer is the other party and may accept/decline. */
+  canRespond: boolean;
+  canWithdraw: boolean;
+  createdAt: string;
+}
+
+// ---- disputes ----------------------------------------------------------------------------------
+
+export const openDisputeSchema = z.object({ reason: z.string().trim().min(20).max(3000) });
+export const evidenceInputSchema = z
+  .object({
+    kind: z.enum(['note', 'upload', 'message', 'deliverable']).default('note'),
+    note: z.string().trim().max(3000).optional(),
+    fileId: z.uuid().optional(),
+    refId: z.uuid().optional(),
+  })
+  .refine((v) => Boolean(v.note || v.fileId || v.refId), { message: 'Add a note, a file or a reference' });
+export const resolveDisputeSchema = z.object({
+  outcome: z.enum(['release', 'refund', 'split']),
+  /** Minor units returned to the buyer on a split. */
+  refundAmount: z.number().int().min(1).optional(),
+  note: z.string().trim().min(10).max(2000),
+});
+export const adminDisputesQuerySchema = z.object({
+  status: z.enum(['open', 'under_review', 'resolved']).default('open'),
+});
+
+export interface DisputeView {
+  id: string;
+  projectId: string;
+  projectCode: string;
+  projectTitle: string;
+  milestoneId: string;
+  milestoneTitle: string;
+  milestoneAmount: number;
+  currency: string;
+  status: 'open' | 'under_review' | 'resolved';
+  outcome: 'release' | 'refund' | 'split' | null;
+  refundAmount: number | null;
+  reason: string;
+  resolutionNote: string | null;
+  openedBy: { id: string; name: string };
+  createdAt: string;
+  resolvedAt: string | null;
+  caseFile: Record<string, unknown>;
+  evidence: {
+    id: string;
+    kind: string;
+    by: { id: string | null; name: string };
+    note: string | null;
+    refId: string | null;
+    file: { id: string; name: string } | null;
+    createdAt: string;
+  }[];
+}

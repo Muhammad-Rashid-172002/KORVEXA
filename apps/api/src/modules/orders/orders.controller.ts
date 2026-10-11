@@ -1,4 +1,10 @@
-import { createOrderSchema, reasonSchema, revisionSchema, submitMilestoneSchema } from '@glasswork/shared';
+import {
+  changeRequestInputSchema,
+  createOrderSchema,
+  reasonSchema,
+  revisionSchema,
+  submitMilestoneSchema,
+} from '@glasswork/shared';
 import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
@@ -8,9 +14,12 @@ import { CurrentActor } from '../../common/policy/auth.guard';
 import { Policy } from '../../common/policy/decorators';
 import { IdempotencyService } from '../payments/idempotency.service';
 import { PaymentsService } from '../payments/payments.service';
+import { ChangeRequestsService } from './change-requests.service';
 import { MilestonesService } from './milestones.service';
 import { ProjectsService } from './projects.service';
 
+class ChangeDto extends createZodDto(changeRequestInputSchema) {}
+class ChangeIdDto extends createZodDto(z.object({ id: z.uuid(), crId: z.uuid() })) {}
 class OrderDto extends createZodDto(createOrderSchema) {}
 class IdDto extends createZodDto(z.object({ id: z.uuid() })) {}
 class ListDto extends createZodDto(
@@ -28,6 +37,7 @@ export class OrdersController {
     private readonly milestones: MilestonesService,
     private readonly payments: PaymentsService,
     private readonly idem: IdempotencyService,
+    private readonly changes: ChangeRequestsService,
   ) {}
 
   @Policy('any signed-in user may order; amounts come from the DB, never the client')
@@ -109,5 +119,35 @@ export class OrdersController {
   @Post('milestones/:id/approve')
   approve(@CurrentActor() a: RequestActor, @Param() p: IdDto) {
     return this.milestones.approve(a, p.id);
+  }
+
+  @Policy('project participants read scope-change requests')
+  @Get('projects/:id/change-requests')
+  listChanges(@CurrentActor() a: RequestActor, @Param() p: IdDto) {
+    return this.changes.list(a, p.id);
+  }
+
+  @Policy('either project party proposes a scope change while the project is active')
+  @Post('projects/:id/change-requests')
+  proposeChange(@CurrentActor() a: RequestActor, @Param() p: IdDto, @Body() b: ChangeDto) {
+    return this.changes.propose(a, p.id, b);
+  }
+
+  @Policy('only the OTHER party accepts a scope change; new milestones then need funding')
+  @Post('projects/:id/change-requests/:crId/accept')
+  acceptChange(@CurrentActor() a: RequestActor, @Param() p: ChangeIdDto) {
+    return this.changes.accept(a, p.id, p.crId);
+  }
+
+  @Policy('only the OTHER party declines a scope change')
+  @Post('projects/:id/change-requests/:crId/decline')
+  declineChange(@CurrentActor() a: RequestActor, @Param() p: ChangeIdDto) {
+    return this.changes.decline(a, p.id, p.crId);
+  }
+
+  @Policy('only the proposer withdraws their scope change')
+  @Post('projects/:id/change-requests/:crId/withdraw')
+  withdrawChange(@CurrentActor() a: RequestActor, @Param() p: ChangeIdDto) {
+    return this.changes.withdraw(a, p.id, p.crId);
   }
 }
