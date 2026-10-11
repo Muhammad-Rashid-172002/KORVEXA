@@ -15,7 +15,7 @@ import { uuidv7 } from 'uuidv7';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DB } from '../src/infra/tokens';
 import { PaymentsProvider } from '../src/modules/payments/payments.provider';
-import { TestPaymentsProvider } from '../src/modules/payments/test-payments.provider';
+import { type TestPaymentsProvider } from '../src/modules/payments/test-payments.provider';
 import {
   createTestApp,
   idemKey,
