@@ -5,12 +5,10 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Next: **Phase 0 verification on the real Docker stack** (0.M), then merge `phase/0-foundation` → `main`, then Phase 1 on `phase/1-accounts`.
+Phase 0 verified on the real Mac Docker stack and merged to `main`. Next: **Phase 1 — Accounts & profiles** on branch `phase/1-accounts`.
 
-- Everything up to 0.L+ is written, and it was tested in a cloud sandbox: real Postgres 16 + Redis, with S3 and SMTP stand-ins, no Docker.
-- Not yet verified: `pnpm dev:up` on the Mac, i.e. RustFS, Mailpit, the Docker image builds, and the end-of-`dev:up` storage smoke test.
-- Mac run #1 failed only because the MinIO image was unavailable; fixed in 2a04f7a.
-- To verify: `pnpm dev:up`, then `pnpm turbo run lint typecheck test`, `pnpm test:integration` (Testcontainers), and `pnpm --filter @glasswork/e2e exec playwright install chromium && pnpm test:e2e`.
+- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 16 integration tests, 8 Playwright e2e tests (desktop + mobile).
+- Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
 
 ## ⏳ WAITING ON RASHID
 
@@ -50,8 +48,8 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 ### 0.C Infrastructure
 
-- [~] `infra/docker-compose.yml`: postgres, redis, rustfs (bucket bootstrapped by the API), mailpit, api, worker, web, with healthchecks
-- [~] Dockerfiles (multi-stage, non-root) for api, worker, web
+- [x] `infra/docker-compose.yml`: postgres, redis, rustfs (bucket bootstrapped by the API), mailpit, api, worker, web, with healthchecks
+- [x] Dockerfiles (multi-stage, non-root) for api, worker, web
 - [x] `.env.example` (every variable documented); config validated with zod at boot (fail fast)
 - [x] One command: `pnpm dev:up` (whole stack in Docker) plus `pnpm dev` (infra in Docker, apps on host with hot reload)
 
@@ -112,7 +110,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 ### 0.M Checkpoint report (CHECKPOINT B)
 
 - [x] One-command run instructions, demo script, screenshots, test results, TODO keys/accounts list
-- [ ] Rashid confirms `pnpm dev:up` on the Mac → merge `phase/0-foundation` into `main`
+- [x] `pnpm dev:up` verified on the Mac (2026-10-11) → `phase/0-foundation` merged into `main`
 
 ---
 
