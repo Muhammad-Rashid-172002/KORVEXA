@@ -5,23 +5,23 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–1 done and merged to `main`. Next: **Phase 2 — Services & discovery** on branch `phase/2-services`.
+Phases 0–1 done and on `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Next: **Phase 2 — Services & discovery** on branch `phase/2-services`.
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 34 integration tests, 16 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
 
 ## ⏳ WAITING ON RASHID
 
-| Item                                                                | Needed for                                           | Status                                                       |
-| ------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
-| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it | Partners deciding with accountant/lawyer                     |
-| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                     | Admin settings exist, set to 0                               |
-| Admin role mapping confirmation (Q5)                                | Admin area                                           | Provisional: Rashid=product, Taha=growth, Suliman=operations |
-| GitHub repo URL (Q7)                                                | CI first run, push                                   | Not created yet                                              |
-| KorvenzaTech K logo SVG                                             | Header lockup, product mark                          | Text lockup in use                                           |
-| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS            | TODO in brand.ts                                             |
-| Google + GitHub OAuth keys                                          | Social login                                         | Buttons hidden until set                                     |
-| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                     | Off locally (Mailpit / no-op Sentry)                         |
+| Item                                                                | Needed for                                           | Status                                                                                                                                           |
+| ------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it | Partners deciding with accountant/lawyer                                                                                                         |
+| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                     | Admin settings exist, set to 0                                                                                                                   |
+| Admin role mapping confirmation (Q5)                                | Admin area                                           | Provisional: Rashid=product, Taha=growth, Suliman=operations                                                                                     |
+| GitHub repo URL (Q7)                                                | CI first run, push                                   | A remote `origin` → github.com/Muhammad-Rashid-172002/KORVEXA exists (not added by me). Confirm it is the intended repo; nothing has been pushed |
+| KorvenzaTech K logo SVG                                             | Header lockup, product mark                          | Text lockup in use                                                                                                                               |
+| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS            | TODO in brand.ts                                                                                                                                 |
+| Google + GitHub OAuth keys                                          | Social login                                         | Buttons hidden until set                                                                                                                         |
+| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                     | Off locally (Mailpit / no-op Sentry)                                                                                                             |
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason inline)
 
