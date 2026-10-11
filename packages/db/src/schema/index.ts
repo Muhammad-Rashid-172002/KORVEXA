@@ -6,3 +6,5 @@ export * from './accounts';
 export * from './catalogue';
 export * from './commerce';
 export * from './money';
+export * from './room';
+export * from './chat';

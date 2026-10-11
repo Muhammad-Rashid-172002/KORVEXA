@@ -37,5 +37,10 @@ export const emailJobSchema = z.discriminatedUnion('template', [
       url: z.url(),
     }),
   }),
+  z.object({
+    template: z.literal('notification'),
+    to: z.email(),
+    data: z.object({ name: z.string(), title: z.string(), body: z.string().nullable(), url: z.url() }),
+  }),
 ]);
 export type EmailJob = z.infer<typeof emailJobSchema>;

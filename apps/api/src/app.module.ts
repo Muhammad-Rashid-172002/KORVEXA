@@ -3,8 +3,12 @@ import { APP_FILTER, APP_GUARD, APP_PIPE, DiscoveryModule } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthModule } from './auth/auth.module';
+import { AccessModule } from './modules/access/access.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ServicesModule } from './modules/services/services.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { RoomModule } from './modules/room/room.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { AllExceptionsFilter } from './common/errors/http-exception.filter';
 import { AuthGuard } from './common/policy/auth.guard';
@@ -38,6 +42,8 @@ const env = loadEnv();
     }),
     DiscoveryModule,
     InfraModule,
+    AccessModule,
+    NotificationsModule,
     AuthModule,
     FilesModule,
     ProfilesModule,
@@ -47,6 +53,8 @@ const env = loadEnv();
     PaymentsModule,
     OrdersModule,
     BriefsModule,
+    RoomModule,
+    ChatModule,
     AdminModule,
     RealtimeModule,
   ],

@@ -4,6 +4,7 @@ import { Inject, Injectable, NotFoundException, UnprocessableEntityException } f
 import { uuidv7 } from 'uuidv7';
 import type { RequestActor } from '../../auth/session.service';
 import { DB } from '../../infra/tokens';
+import { AccessService } from '../access/access.service';
 import type { FileDto, FileWithUrlDto, PresignUploadResponseDto } from './files.dto';
 import { DOWNLOAD_URL_TTL_SECONDS, StorageService, UPLOAD_URL_TTL_SECONDS } from './storage.service';
 
@@ -25,6 +26,7 @@ export class FilesService {
   constructor(
     @Inject(DB) private readonly db: DbClient,
     private readonly storage: StorageService,
+    private readonly access: AccessService,
   ) {
     this.repo = filesRepository(db.db);
   }
@@ -97,6 +99,17 @@ export class FilesService {
       downloadUrlExpiresAt: downloadable
         ? new Date(Date.now() + DOWNLOAD_URL_TTL_SECONDS * 1000).toISOString()
         : null,
+    };
+  }
+
+  /** Single readable-file policy (AccessService). Unknown, not-yet-clean and unauthorised files all look the same: 404. */
+  async downloadReadable(actor: RequestActor, id: string) {
+    const file = await this.access.readableFile(actor.userId, id);
+    if (!file) throw new NotFoundException('File not found');
+    return {
+      url: await this.storage.presignGet(file.storageKey, file.originalName),
+      expiresAt: new Date(Date.now() + DOWNLOAD_URL_TTL_SECONDS * 1000).toISOString(),
+      name: file.originalName,
     };
   }
 

@@ -62,6 +62,10 @@ const apiEnvObject = z.object({
   TEST_PAYMENTS_WEBHOOK_SECRET: z.string().min(16).default('dev-only-test-payments-secret'),
   /** Shared secret the worker uses to call internal API routes (auto-approve timers). */
   INTERNAL_API_TOKEN: z.string().min(24).default('dev-only-internal-token-change-me-0123456789'),
+  /** Web push (VAPID). Push is disabled until both keys are set; generate with `npx web-push generate-vapid-keys`. */
+  VAPID_PUBLIC_KEY: optional(),
+  VAPID_PRIVATE_KEY: optional(),
+  VAPID_SUBJECT: z.string().default('mailto:support@localhost'),
 });
 export const apiEnvSchema = apiEnvObject.superRefine((env, ctx) => {
   const key = env.STRIPE_SECRET_KEY;

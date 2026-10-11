@@ -50,6 +50,13 @@
       "when": 1791727150483,
       "tag": "0006_rapid_zeigeist",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791735889451,
+      "tag": "0007_fat_boomerang",
+      "breakpoints": true
     }
   ]
 }
