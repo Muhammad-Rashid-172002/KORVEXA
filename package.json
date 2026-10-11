@@ -1,0 +1,44 @@
+{
+  "name": "glasswork",
+  "private": true,
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=22.18.0 <23"
+  },
+  "scripts": {
+    "dev": "pnpm infra:up && turbo run dev --filter=@glasswork/api --filter=@glasswork/worker --filter=@glasswork/web",
+    "dev:up": "node scripts/dev-pull.mjs && docker compose -f infra/docker-compose.yml --env-file .env up --build --pull missing -d && node scripts/wait-for-stack.mjs",
+    "dev:down": "docker compose -f infra/docker-compose.yml --env-file .env down",
+    "dev:logs": "docker compose -f infra/docker-compose.yml --env-file .env logs -f api worker web",
+    "infra:up": "node scripts/dev-pull.mjs --infra && docker compose -f infra/docker-compose.yml --env-file .env up -d --wait postgres redis rustfs mailpit",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration --concurrency=1",
+    "test:e2e": "pnpm --filter @glasswork/e2e e2e",
+    "db:generate": "pnpm --filter @glasswork/db generate",
+    "db:migrate": "pnpm --filter @glasswork/db migrate",
+    "db:seed": "pnpm --filter @glasswork/db seed",
+    "openapi": "pnpm --filter @glasswork/api openapi",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky || true",
+    "dev:reset": "docker compose -f infra/docker-compose.yml --env-file .env down -v",
+    "dev:pull": "node scripts/dev-pull.mjs",
+    "smoke:storage": "docker compose -f infra/docker-compose.yml --env-file .env exec -T api node dist/scripts/storage-smoke.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.12.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "prettier": "3.9.10",
+    "turbo": "2.11.7",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,json,md,yml,yaml,css}": "prettier --write"
+  }
+}

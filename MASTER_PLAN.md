@@ -3,13 +3,34 @@
 Source of truth for progress. Built from docs/BRIEF.md §12; decisions live in DECISIONS.md.
 Rule (brief §3): continue from the first unchecked item and never redo ticked work. Each ticked item records files changed, known issues and what to test manually.
 
+## ▶ RESUME HERE (updated 2026-10-11)
+
+Phase 0 verified on the real Mac Docker stack and merged to `main`. Next: **Phase 1 — Accounts & profiles** on branch `phase/1-accounts`.
+
+- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 16 integration tests, 8 Playwright e2e tests (desktop + mobile).
+- Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
+
+## ⏳ WAITING ON RASHID
+
+| Item                                                                | Needed for                                           | Status                                                       |
+| ------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
+| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it | Partners deciding with accountant/lawyer                     |
+| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                     | Admin settings exist, set to 0                               |
+| Admin role mapping confirmation (Q5)                                | Admin area                                           | Provisional: Rashid=product, Taha=growth, Suliman=operations |
+| GitHub repo URL (Q7)                                                | CI first run, push                                   | Not created yet                                              |
+| KorvenzaTech K logo SVG                                             | Header lockup, product mark                          | Text lockup in use                                           |
+| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS            | TODO in brand.ts                                             |
+| Google + GitHub OAuth keys                                          | Social login                                         | Buttons hidden until set                                     |
+| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                     | Off locally (Mailpit / no-op Sentry)                         |
+
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason inline)
 
 ---
 
-## Phase 0 — Foundation  ·  branch `phase/0-foundation`
+## Phase 0 — Foundation · branch `phase/0-foundation`
 
 ### 0.A Planning (CHECKPOINT A: approval needed before any code)
+
 - [x] Read CLAUDE.md + docs/BRIEF.md; check the environment (Mac: Node 22.18.0, pnpm 12.11.2, Docker 29.8.2, Compose v5.5.1)
 - [x] MASTER_PLAN.md (this file)
 - [x] DECISIONS.md: stack + exact versions, auth, folder structure, payments abstraction, open questions
@@ -18,66 +39,104 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [x] **Rashid approves DECISIONS.md + ERD** (2026-10-11)
 
 ### 0.B Repo & tooling
-- [ ] `git init`, `.gitignore`, `.editorconfig`, `.nvmrc`, `packageManager` pin, README.md, SETUP.md
-- [ ] pnpm workspaces + Turborepo (`build`, `dev`, `lint`, `typecheck`, `test`, `test:e2e` pipelines)
-- [ ] Shared tsconfig base (strict), ESLint flat config, Prettier, lint-staged + husky pre-commit
-- [ ] `packages/shared`: brand.ts (Glasswork), env schema (zod), enums, state-machine definitions + unit tests, typed socket events
-- [ ] `packages/ui`: Tailwind v4 preset with brand tokens, shadcn/ui base (Button, Input, Card, Label, Form), dark + light theme
+
+- [x] `git init`, `.gitignore`, `.editorconfig`, `.nvmrc`, `packageManager` pin, README.md, SETUP.md
+- [x] pnpm workspaces + Turborepo (`build`, `dev`, `lint`, `typecheck`, `test`, `test:e2e` pipelines)
+- [x] Shared tsconfig base (strict), ESLint flat config, Prettier, lint-staged + husky pre-commit
+- [x] `packages/shared`: brand.ts (Glasswork), env schema (zod), enums, state-machine definitions + unit tests, typed socket events
+- [x] `packages/ui`: Tailwind v4 preset with brand tokens, shadcn/ui base (Button, Input, Card, Label, Alert, Badge), dark + light theme
 
 ### 0.C Infrastructure
-- [ ] `infra/docker-compose.yml`: postgres, redis, minio (+ bucket bootstrap), mailpit, api, worker, web, with healthchecks
-- [ ] Dockerfiles (multi-stage, non-root) for api, worker, web
-- [ ] `.env.example` (every variable documented); config validated with zod at boot (fail fast)
-- [ ] One command: `pnpm dev:up` (whole stack in Docker) plus `pnpm dev` (infra in Docker, apps on host with hot reload)
+
+- [x] `infra/docker-compose.yml`: postgres, redis, rustfs (bucket bootstrapped by the API), mailpit, api, worker, web, with healthchecks
+- [x] Dockerfiles (multi-stage, non-root) for api, worker, web
+- [x] `.env.example` (every variable documented); config validated with zod at boot (fail fast)
+- [x] One command: `pnpm dev:up` (whole stack in Docker) plus `pnpm dev` (infra in Docker, apps on host with hot reload)
 
 ### 0.D Database
-- [ ] `packages/db`: Drizzle schema for the Phase 0 tables (users, accounts, sessions, verifications, profiles, audit_logs, files) + enums for the whole ERD
-- [ ] First migration generated and committed; `pnpm db:migrate`
-- [ ] Seed script (dev only, refuses to run when NODE_ENV=production; every seeded row tagged `is_seed=true`)
+
+- [x] `packages/db`: Drizzle schema for the Phase 0 tables (users, accounts, sessions, verifications, profiles, audit_logs, files) + enums for the whole ERD
+- [x] First migration generated and committed; `pnpm db:migrate`
+- [x] Seed script (dev only, refuses to run when NODE_ENV=production; every seeded row tagged `is_seed=true`)
 
 ### 0.E API (NestJS + Fastify)
-- [ ] App bootstrap: Fastify adapter, pino logging, helmet/security headers, CORS allow-list, global zod validation, standard error format, `/v1` prefix, `/health` + `/ready`
-- [ ] OpenAPI generation (`/v1/docs` in dev; spec exported to `packages/shared/openapi.json`)
-- [ ] Rate limiting (Redis-backed) on auth routes
-- [ ] Sentry wiring (no-op when `SENTRY_DSN` is empty)
+
+- [x] App bootstrap: Fastify adapter, pino logging, helmet/security headers, CORS allow-list, global zod validation, standard error format, `/v1` prefix, `/health` + `/ready`
+- [x] OpenAPI generation (`/v1/docs` in dev; spec exported to `packages/shared/openapi.json`)
+- [x] Rate limiting (Redis-backed) on auth routes
+- [x] Sentry wiring (no-op when `SENTRY_DSN` is empty)
 
 ### 0.F Auth end-to-end
-- [ ] Better Auth mounted at `/v1/auth/*`, Drizzle adapter, argon2id password hashing
-- [ ] Register → verification email (React Email → Mailpit) → verify → login → logout
-- [ ] Google + GitHub OAuth wired (keys are TODO; buttons hidden when keys are absent)
-- [ ] httpOnly, Secure, SameSite=Lax session cookie; bearer plugin enabled for the future Flutter app
+
+- [x] Better Auth mounted at `/v1/auth/*`, Drizzle adapter, argon2id password hashing
+- [x] Register → verification email (React Email → Mailpit) → verify → login → logout
+- [x] Google + GitHub OAuth wired (keys are TODO; buttons hidden when keys are absent) — _not exercised against real providers until keys exist_
+- [x] httpOnly, Secure, SameSite=Lax session cookie; bearer plugin enabled for the future Flutter app
 
 ### 0.G Authorization proof
-- [ ] Policy layer (`@Policy()` decorator + guard + explicit policy functions) and a scoped repository pattern
-- [ ] One protected endpoint (`GET /v1/me/files/:id`) + policy tests: owner OK, other user 404, anonymous 401
+
+- [x] Policy layer (`@Policy()` decorator + guard + explicit policy functions) and a scoped repository pattern
+- [x] One protected endpoint (`GET /v1/me/files/:id`) + policy tests: owner OK, other user 404, anonymous 401
 
 ### 0.H Realtime
-- [ ] Socket.io gateway with Redis adapter, session-cookie handshake auth, rejects unauthenticated sockets, typed `ping`/`pong` event; tests for auth reject/accept
+
+- [x] Socket.io gateway with Redis adapter, session-cookie handshake auth, rejects unauthenticated sockets, typed `ping`/`pong` event; tests for auth reject/accept
 
 ### 0.I Files
-- [ ] Presigned PUT upload to MinIO (size + MIME allow-list, per-user key prefix), `files` row, presigned GET only for the owner; tests for the cross-user denial
+
+- [x] Presigned PUT upload to S3 storage (RustFS locally) (size + MIME allow-list, per-user key prefix), `files` row, presigned GET only for the owner; tests for the cross-user denial
 
 ### 0.J Worker
-- [ ] BullMQ worker app: `email` queue (verification mail sent via the queue), graceful shutdown, health
+
+- [x] BullMQ worker app: `email` queue (verification mail sent via the queue), graceful shutdown, health
 
 ### 0.K Web (Next.js)
-- [ ] App Router shell with the "Glasswork by KorvenzaTech" header/footer from brand.ts, themes
-- [ ] Pages: /signup, /login, /verify-email, /dashboard (protected), logout; typed API client generated from OpenAPI
-- [ ] Demo widgets on /dashboard: socket connection status + file upload
+
+- [x] App Router shell with the "Glasswork by KorvenzaTech" header/footer from brand.ts, themes
+- [x] Pages: /signup, /login, /verify-email, /dashboard (protected), logout; typed API client generated from OpenAPI
+- [x] Demo widgets on /dashboard: socket connection status + file upload
 
 ### 0.L Quality & CI
-- [ ] Vitest unit tests (shared, api); integration tests against real Postgres/Redis (Testcontainers in CI, local services in the sandbox)
-- [ ] Playwright e2e: signup → Mailpit verify → login → dashboard → upload → logout; screenshots at 1440 and 390 into git-ignored `artifacts/`
-- [ ] GitHub Actions: install, lint, typecheck, unit, integration, e2e, build, `pnpm audit`
-- [ ] All green locally in the sandbox
+
+- [x] Vitest unit tests (shared, api); integration tests against real Postgres/Redis (Testcontainers in CI, local services in the sandbox)
+- [x] Playwright e2e: signup → Mailpit verify → login → dashboard → upload → logout; screenshots at 1440 and 390 into git-ignored `artifacts/`
+- [~] GitHub Actions: install, lint, typecheck, unit, integration, e2e, build, `pnpm audit` — _written; first run happens when the GitHub repo exists_
+- [x] All green locally in the sandbox
+
+### 0.L+ Fixes after Mac run #1
+
+- [x] Replace MinIO with RustFS; storage smoke test; `pnpm dev:pull` with retries; slow-network pnpm settings; ignore `Claude outputs/` and screenshot folders
 
 ### 0.M Checkpoint report (CHECKPOINT B)
-- [ ] One-command run instructions, demo script, screenshots, test results, TODO keys/accounts list
-- [ ] Rashid confirms `pnpm dev:up` on the Mac → merge `phase/0-foundation` into `main`
+
+- [x] One-command run instructions, demo script, screenshots, test results, TODO keys/accounts list
+- [x] `pnpm dev:up` verified on the Mac (2026-10-11) → `phase/0-foundation` merged into `main`
+
+---
+
+### Phase 0 log (2026-10-11)
+
+**Verified in the build sandbox:** lint, typecheck and unit tests across 9 workspaces; 16 API integration tests (auth flow, policy, realtime, rate limit) on real Postgres + Redis; 8 Playwright e2e tests (desktop 1440 + mobile 390) against the production builds of api/worker/web; the same e2e also passed against `pnpm dev`; the Docker build steps (install → turbo build → `pnpm deploy` bundles) replayed outside Docker, with migrations, seed, API and worker run from the pruned bundles.
+
+**`[~]` = not verifiable in the sandbox** (it has no Docker engine): `docker compose up` itself, the RustFS/Mailpit images (the sandbox used S3/SMTP stand-ins), and the first CI run. Rashid's Mac checklist covers these.
+
+**Files (by area):** `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.env.example`, `README.md`, `SETUP.md`, `.github/workflows/ci.yml`, `infra/docker-compose.yml`, `infra/docker/Dockerfile`, `scripts/wait-for-stack.mjs`, `packages/{config,shared,db,emails,ui}/**`, `apps/{api,worker,web}/**`, `e2e/**`.
+
+**Known issues / follow-ups:**
+
+- 2026-10-11 Mac run #1 failed: the MinIO image is no longer pullable. Fixed by switching local storage to RustFS 1.0.1 (D-046), adding `pnpm dev:pull` with retries (D-047), and adding a storage smoke test at the end of `dev:up`. RustFS itself can't run in the sandbox (no Docker, no access to its binaries), so the smoke test on the Mac is the first real RustFS check.
+- OAuth is untested until real Google/GitHub keys exist.
+- CSP uses `'unsafe-inline'` for scripts (Next.js hydration); nonce-based CSP is planned for Phase 9.
+- Rotating refresh tokens for mobile: Phase 1 (D-010).
+- No ClamAV yet; files are owner-only until Phase 4 (D-030).
+- Logo SVG not received; the header uses a text lockup.
+
+**Manual test:** see the Phase 0 checkpoint demo script (in the chat report and SETUP.md §2).
 
 ---
 
 ## Phase 1 — Accounts & profiles
+
 - [ ] Buyer/seller mode switch (one account, both roles)
 - [ ] Profiles (public profile, avatar via presigned upload)
 - [ ] Organizations + org_members (buyer teams, seller agencies) with invites
@@ -89,6 +148,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] CHECKPOINT: demo script, screenshots, TODOs, Phase 2 plan
 
 ## Phase 2 — Services & discovery
+
 - [ ] Services (gigs) CRUD with Basic/Standard/Premium packages, extras, FAQs, gallery, requirements form, delivery times
 - [ ] Gig moderation queue (admin)
 - [ ] SearchService (Postgres FTS + pg_trgm) behind an interface; filters (category, budget, delivery time, seller level, verified only, rating) and sorting
@@ -98,6 +158,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] CHECKPOINT
 
 ## Phase 3 — Orders & payments (Stripe test mode)
+
 - [ ] PaymentsService + PayoutsService interfaces; Stripe adapter (test mode)
 - [ ] Package checkout → project + milestones; idempotency keys
 - [ ] Milestone funding (charge to the platform balance) + escrow_holds
@@ -110,6 +171,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] CHECKPOINT
 
 ## Phase 4 — Live Project Room
+
 - [ ] Overview: weighted % progress, current milestone, next deadline, health + reason, escrow vs released
 - [ ] Timeline: planned vs actual
 - [ ] Board: Kanban tasks linked to milestones (seller manages, buyer comments)
@@ -122,6 +184,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] CHECKPOINT
 
 ## Phase 5 — Trust
+
 - [ ] Reviews: per-milestone private feedback, public final review with sub-ratings, one seller reply, only paying buyers with completed work
 - [ ] Seller levels from real metrics, criteria published
 - [ ] Verifications + badges (identity, GitHub, Play/App Store link, portfolio reviewed, skill test)
@@ -132,6 +195,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] CHECKPOINT
 
 ## Phase 6 — AI
+
 - [ ] AI module: Claude API server-side, per-user rate limits, daily cost caps, usage table
 - [ ] AI Brief Builder
 - [ ] AI Matching with explanations
@@ -141,12 +205,14 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] CHECKPOINT
 
 ## Phase 7 — Meetings & integrations
+
 - [ ] VideoService interface + LiveKit or Daily adapter; consented recording
 - [ ] GitHub App: commits, PRs and deployments in plain language
 - [ ] Calendar invites (ICS)
 - [ ] CHECKPOINT
 
 ## Phase 8 — Landing & marketing
+
 - [ ] Landing page: R3F + GSAP 3D hero (project moving through milestones), poster-first LCP, reduced-motion support
 - [ ] About page, "by KorvenzaTech" lockups, product mark
 - [ ] Legal drafts (flagged for lawyer review): Terms, Privacy, Seller Agreement, Buyer Protection, Acceptable Use, Cookie Policy; contract + NDA templates with e-acceptance
@@ -154,6 +220,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] CHECKPOINT
 
 ## Phase 9 — Hardening & launch
+
 - [ ] Load tests (k6) on critical paths
 - [ ] OWASP Top 10 review + fixes
 - [ ] Accessibility audit (WCAG 2.2 AA)

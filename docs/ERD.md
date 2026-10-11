@@ -1,6 +1,7 @@
 # Glasswork — Database ERD
 
 PostgreSQL 17 · Drizzle ORM. Conventions (DECISIONS D-005..D-007):
+
 - `id uuid` (UUIDv7) primary keys; `created_at` / `updated_at timestamptz`.
 - Money: `*_amount bigint` (minor units) + `currency char(3)`.
 - `is_seed boolean` on user-generated tables (dev seed only).
@@ -44,7 +45,7 @@ erDiagram
     sessions {
         uuid id PK
         uuid user_id FK
-        text token UK "hashed"
+        text token UK "opaque random; cookie is HMAC-signed"
         timestamptz expires_at
         text ip_address
         text user_agent
@@ -139,6 +140,7 @@ erDiagram
         text sha256
     }
 ```
+
 **(P0):** `users`, `sessions`, `accounts`, `auth_tokens`, `profiles`, `files`, `audit_logs`.
 
 ---
@@ -630,6 +632,7 @@ erDiagram
 ---
 
 ## Key integrity rules (enforced in DB, not just in code)
+
 - `ledger_entries`: deferred constraint trigger checks that `SUM(amount) = 0` per `transaction_id` and currency; UPDATE/DELETE revoked from the app role.
 - `audit_logs`, `project_events`, `webhook_events`: append-only (the app role has no UPDATE/DELETE).
 - `escrow_holds.milestone_id` unique: one hold per milestone funding. Re-funding after a change request creates a new milestone.

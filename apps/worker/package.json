@@ -1,0 +1,39 @@
+{
+  "name": "@glasswork/worker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json && (tsc -p tsconfig.build.json --watch --preserveWatchOutput & node --watch dist/main.js)",
+    "start": "node --enable-source-maps dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@glasswork/emails": "workspace:*",
+    "@glasswork/shared": "workspace:*",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/core": "2.12.0",
+    "@opentelemetry/sdk-trace-base": "2.12.0",
+    "@sentry/node": "10.76.2",
+    "bullmq": "6.3.12",
+    "ioredis": "5.11.1",
+    "nodemailer": "10.1.0",
+    "pino": "10.4.0",
+    "pino-pretty": "13.2.0",
+    "resend": "6.32.1"
+  },
+  "devDependencies": {
+    "@glasswork/config": "workspace:*",
+    "@types/node": "22.20.5",
+    "@types/nodemailer": "8.0.2",
+    "eslint": "10.12.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vitest": "4.1.11"
+  },
+  "files": [
+    "dist"
+  ]
+}

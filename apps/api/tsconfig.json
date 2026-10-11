@@ -1,0 +1,8 @@
+{
+  "extends": "@glasswork/config/tsconfig.nest.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist"
+  },
+  "include": ["src", "test", "*.ts"]
+}

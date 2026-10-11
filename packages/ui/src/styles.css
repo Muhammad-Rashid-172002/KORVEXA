@@ -1,0 +1,87 @@
+/*
+ * Glasswork design tokens (DECISIONS D-040..D-042). Dark is the default theme; `.light` on <html> switches.
+ * Consumed by apps/web via `@import "@glasswork/ui/styles.css"` after `@import "tailwindcss"`.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root,
+.dark {
+  --gw-bg: #07110e;
+  --gw-surface: #0c1a15;
+  --gw-surface-2: #12241d;
+  --gw-border: #1e3a2f;
+  --gw-text: #e8f3ee;
+  --gw-text-muted: #8fa89c;
+  --gw-primary: #19c784;
+  --gw-primary-hover: #3dd69a;
+  --gw-on-primary: #07110e;
+  --gw-focus: #19c784;
+  --gw-success: #19c784;
+  --gw-warning: #f5b544;
+  --gw-danger: #f0616d;
+  --gw-info: #5ab4f0;
+  color-scheme: dark;
+}
+
+.light {
+  --gw-bg: #f6faf8;
+  --gw-surface: #ffffff;
+  --gw-surface-2: #eef5f1;
+  --gw-border: #d9e6e0;
+  --gw-text: #0b1a14;
+  --gw-text-muted: #4e6159;
+  --gw-primary: #087f5b;
+  --gw-primary-hover: #066b4c;
+  --gw-on-primary: #ffffff;
+  --gw-focus: #087f5b;
+  --gw-success: #087f5b;
+  --gw-warning: #a86b00;
+  --gw-danger: #c2313e;
+  --gw-info: #1f6fb2;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--gw-bg);
+  --color-surface: var(--gw-surface);
+  --color-surface-2: var(--gw-surface-2);
+  --color-border: var(--gw-border);
+  --color-fg: var(--gw-text);
+  --color-muted: var(--gw-text-muted);
+  --color-primary: var(--gw-primary);
+  --color-primary-hover: var(--gw-primary-hover);
+  --color-on-primary: var(--gw-on-primary);
+  --color-focus: var(--gw-focus);
+  --color-success: var(--gw-success);
+  --color-warning: var(--gw-warning);
+  --color-danger: var(--gw-danger);
+  --color-info: var(--gw-info);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+@layer base {
+  html {
+    background: var(--gw-bg);
+    color: var(--gw-text);
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--gw-focus);
+    outline-offset: 2px;
+  }
+}
+
+/* Glass surface: overlays and marketing only (D-040). */
+@utility glass {
+  background: color-mix(in oklab, var(--gw-surface) 65%, transparent);
+  backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in oklab, var(--gw-text) 10%, transparent);
+}
