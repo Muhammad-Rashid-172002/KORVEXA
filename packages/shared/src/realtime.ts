@@ -16,6 +16,8 @@ export interface ChatMessageView {
     projectId: string | null;
   } | null;
   attachments: { id: string; name: string; sizeBytes: number; mimeType: string }[];
+  /** Off-platform contact/payment details detected before an order existed (warn + log, never block). */
+  safetyFlags: ('email' | 'phone' | 'external_chat' | 'offsite_payment')[];
   createdAt: string;
 }
 

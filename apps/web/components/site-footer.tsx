@@ -1,4 +1,5 @@
 import { brand } from '@glasswork/shared/brand';
+import Link from 'next/link';
 
 export function SiteFooter() {
   return (
@@ -7,9 +8,17 @@ export function SiteFooter() {
         <span>
           {brand.lockup} · © {new Date().getFullYear()} {brand.legalEntity}
         </span>
-        <a className="hover:text-fg" href={brand.parentUrl} rel="noopener">
-          {brand.parentDomain}
-        </a>
+        <span className="flex gap-4">
+          <Link className="hover:text-fg" href="/services">
+            Browse services
+          </Link>
+          <Link className="hover:text-fg" href="/seller-levels">
+            Seller levels
+          </Link>
+          <a className="hover:text-fg" href={brand.parentUrl} rel="noopener">
+            {brand.parentDomain}
+          </a>
+        </span>
       </div>
     </footer>
   );

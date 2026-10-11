@@ -357,6 +357,33 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 ---
 
+## 9f. Phase 5 — Trust (2026-10-11)
+
+**D-082 Reviews.** Two kinds only: **private milestone feedback** (buyer → seller, after a milestone is paid; never public, never in ratings) and **one public final review** per project with four ratings (overall, communication, quality, timeliness). Eligibility is enforced server-side: the paying buyer of a **completed** project with at least one **released** milestone; once; it moves the project `completed → reviewed`. The seller may reply **once** to a public review. Reviewers are shown as first name + last initial (never email). Unique partial indexes make "once" a database guarantee.
+
+**D-083 Seller levels are computed, never stored or granted.** `computeSellerLevel` (shared, unit-tested, criteria published at `/seller-levels` and `GET /v1/seller-levels`) needs ALL of: completed projects, public review count, average rating and on-time delivery (milestone submitted on/before the planned date). Levels: New → Level 1 (3 / 3 / 4.0 / 80%) → Level 2 (10 / 8 / 4.5 / 90%) → Top rated (25 / 20 / 4.7 / 95%). The thresholds are monotonic (tested), so the search "minimum level" filter is well-defined. Response time is **not** a criterion yet (we don't measure it honestly). The same SQL aggregates feed profiles, cards and filters via `SellerStatsService`.
+
+**D-084 Search trust filters, now with real data.** Minimum rating, minimum level, verified-only and a "top rated" sort. Sellers without reviews never match a rating filter (no data ≠ 0 stars). The ranking `ORDER BY` still never reads `operated_by_platform` (D-063 test unchanged and passing).
+
+**D-085 Verifications.** A badge is shown only while `status = verified`, never while pending or rejected. Store-listing links must point at the real store domains; identity needs a scanned `evidence` file that only admins (operations/product) can open, through a dedicated audited route. **A linked GitHub OAuth account counts automatically** (the platform can prove it), with no admin review. Skill tests are admin-granted.
+
+**D-086 Change requests.** Either party proposes, the **other** party answers; one open request per project; project must be active. Acceptance (transactional, row-locked) appends the proposed milestones **unfunded** (so the buyer funds them like any milestone), raises the project total, and shifts open milestones' planned dates. It never touches funds already held. Negative price changes are not supported.
+
+**D-087 Disputes.** Either party can open one on a **funded, unfinished** milestone (in progress / submitted / revision requested) while the project is active. The milestone and project freeze (auto-approve skips non-`submitted` milestones; tested), and an evidence **case file is snapshotted automatically** (project chat, deliverable versions + feedback counts, event timeline, scope changes, milestone dates/notes). Parties add notes/scanned evidence files, which both parties (and admins) can read. **Resolution (operations/product only, reason required, audited):**
+
+- **Release:** like an approval (commission fixed at funding).
+- **Refund:** full refund of milestone **and** buyer fee; provider refund is idempotent.
+- **Split:** `refundAmount` returned to the buyer (1 … amount−1); the seller receives the rest minus a **pro-rated commission**; the buyer fee is **kept** (service was provided). Ledger arithmetic is tested to the cent.
+  The project returns to active (work remains), completes (something was paid) or is cancelled (nothing paid) only when its **last** open dispute closes. Withdrawing a dispute is not supported yet.
+
+**D-088 Chat safety.** In **direct (pre-order) chats only**, messages are scanned for emails, phone numbers, external messengers and off-platform payment phrases. The message is **never blocked or altered**; it is flagged, an audit row is written, and both parties see the warning. The detector is a conservative heuristic with tests for false positives (e.g. "signal handling", prices, versions); false negatives are expected. After an order exists the project chat is not scanned.
+
+**D-089 Reports and moderation.** Users can report users, live services, messages in their own conversations and public reviews (self-reports refused, one open report per target, 10/hour). Operations/product admins decide with a note, and can **ban** (sessions deleted, live listings paused, staff accounts protected, audited), **unban**, or **take down** a listing with a reason shown to the seller. A banned account is treated as signed out **everywhere** (HTTP and sockets) because `SessionService.resolve` checks `banned_at` on every request, even with a still-cached session. ⚠ A banned user can still complete the sign-in form (it yields a dead session); blocking at sign-in is a follow-up.
+
+**D-090 Moved/limits.** No re-open/withdraw for disputes, no automatic escalation of cancellation requests, no reviewer-visible "response time" metric. Reports about reviews/messages are triaged manually.
+
+---
+
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):

@@ -20,7 +20,12 @@ import {
   users,
   type DbClient,
 } from '@glasswork/db';
-import type { ChatMessageView, ConversationView, MessagePageView } from '@glasswork/shared';
+import {
+  detectOffPlatform,
+  type ChatMessageView,
+  type ConversationView,
+  type MessagePageView,
+} from '@glasswork/shared';
 import {
   HttpException,
   HttpStatus,
@@ -234,11 +239,31 @@ export class ChatService {
       // Someone else's (or a pending) file looks the same as a missing one.
       if (ok.length !== fileIds.length) throw new NotFoundException('File not found');
     }
+    // Pre-order (direct) chats only: warn about off-platform contact/payment details, log it, never block (brief §8.9).
+    const [conv0] = await this.db.db
+      .select({ kind: conversations.kind })
+      .from(conversations)
+      .where(eq(conversations.id, conversationId));
+    const flags = conv0?.kind === 'direct' ? detectOffPlatform(input.body) : [];
     const [row] = await this.db.db.transaction(async (tx) => {
       const r = await tx
         .insert(messages)
-        .values({ conversationId, senderId: actor.userId, body: input.body })
+        .values({
+          conversationId,
+          senderId: actor.userId,
+          body: input.body,
+          safetyFlags: flags.length ? { kinds: flags } : {},
+        })
         .returning();
+      if (flags.length) {
+        await tx.insert(auditLogs).values({
+          actorId: actor.userId,
+          action: 'chat.safety_flag',
+          entityType: 'message',
+          entityId: r[0]!.id,
+          after: { kinds: flags, conversationId },
+        });
+      }
       if (fileIds.length)
         await tx
           .insert(messageAttachments)
@@ -365,6 +390,7 @@ export class ChatService {
             sizeBytes: a.f.sizeBytes,
             mimeType: a.f.mimeType,
           })),
+        safetyFlags: (r.safetyFlags as { kinds?: ChatMessageView['safetyFlags'] }).kinds ?? [],
         createdAt: r.createdAt.toISOString(),
       };
     });

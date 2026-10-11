@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { FavoriteButton } from '@/components/favorite-button';
 import { MessageSellerButton } from '@/components/message-seller-button';
+import { ReportButton } from '@/components/report-button';
 import { OrderPanel } from './order-panel';
 import { WEB_URL } from '@/lib/config';
 import { publicGw } from '@/lib/public-api';
@@ -117,6 +118,12 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
           <FavoriteButton serviceId={s.id} title={s.title} />
         </div>
         <MessageSellerButton sellerId={s.seller.id} next={`/services/${s.slug}`} />
+        <ReportButton
+          targetType="service"
+          targetId={s.id}
+          label="Report this service"
+          next={`/services/${s.slug}`}
+        />
         <OrderPanel service={s} />
       </aside>
     </div>

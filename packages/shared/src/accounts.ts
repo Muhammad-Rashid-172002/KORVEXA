@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { SellerStatsView } from './trust';
+import type { VerificationKind } from './enums';
 import { ACTIVE_MODES, ORG_KINDS, ORG_ROLES, SELLER_AVAILABILITY } from './enums';
 
 const trimmed = (max: number) => z.string().trim().max(max);
@@ -98,6 +100,8 @@ export interface SellerView {
   onboardingCompleted: boolean;
   skills: { slug: string; name: string }[];
   portfolio: PortfolioItemView[];
+  /** Level, ratings and verified badges: all computed from real data. */
+  trust: SellerStatsView & { badges: VerificationKind[] };
 }
 
 export interface ProfileView {

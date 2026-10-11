@@ -11,7 +11,12 @@ export function HeaderNav() {
   const { data: session, isPending } = authClient.useSession();
   return (
     <nav className="flex items-center gap-1" aria-label="Main">
-      <Button asChild variant="ghost" size="sm" className="whitespace-nowrap px-2.5 sm:px-3">
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className={`whitespace-nowrap px-2.5 sm:px-3 ${!isPending && session ? '' : 'max-sm:hidden'}`}
+      >
         <Link href="/services" aria-label="Browse services">
           <Search size={16} aria-hidden className="sm:hidden" />
           <span className="max-sm:hidden">Browse</span>

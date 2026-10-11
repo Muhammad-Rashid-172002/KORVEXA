@@ -167,7 +167,7 @@ export const eventsQuerySchema = z.object({
 export const EVENT_FILTER_PREFIXES: Record<(typeof EVENT_FILTERS)[number], readonly string[]> = {
   all: [],
   money: ['payment.', 'milestone.funded', 'milestone.released', 'milestone.refunded'],
-  milestones: ['milestone.', 'project.'],
+  milestones: ['milestone.', 'project.', 'change.'],
   tasks: ['task.'],
   files: ['deliverable.', 'preview.'],
   chat: ['chat.'],
@@ -288,6 +288,21 @@ export const NOTIFICATION_TYPES = {
     defaults: { inApp: true, email: true, push: true },
   },
   'payout.paid': { label: 'A payout was sent', defaults: { inApp: true, email: true, push: false } },
+  'review.received': { label: 'You received a review', defaults: { inApp: true, email: true, push: false } },
+  'verification.decided': {
+    label: 'A verification was decided',
+    defaults: { inApp: true, email: true, push: false },
+  },
+  'change.requested': {
+    label: 'A scope change was proposed',
+    defaults: { inApp: true, email: true, push: true },
+  },
+  'change.decided': {
+    label: 'A scope change was answered',
+    defaults: { inApp: true, email: true, push: true },
+  },
+  'dispute.opened': { label: 'A dispute was opened', defaults: { inApp: true, email: true, push: true } },
+  'dispute.resolved': { label: 'A dispute was resolved', defaults: { inApp: true, email: true, push: true } },
 } as const satisfies Record<string, NotificationTypeDef>;
 export type NotificationType = keyof typeof NOTIFICATION_TYPES;
 

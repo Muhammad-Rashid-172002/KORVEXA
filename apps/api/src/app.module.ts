@@ -3,6 +3,7 @@ import { APP_FILTER, APP_GUARD, APP_PIPE, DiscoveryModule } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthModule } from './auth/auth.module';
+import { TrustModule } from './modules/trust/trust.module';
 import { AccessModule } from './modules/access/access.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -55,6 +56,7 @@ const env = loadEnv();
     BriefsModule,
     RoomModule,
     ChatModule,
+    TrustModule,
     AdminModule,
     RealtimeModule,
   ],

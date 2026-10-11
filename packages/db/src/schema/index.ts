@@ -8,3 +8,4 @@ export * from './commerce';
 export * from './money';
 export * from './room';
 export * from './chat';
+export * from './trust';

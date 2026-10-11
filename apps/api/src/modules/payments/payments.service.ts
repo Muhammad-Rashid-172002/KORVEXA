@@ -359,17 +359,21 @@ export class PaymentsService {
   }
 
   /** Provider refund (idempotent per payment) — called by MilestonesService before it books the reversal. */
-  async providerRefund(payment: {
-    id: string;
-    providerRef: string | null;
-    amount: number;
-    buyerFeeAmount: number;
-  }) {
+  async providerRefund(
+    payment: {
+      id: string;
+      providerRef: string | null;
+      amount: number;
+      buyerFeeAmount: number;
+    },
+    partialAmount?: number,
+  ) {
     if (!payment.providerRef) throw new BadRequestException('Payment has no provider reference');
     return this.provider.refund({
       providerRef: payment.providerRef,
-      amount: payment.amount + payment.buyerFeeAmount,
-      idempotencyKey: `refund:${payment.id}`,
+      // A partial (dispute split) refund returns only the milestone portion; the buyer fee is kept.
+      amount: partialAmount ?? payment.amount + payment.buyerFeeAmount,
+      idempotencyKey: partialAmount === undefined ? `refund:${payment.id}` : `refund-split:${payment.id}`,
     });
   }
 }

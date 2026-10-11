@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PACKAGE_TIERS, SERVICE_STATUSES } from './enums';
+import { SELLER_LEVEL_KEYS, type SellerLevelKey } from './trust';
 
 const text = (min: number, max: number) => z.string().trim().min(min).max(max);
 
@@ -44,7 +45,7 @@ export const serviceInputSchema = z
   });
 export type ServiceInput = z.infer<typeof serviceInputSchema>;
 
-export const SERVICE_SORTS = ['relevance', 'newest', 'price_asc', 'price_desc'] as const;
+export const SERVICE_SORTS = ['relevance', 'newest', 'price_asc', 'price_desc', 'rating'] as const;
 
 export const serviceSearchSchema = z.object({
   q: z.string().trim().max(100).optional(),
@@ -52,6 +53,14 @@ export const serviceSearchSchema = z.object({
   minPrice: z.coerce.number().int().min(0).optional(),
   maxPrice: z.coerce.number().int().min(0).optional(),
   maxDelivery: z.coerce.number().int().min(1).max(365).optional(),
+  /** Real data only: sellers with no public reviews never match a rating filter. */
+  minRating: z.coerce.number().min(1).max(5).optional(),
+  /** Minimum seller level (computed from published criteria). */
+  level: z.enum(SELLER_LEVEL_KEYS).optional(),
+  verifiedOnly: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => (v === 'true' ? true : undefined)),
   sort: z.enum(SERVICE_SORTS).optional(),
   cursor: z.string().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(12),
@@ -84,6 +93,14 @@ export interface ServiceCardView {
   imageUrl: string | null;
   operatedByPlatform: boolean;
   status: (typeof SERVICE_STATUSES)[number];
+  /** Real, computed trust signals (null/0 when there is no data yet). */
+  trust: {
+    level: SellerLevelKey;
+    levelLabel: string;
+    avgRating: number | null;
+    reviewCount: number;
+    verified: boolean;
+  };
 }
 
 export interface ServiceDetailView extends ServiceCardView {

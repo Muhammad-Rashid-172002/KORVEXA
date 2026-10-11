@@ -27,7 +27,7 @@ export function MilestonesPanel({ project: p }: { project: ProjectView }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [form, setForm] = useState<{ id: string; kind: 'submit' | 'revision' } | null>(null);
+  const [form, setForm] = useState<{ id: string; kind: 'submit' | 'revision' | 'dispute' } | null>(null);
 
   async function act(key: string, fn: () => Promise<{ ok: boolean; error: string | null }>) {
     setBusy(key);
@@ -201,6 +201,17 @@ export function MilestonesPanel({ project: p }: { project: ProjectView }) {
                       Request changes
                     </Button>
                   )}
+                  {['in_progress', 'submitted', 'revision_requested'].includes(m.status) &&
+                    p.status === 'active' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={busy !== null}
+                        onClick={() => setForm({ id: m.id, kind: 'dispute' })}
+                      >
+                        Open a dispute
+                      </Button>
+                    )}
                 </div>
 
                 {form?.id === m.id && (
@@ -209,24 +220,39 @@ export function MilestonesPanel({ project: p }: { project: ProjectView }) {
                     onSubmit={(e) => {
                       e.preventDefault();
                       const note = String(new FormData(e.currentTarget).get('note')).trim();
-                      void act(`form-${m.id}`, () =>
-                        form.kind === 'submit'
+                      void act(`form-${m.id}`, async () => {
+                        if (form.kind === 'dispute') {
+                          const r = await gw('POST', `/milestones/${m.id}/dispute`, { reason: note });
+                          if (r.ok) router.push(`/projects/${p.id}?tab=disputes`);
+                          return r;
+                        }
+                        return form.kind === 'submit'
                           ? gw('POST', `/milestones/${m.id}/submit`, { note: note || undefined })
-                          : gw('POST', `/milestones/${m.id}/request-revision`, { note }),
-                      );
+                          : gw('POST', `/milestones/${m.id}/request-revision`, { note });
+                      });
                     }}
                   >
                     <TextareaField
                       id="note"
-                      label={form.kind === 'submit' ? 'Note for the buyer (optional)' : 'What should change?'}
+                      label={
+                        form.kind === 'submit'
+                          ? 'Note for the buyer (optional)'
+                          : form.kind === 'dispute'
+                            ? 'Describe the problem (at least 20 characters). Funds stay held and an administrator decides.'
+                            : 'What should change?'
+                      }
                       rows={3}
-                      required={form.kind === 'revision'}
-                      minLength={form.kind === 'revision' ? 5 : undefined}
+                      required={form.kind !== 'submit'}
+                      minLength={form.kind === 'dispute' ? 20 : form.kind === 'revision' ? 5 : undefined}
                       maxLength={2000}
                     />
                     <div className="flex gap-2">
                       <Button size="sm" type="submit" disabled={busy !== null}>
-                        {form.kind === 'submit' ? 'Submit' : 'Send request'}
+                        {form.kind === 'submit'
+                          ? 'Submit'
+                          : form.kind === 'dispute'
+                            ? 'Open dispute'
+                            : 'Send request'}
                       </Button>
                       <Button size="sm" type="button" variant="ghost" onClick={() => setForm(null)}>
                         Cancel

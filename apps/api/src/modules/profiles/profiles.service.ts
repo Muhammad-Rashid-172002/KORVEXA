@@ -33,6 +33,7 @@ import {
 import type { RequestActor } from '../../auth/session.service';
 import { DB } from '../../infra/tokens';
 import { StorageService } from '../files/storage.service';
+import { SellerStatsService } from '../trust/stats.service';
 
 const slugify = (s: string) =>
   s
@@ -47,6 +48,7 @@ export class ProfilesService {
   constructor(
     @Inject(DB) private readonly db: DbClient,
     private readonly storage: StorageService,
+    private readonly stats: SellerStatsService,
   ) {}
 
   // ---- mode & seller opt-in -------------------------------------------------
@@ -346,6 +348,7 @@ export class ProfilesService {
         onboardingCompleted: sp.onboardingCompletedAt !== null,
         skills: skillRows,
         portfolio,
+        trust: await this.stats.one(userId),
       };
     }
     const pr = p.profile;

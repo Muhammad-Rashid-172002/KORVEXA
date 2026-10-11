@@ -3,6 +3,8 @@ import {
   conversationMembers,
   customOffers,
   deliverables,
+  disputeEvidence,
+  disputes,
   eq,
   files,
   messageAttachments,
@@ -80,6 +82,14 @@ export class AccessService {
       .innerJoin(messages, eq(messages.id, messageAttachments.messageId))
       .where(eq(messageAttachments.fileId, fileId));
     for (const m of viaMessage) if (await this.isConversationMember(userId, m.conversationId)) return file;
+
+    // Dispute evidence is visible to both parties of the disputed project.
+    const viaEvidence = await this.db.db
+      .select({ projectId: disputes.projectId })
+      .from(disputeEvidence)
+      .innerJoin(disputes, eq(disputes.id, disputeEvidence.disputeId))
+      .where(eq(disputeEvidence.fileId, fileId));
+    for (const e of viaEvidence) if (await this.projectRole(userId, e.projectId)) return file;
     return null;
   }
 

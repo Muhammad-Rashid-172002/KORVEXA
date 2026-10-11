@@ -2,11 +2,13 @@ import {
   and,
   asc,
   eq,
+  disputes,
   escrowHolds,
   milestones,
   payments,
   profiles,
   projects,
+  sql,
   transfers,
   users,
   type DbClient,
@@ -17,6 +19,7 @@ import {
   projectMachine,
   transition,
   type Actor,
+  type DisputeOutcome,
   type MilestoneJob,
 } from '@glasswork/shared';
 import { Inject, Injectable, Logger, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
@@ -370,6 +373,189 @@ export class MilestonesService {
     return { ok: true };
   }
 
+  // ---- dispute resolution (admin) ----------------------------------------------------------------
+
+  /**
+   * Operations resolves a dispute over a funded milestone: release to the seller, refund the buyer in full, or
+   * split. Money moves inside one transaction with the ledger; the provider refund is idempotent and happens first.
+   * On a split the buyer's service fee is kept (the platform did provide the service) and the seller commission is
+   * pro-rated to what the seller actually receives.
+   */
+  async resolveDispute(
+    admin: RequestActor,
+    disputeId: string,
+    input: { outcome: DisputeOutcome; refundAmount?: number; note: string },
+  ) {
+    const [d] = await this.db.db.select().from(disputes).where(eq(disputes.id, disputeId));
+    if (!d) throw new NotFoundException('Dispute not found');
+    if (d.status === 'resolved') throw new UnprocessableEntityException('This dispute is already resolved');
+    const [pay] = await this.db.db
+      .select()
+      .from(payments)
+      .where(and(eq(payments.milestoneId, d.milestoneId), eq(payments.status, 'succeeded')));
+    if (!pay) throw new UnprocessableEntityException('There are no held funds to resolve');
+    let refund = 0;
+    if (input.outcome === 'split') {
+      refund = input.refundAmount ?? 0;
+      if (!Number.isInteger(refund) || refund < 1 || refund >= pay.amount) {
+        throw new UnprocessableEntityException(
+          'A split needs a refund between 1 and the milestone amount minus 1',
+        );
+      }
+    } else if (input.refundAmount !== undefined) {
+      throw new UnprocessableEntityException('refundAmount is only used for a split');
+    }
+    if (input.outcome === 'refund') await this.payments.providerRefund(pay);
+    if (input.outcome === 'split') await this.payments.providerRefund(pay, refund);
+
+    const result = await this.db.db.transaction(async (tx) => {
+      const [dd] = await tx.select().from(disputes).where(eq(disputes.id, disputeId)).for('update');
+      if (!dd || dd.status === 'resolved')
+        throw new UnprocessableEntityException('This dispute is already resolved');
+      const locked = await this.lock(tx, dd.milestoneId);
+      if (!locked) throw new NotFoundException('Milestone not found');
+      const { m, p } = locked;
+      if (m.status !== 'disputed')
+        throw new UnprocessableEntityException(`The milestone is ${m.status}, not disputed`);
+
+      if (input.outcome === 'release') {
+        await this.releaseTx(tx, locked, admin.userId, 'resolve_release', 'admin');
+      } else if (input.outcome === 'refund') {
+        await this.refundTx(tx, m, p, admin.userId, 'admin', input.note, 'resolve_refund');
+      } else {
+        await this.splitTx(tx, locked, admin.userId, refund, input.note);
+      }
+      await tx
+        .update(disputes)
+        .set({
+          status: 'resolved',
+          outcome: input.outcome,
+          refundAmount: input.outcome === 'split' ? refund : input.outcome === 'refund' ? pay.amount : null,
+          resolutionNote: input.note,
+          resolvedBy: admin.userId,
+          resolvedAt: new Date(),
+        })
+        .where(eq(disputes.id, disputeId));
+
+      // The project leaves "disputed" only when its last open dispute is closed.
+      const others = await tx
+        .select({ id: disputes.id })
+        .from(disputes)
+        .where(
+          and(
+            eq(disputes.projectId, p.id),
+            sql`${disputes.status} <> 'resolved'`,
+            sql`${disputes.id} <> ${disputeId}`,
+          ),
+        );
+      let projectStatus = p.status;
+      if (others.length === 0 && p.status === 'disputed') {
+        transition(projectMachine, p.status, 'resolve_dispute', 'admin');
+        const rest = await tx
+          .select({ status: milestones.status })
+          .from(milestones)
+          .where(eq(milestones.projectId, p.id));
+        const remaining = rest.some((x) => !['released', 'cancelled', 'refunded'].includes(x.status));
+        const anyPaid = rest.some((x) => x.status === 'released');
+        if (remaining) {
+          projectStatus = transition(projectMachine, 'resolved', 'resume_after_resolution', 'system');
+          await tx
+            .update(projects)
+            .set({ status: projectStatus, statusBeforeSide: null })
+            .where(eq(projects.id, p.id));
+        } else if (anyPaid) {
+          projectStatus = transition(projectMachine, 'resolved', 'complete_after_resolution', 'system');
+          await tx
+            .update(projects)
+            .set({ status: projectStatus, completedAt: new Date(), statusBeforeSide: null })
+            .where(eq(projects.id, p.id));
+        } else {
+          projectStatus = transition(projectMachine, 'resolved', 'cancel_after_resolution', 'system');
+          await tx
+            .update(projects)
+            .set({ status: projectStatus, statusBeforeSide: null })
+            .where(eq(projects.id, p.id));
+        }
+      }
+      await recordChange(tx, {
+        projectId: p.id,
+        actorId: admin.userId,
+        type: 'dispute.resolved',
+        entityType: 'dispute',
+        entityId: disputeId,
+        before: { status: dd.status },
+        after: { status: 'resolved', outcome: input.outcome, refund, projectStatus },
+        payload: { disputeId, outcome: input.outcome, refund, title: m.title },
+      });
+      return { projectId: p.id, milestoneId: m.id };
+    });
+    await this.notifier.direct(
+      result.projectId,
+      admin.userId,
+      'dispute.resolved',
+      `The dispute was resolved (${input.outcome})`,
+      input.note.slice(0, 200),
+    );
+    return { id: disputeId, outcome: input.outcome, projectId: result.projectId };
+  }
+
+  /** Splits a disputed milestone's escrow: `refund` back to the buyer, the rest to the seller (commission pro-rated). */
+  private async splitTx(tx: DbTx, { m, p }: Locked, actorId: string, refund: number, note: string) {
+    const [hold] = await tx
+      .select()
+      .from(escrowHolds)
+      .where(and(eq(escrowHolds.milestoneId, m.id), eq(escrowHolds.status, 'held')))
+      .for('update');
+    const [pay] = await tx
+      .select()
+      .from(payments)
+      .where(and(eq(payments.milestoneId, m.id), eq(payments.status, 'succeeded')))
+      .for('update');
+    if (!hold || !pay) throw new UnprocessableEntityException('Nothing to split for this milestone');
+    const next = this.guard(() => transition(milestoneMachine, m.status, 'resolve_split', 'admin'));
+    const toSeller = hold.amount - refund;
+    const commission = Math.round((hold.sellerCommissionAmount * toSeller) / hold.amount);
+    const net = toSeller - commission;
+    await tx.update(milestones).set({ status: next }).where(eq(milestones.id, m.id));
+    await tx
+      .update(escrowHolds)
+      .set({ status: 'split', releasedAt: new Date() })
+      .where(eq(escrowHolds.id, hold.id));
+    await tx.update(payments).set({ status: 'partially_refunded' }).where(eq(payments.id, pay.id));
+    await tx.insert(transfers).values({
+      escrowHoldId: hold.id,
+      sellerId: p.sellerId,
+      grossAmount: toSeller,
+      sellerFeeAmount: commission,
+      netAmount: net,
+      currency: m.currency,
+    });
+    await this.ledger.post(tx, {
+      kind: 'dispute_split',
+      referenceType: 'milestone',
+      referenceId: m.id,
+      idempotencyKey: `split:${m.id}`,
+      currency: m.currency,
+      description: `Dispute split: ${p.code} · ${m.title}`,
+      lines: [
+        { account: accounts.escrow(m.id), amount: hold.amount },
+        { account: accounts.cash(), amount: -refund },
+        ...(net > 0 ? [{ account: accounts.sellerPayable(p.sellerId), amount: -net }] : []),
+        ...(commission > 0 ? [{ account: accounts.revenue(), amount: -commission }] : []),
+      ],
+    });
+    await recordChange(tx, {
+      projectId: p.id,
+      actorId,
+      type: 'milestone.released',
+      entityType: 'milestone',
+      entityId: m.id,
+      before: { status: m.status },
+      after: { status: next, split: true, refundToBuyer: refund, toSeller, commission, net, note },
+      payload: { milestoneId: m.id, title: m.title, net, split: true },
+    });
+  }
+
   // ---- internals ----------------------------------------------------------------------
 
   private guard<T>(fn: () => T): T {
@@ -439,6 +625,7 @@ export class MilestonesService {
     actorId: string,
     actor: Actor,
     reason: string,
+    event: 'refund' | 'resolve_refund' = 'refund',
   ) {
     const [hold] = await tx
       .select()
@@ -451,7 +638,7 @@ export class MilestonesService {
       .where(and(eq(payments.milestoneId, m.id), eq(payments.status, 'succeeded')))
       .for('update');
     if (!hold || !pay) throw new UnprocessableEntityException('Nothing to refund for this milestone');
-    const next = this.guard(() => transition(milestoneMachine, m.status, 'refund', actor));
+    const next = this.guard(() => transition(milestoneMachine, m.status, event, actor));
     await tx.update(milestones).set({ status: next }).where(eq(milestones.id, m.id));
     await tx
       .update(escrowHolds)
@@ -484,11 +671,17 @@ export class MilestonesService {
   }
 
   /** approved → released: moves escrow to the seller's payable balance (minus the commission fixed at funding). */
-  private async releaseTx(tx: DbTx, { m, p }: Locked, actorId: string | null) {
+  private async releaseTx(
+    tx: DbTx,
+    { m, p }: Locked,
+    actorId: string | null,
+    event: 'release' | 'resolve_release' = 'release',
+    actor: Actor = 'system',
+  ) {
     const [hold] = await tx.select().from(escrowHolds).where(eq(escrowHolds.milestoneId, m.id)).for('update');
     if (!hold || hold.status !== 'held')
       throw new UnprocessableEntityException('No held funds to release for this milestone');
-    const next = transition(milestoneMachine, m.status, 'release', 'system');
+    const next = transition(milestoneMachine, m.status, event, actor);
     const net = hold.amount - hold.sellerCommissionAmount;
     await tx.update(milestones).set({ status: next }).where(eq(milestones.id, m.id));
     await tx

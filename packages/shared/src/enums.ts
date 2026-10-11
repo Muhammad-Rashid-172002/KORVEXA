@@ -137,3 +137,35 @@ export type MessageKind = (typeof MESSAGE_KINDS)[number];
 
 export const OFFER_STATUSES = ['sent', 'accepted', 'declined', 'withdrawn'] as const;
 export type OfferStatus = (typeof OFFER_STATUSES)[number];
+
+export const REVIEW_VISIBILITIES = ['private', 'public'] as const;
+export type ReviewVisibility = (typeof REVIEW_VISIBILITIES)[number];
+
+export const VERIFICATION_STATUSES = ['pending', 'verified', 'rejected'] as const;
+export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
+
+export const CHANGE_REQUEST_STATUSES = ['proposed', 'accepted', 'declined', 'withdrawn'] as const;
+export type ChangeRequestStatus = (typeof CHANGE_REQUEST_STATUSES)[number];
+
+export const DISPUTE_STATUSES = ['open', 'under_review', 'resolved'] as const;
+export type DisputeStatus = (typeof DISPUTE_STATUSES)[number];
+
+export const DISPUTE_OUTCOMES = ['release', 'refund', 'split'] as const;
+export type DisputeOutcome = (typeof DISPUTE_OUTCOMES)[number];
+
+export const EVIDENCE_KINDS = [
+  'message',
+  'deliverable',
+  'approval',
+  'change_request',
+  'timeline',
+  'upload',
+  'note',
+] as const;
+export type EvidenceKind = (typeof EVIDENCE_KINDS)[number];
+
+export const REPORT_TARGETS = ['user', 'service', 'message', 'review'] as const;
+export type ReportTarget = (typeof REPORT_TARGETS)[number];
+
+export const REPORT_STATUSES = ['open', 'actioned', 'dismissed'] as const;
+export type ReportStatus = (typeof REPORT_STATUSES)[number];

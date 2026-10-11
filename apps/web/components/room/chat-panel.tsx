@@ -1,10 +1,11 @@
 'use client';
-import type { ChatMessageView, MessagePageView } from '@glasswork/shared';
+import { SAFETY_WARNING, type ChatMessageView, type MessagePageView } from '@glasswork/shared';
 import { Alert } from '@glasswork/ui/components/alert';
 import { Button } from '@glasswork/ui/components/button';
 import { Paperclip } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { ReportButton } from '@/components/report-button';
 import { money } from '@/lib/format';
 import { gw, newIdempotencyKey, uploadFile } from '@/lib/gw';
 import { useRealtime } from '@/lib/realtime';
@@ -299,6 +300,18 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
                     </button>
                   ))}
                 </>
+              )}
+              {m.safetyFlags.length > 0 && (
+                <p
+                  className="max-w-sm rounded-md border border-warning/50 bg-surface-2 px-2 py-1 text-xs"
+                  role="note"
+                  data-testid="safety-warning"
+                >
+                  {SAFETY_WARNING}
+                </p>
+              )}
+              {!mine && m.kind === 'text' && (
+                <ReportButton targetType="message" targetId={m.id} label="Report" next="/messages" />
               )}
               {mine && myLast?.id === m.id && (
                 <span className="text-xs text-muted" data-testid="seen-indicator" data-seen={seen}>

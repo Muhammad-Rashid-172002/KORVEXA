@@ -8,6 +8,9 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Activity } from '@/components/room/activity';
 import { Board } from '@/components/room/board';
+import { Changes } from '@/components/room/changes';
+import { Disputes } from '@/components/room/disputes';
+import { ReviewsPanel } from '@/components/room/reviews-panel';
 import { ChatPanel } from '@/components/room/chat-panel';
 import { Deliverables } from '@/components/room/deliverables';
 import { Previews } from '@/components/room/previews';
@@ -23,6 +26,8 @@ const TAB_LABELS: Record<Tab, string> = {
   board: 'Board',
   deliverables: 'Deliverables',
   previews: 'Previews',
+  changes: 'Changes',
+  disputes: 'Disputes',
   activity: 'Activity',
   chat: 'Chat',
 };
@@ -161,7 +166,20 @@ function Inner({
         ))}
       </nav>
 
-      {tab === 'overview' && <MilestonesPanel project={p} />}
+      {p.status === 'disputed' && (
+        <Alert tone="warning" data-testid="dispute-banner">
+          A dispute is open. Funds stay held and the project is frozen until an administrator decides.{' '}
+          <Link className="underline" href={`/projects/${p.id}?tab=disputes`}>
+            View the case
+          </Link>
+        </Alert>
+      )}
+      {tab === 'overview' && (
+        <>
+          <MilestonesPanel project={p} />
+          <ReviewsPanel projectId={p.id} isSeller={isSeller} milestones={p.milestones} />
+        </>
+      )}
       {tab === 'timeline' && <Timeline milestones={p.milestones} />}
       {tab === 'board' && (
         <Board projectId={p.id} isSeller={isSeller} milestones={p.milestones} editable={editable} />
@@ -172,6 +190,8 @@ function Inner({
       {tab === 'previews' && (
         <Previews projectId={p.id} isSeller={isSeller} milestones={p.milestones} editable={editable} />
       )}
+      {tab === 'changes' && <Changes projectId={p.id} editable={p.status === 'active'} />}
+      {tab === 'disputes' && <Disputes projectId={p.id} />}
       {tab === 'activity' && <Activity projectId={p.id} />}
       {tab === 'chat' &&
         (conversationId ? (
