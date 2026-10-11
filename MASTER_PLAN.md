@@ -8,6 +8,7 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 Phase 0 verified on the real Mac Docker stack and merged to `main`. Next: **Phase 1 — Accounts & profiles** on branch `phase/1-accounts`.
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 16 integration tests, 8 Playwright e2e tests (desktop + mobile).
+- Phase 1 STARTED on `phase/1-accounts` (usage limit hit 2026-10-11): code not yet written, only code reading done. Plan: (A) DB schema + migration via `pnpm db:generate` for skills, seller_profiles, seller_skills, portfolio_items, organizations, org_members, org invites, profile avatarFileId; (B) API modules (me/mode switch, profiles, sellers onboarding + portfolio, orgs, sessions list/revoke-all + TOTP via Better Auth twoFactor plugin, admin users + audit viewer) following the pattern in apps/api/src/modules/files (controller + service + dto + scoped repo in packages/db/src/repositories, `@Policy` on every route, 404 on cross-tenant); (C) web pages; (D) policy integration tests + Playwright e2e. Say "continue" to resume.
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
 
 ## ⏳ WAITING ON RASHID
