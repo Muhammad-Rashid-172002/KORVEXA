@@ -90,7 +90,7 @@ pnpm test:integration                        # starts Postgres + Redis via Testc
 pnpm dev:up && pnpm --filter @glasswork/e2e exec playwright install chromium && pnpm test:e2e
 ```
 
-The e2e suite signs up and logs in many times per minute from one IP, so before running it set `AUTH_RATE_LIMIT_MAX=500` in your local `.env` and re-run `pnpm dev:up` (keep the default `10` for normal use). Screenshots and Playwright reports go to the git-ignored `artifacts/` folder.
+The e2e suite signs up and logs in many times per minute from one IP, so before running it set `AUTH_RATE_LIMIT_MAX=500` and `RATE_LIMIT_PER_MINUTE=5000` in your local `.env` and re-run `pnpm dev:up` (keep the default `10` for normal use). Screenshots and Playwright reports go to the git-ignored `artifacts/` folder.
 
 To reuse already-running databases for integration tests instead of Testcontainers:
 `TEST_DATABASE_URL=postgres://… TEST_REDIS_URL=redis://…/1 pnpm test:integration` (the test database is wiped).
@@ -126,3 +126,15 @@ Sentry is off unless `SENTRY_DSN` (api/worker/web server) or `NEXT_PUBLIC_SENTRY
 3. Still failing:
    - **"connection reset" / timeout**: network problem. Try again later or on another connection. Docker Desktop → Settings → Docker Engine also lets you set `"max-concurrent-downloads": 1`, which helps on very slow links.
    - **"not found" / "pull access denied"**: the tag was removed from the registry. For storage only, set `STORAGE_IMAGE` in `.env` to another RustFS tag listed at hub.docker.com/r/rustfs/rustfs/tags, then re-run. For the others, tell me and I'll re-pin.
+
+## Payments (test mode)
+
+Local and CI use the built-in simulated provider (`PAYMENTS_PROVIDER=test`, the default): ordering sends you to a **"Test checkout"** page where you press "Pay (simulate success)". No Stripe account, no network, no real money. The result still travels as a signed webhook, so the real pipeline is exercised.
+
+To try Stripe **test mode** (needs your own test keys; this part is not yet verified by the project):
+
+1. Put `PAYMENTS_PROVIDER=stripe`, `STRIPE_SECRET_KEY=sk_test_…` in `.env`.
+2. Run `stripe listen --forward-to localhost:4000/v1/webhooks/stripe` and copy the printed `whsec_…` into `STRIPE_WEBHOOK_SECRET`.
+3. `pnpm dev:up`. Live keys (`sk_live_…`) are refused unless `PAYMENTS_LIVE_ENABLED=true`, which must stay false until the legal entity is decided.
+
+Fees are zero placeholders; change them in **Admin → Fees** (product scope). Payouts are manual: sellers request them on `/earnings`, Operations marks them paid on **Admin → Payouts**.

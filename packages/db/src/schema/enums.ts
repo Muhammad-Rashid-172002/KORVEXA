@@ -2,11 +2,23 @@ import {
   ACTIVE_MODES,
   ADMIN_SCOPES,
   FILE_PURPOSES,
+  BRIEF_STATUSES,
+  ESCROW_STATUSES,
   FILE_STATUSES,
+  HEALTH_STATES,
+  LEDGER_ACCOUNT_TYPES,
+  MILESTONE_STATUSES,
   ORG_KINDS,
   ORG_ROLES,
   PACKAGE_TIERS,
+  PARTICIPANT_ROLES,
+  PAYMENT_STATUSES,
+  PAYOUT_RAILS,
+  PAYOUT_STATUSES,
+  PROJECT_STATUSES,
+  PROPOSAL_STATUSES,
   SERVICE_STATUSES,
+  TRANSFER_STATUSES,
   SELLER_AVAILABILITY,
   USER_ROLES,
 } from '@glasswork/shared';
@@ -23,3 +35,15 @@ export const orgRole = pgEnum('org_role', ORG_ROLES);
 export const sellerAvailability = pgEnum('seller_availability', SELLER_AVAILABILITY);
 export const serviceStatus = pgEnum('service_status', SERVICE_STATUSES);
 export const packageTier = pgEnum('package_tier', PACKAGE_TIERS);
+export const projectStatus = pgEnum('project_status', PROJECT_STATUSES);
+export const milestoneStatus = pgEnum('milestone_status', MILESTONE_STATUSES);
+export const healthState = pgEnum('health_state', HEALTH_STATES);
+export const participantRole = pgEnum('participant_role', PARTICIPANT_ROLES);
+export const paymentStatus = pgEnum('payment_status', PAYMENT_STATUSES);
+export const escrowStatus = pgEnum('escrow_status', ESCROW_STATUSES);
+export const transferStatus = pgEnum('transfer_status', TRANSFER_STATUSES);
+export const payoutStatus = pgEnum('payout_status', PAYOUT_STATUSES);
+export const payoutRail = pgEnum('payout_rail', PAYOUT_RAILS);
+export const ledgerAccountType = pgEnum('ledger_account_type', LEDGER_ACCOUNT_TYPES);
+export const briefStatus = pgEnum('brief_status', BRIEF_STATUSES);
+export const proposalStatus = pgEnum('proposal_status', PROPOSAL_STATUSES);

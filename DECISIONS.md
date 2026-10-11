@@ -306,6 +306,35 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 ---
 
+## 9d. Phase 3 — orders, escrow & payments (2026-10-11)
+
+**D-066 Packages become 3 milestones; custom offers wait for chat.** A package order is split by percentage into milestones (default **30 / 40 / 30**: Kickoff & plan, Build, Delivery & handover; `service_packages.milestone_template` can override it per package via the API). Amounts use exact integer math and the remainder goes to the last milestone, so the parts always sum to the price (unit-tested). Extras are added to the total before the split. Custom offers "from chat" move to Phase 4 because chat doesn't exist yet; the same project factory (`ProjectsService.create`) will serve them.
+
+**D-067 Test-mode provider that runs the real pipeline.** There are no Stripe keys yet, so `PAYMENTS_PROVIDER=test` (default) uses a built-in `TestPaymentsProvider`: checkout "redirects" to `/pay/test/:id`, and the result comes back as an **HMAC-signed webhook** through the same code path as Stripe (signature → raw event stored → idempotent processing). `StripePaymentsProvider` is implemented (Checkout Sessions, refunds, webhook verification) and its signature handling is unit-tested with Stripe's own test-header helper, but **its API calls have not been exercised against Stripe** (no keys). The test provider is refused in production, live keys are refused unless `PAYMENTS_LIVE_ENABLED=true`, and both are unit-tested.
+
+**D-068 Money rules (all enforced server-side).**
+
+- Amounts are always recomputed from DB prices; client-sent amounts are ignored (tested).
+- Buyer service fee is added on top and recognised as revenue at charge; **seller commission is fixed when the milestone is funded** (stored on the escrow hold) so later settings changes never alter in-flight milestones. Both are admin settings (product scope, audited), placeholder 0 until Q4.
+- A full refund returns the buyer fee too (the platform didn't deliver).
+- One live payment per milestone (partial unique index); re-opening a pending checkout never creates a second charge. A payment for a milestone that is no longer fundable, or for the wrong amount, is **not** applied: the webhook event is stored with its error and shown to Operations for replay/refund.
+- `Idempotency-Key` is required on orders, funding, proposal acceptance and payout requests (same key+body replays; same key+different body → 422; concurrent duplicate → 409).
+
+**D-069 Ledger.** Append-only double-entry: debits positive, credits negative. Accounts: `platform_cash`, `escrow:{milestone}`, `seller_payable:{seller}`, `platform_revenue`, `payout_clearing`. Charge: cash↑ / escrow / revenue(fee). Release: escrow → seller_payable (net) + revenue (commission). Payout request reserves `seller_payable → payout_clearing`; paid moves `payout_clearing → cash`; failed reverses. A **deferred constraint trigger** rejects any transaction whose entries don't sum to zero at commit, and UPDATE/DELETE on ledger/activity tables is blocked by triggers (tested directly against Postgres). Admin "Ledger health" shows the trial balance (must be 0).
+
+**D-070 Timers: the worker owns the clock, the API owns the logic.** Submitting a milestone enqueues delayed BullMQ jobs (auto-approve after N days, default 5; reminders 3 and 1 days before). The worker calls `POST /v1/internal/milestones/:id/{auto-approve,remind}` with a shared `INTERNAL_API_TOKEN`; the API re-checks everything (still `submitted`, due, project active so timers freeze while paused) and is idempotent. This keeps all money logic in one place and was verified end to end against the real worker container.
+
+**D-071 Payout rails.** Only `manual_bank` is live: seller requests (min $20, serialised per seller with an advisory lock), Operations marks it paid (bank reference required) or failed (balance returns). Stripe Connect/Global Payouts are listed as unavailable in the API response until Q1/Q6 are answered. Stripe Connect Express onboarding is therefore **not built**.
+
+**D-072 Known money edge cases (documented, not hidden).**
+
+- If the provider refund succeeds but the DB transaction then fails, retrying the same action completes it (the provider call is idempotent per payment).
+- Disputes/partial refunds/splits arrive in Phase 5; until then only funded-but-unstarted milestones can be refunded by Operations.
+- Receipts are generated on demand from stored line items (not stored PDFs). Legal entity text on them is a placeholder until Q2.
+- UUIDv7 id prefixes are time-based and **not unique**; admin UIs show names and the random id tail (found by an e2e collision).
+
+---
+
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):

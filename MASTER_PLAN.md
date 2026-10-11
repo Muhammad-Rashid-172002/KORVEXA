@@ -5,23 +5,24 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–2 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Next: **Phase 3 — Orders & payments (Stripe test mode)** on branch `phase/3-payments`.
+Phases 0–3 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Next: **Phase 4 — Live Project Room** (the MVP checkpoint) on branch `phase/4-room`.
 
-- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 49 integration tests, 20 Playwright e2e tests (desktop + mobile).
+- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
 
 ## ⏳ WAITING ON RASHID
 
-| Item                                                                | Needed for                                           | Status                                                                                                                                           |
-| ------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it | Partners deciding with accountant/lawyer                                                                                                         |
-| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                     | Admin settings exist, set to 0                                                                                                                   |
-| Admin role mapping confirmation (Q5)                                | Admin area                                           | Provisional: Rashid=product, Taha=growth, Suliman=operations                                                                                     |
-| GitHub repo URL (Q7)                                                | CI first run, push                                   | A remote `origin` → github.com/Muhammad-Rashid-172002/KORVEXA exists (not added by me). Confirm it is the intended repo; nothing has been pushed |
-| KorvenzaTech K logo SVG                                             | Header lockup, product mark                          | Text lockup in use                                                                                                                               |
-| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS            | TODO in brand.ts                                                                                                                                 |
-| Google + GitHub OAuth keys                                          | Social login                                         | Buttons hidden until set                                                                                                                         |
-| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                     | Off locally (Mailpit / no-op Sentry)                                                                                                             |
+| Item                                                                | Needed for                                                                                         | Status                                                                                                                                           |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Legal entity + country for the Stripe platform account (Q1)         | Live payments (Phase 3+); test mode works without it                                               | Partners deciding with accountant/lawyer                                                                                                         |
+| Stripe TEST keys (`sk_test_…`) + webhook secret                     | Verifying the real Stripe adapter (checkout/refund); the built-in test provider works without them | Not provided; app runs on the test provider                                                                                                      |
+| Fee values: buyer service fee %, seller commission %, minimums (Q4) | Phase 3 checkout                                                                                   | Admin settings exist, set to 0                                                                                                                   |
+| Admin role mapping confirmation (Q5)                                | Admin area                                                                                         | Provisional: Rashid=product, Taha=growth, Suliman=operations                                                                                     |
+| GitHub repo URL (Q7)                                                | CI first run, push                                                                                 | A remote `origin` → github.com/Muhammad-Rashid-172002/KORVEXA exists (not added by me). Confirm it is the intended repo; nothing has been pushed |
+| KorvenzaTech K logo SVG                                             | Header lockup, product mark                                                                        | Text lockup in use                                                                                                                               |
+| Domain (Q3), registered company name + address (Q2)                 | brand.ts, legal pages, cookies, email DNS                                                          | TODO in brand.ts                                                                                                                                 |
+| Google + GitHub OAuth keys                                          | Social login                                                                                       | Buttons hidden until set                                                                                                                         |
+| Resend API key + sender domain (Q9), Sentry DSNs                    | Production email, error tracking                                                                   | Off locally (Mailpit / no-op Sentry)                                                                                                             |
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason inline)
 
@@ -191,18 +192,37 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 **Manual test:** sign in as `seller@dev.glasswork.test` → `/sell/services` → New service → Submit → sign in as `admin@dev.glasswork.test` → `/admin/services` → Approve → open `/services` signed out, search/filter, open the service → sign in as a buyer → ♥ favorite, "Save this search" → `/favorites`.
 
-## Phase 3 — Orders & payments (Stripe test mode)
+## Phase 3 — Orders & payments (Stripe test mode) · branch `phase/3-payments`
 
-- [ ] PaymentsService + PayoutsService interfaces; Stripe adapter (test mode)
-- [ ] Package checkout → project + milestones; idempotency keys
-- [ ] Milestone funding (charge to the platform balance) + escrow_holds
-- [ ] Double-entry ledger (append-only) + balance invariants test
-- [ ] Payout-method onboarding (Connect Express where supported; payout rail per DECISIONS D-020)
-- [ ] Release on approval → transfer/payout; auto-approve timer (worker)
-- [ ] Webhooks: signature verification, raw event store, idempotent processing, admin replay
-- [ ] Fee settings + transparent fee breakdown before payment; invoices/receipts PDF
-- [ ] Buyer requests board + proposals with milestone plans; custom offers from chat
-- [ ] CHECKPOINT
+- [x] PaymentsProvider/PayoutsService interfaces; adapters: built-in `test` provider (default, no keys) + Stripe (Checkout Sessions; webhook verification unit-tested, **API calls untested until keys exist**)
+- [x] Package checkout → project + 3 milestones (exact integer split, DB prices only); `Idempotency-Key` on orders/funding/payouts/proposal acceptance
+- [x] Milestone funding (one charge per milestone) + escrow_holds; seller commission fixed at funding
+- [x] Double-entry ledger (append-only, DB zero-sum trigger) + invariant tests + admin ledger health
+- [~] Payout rails: manual-bank done (request → ops marks paid/failed). **Stripe Connect Express onboarding not built**: depends on Q1/Q6 (D-071)
+- [x] Release on approval → transfer + seller balance; auto-approve timer (worker → internal API, reminders 3/1 days before), verified with the real worker container
+- [x] Webhooks: signature verification, raw event store, idempotent processing, admin replay
+- [x] Fee settings (product scope, audited) + transparent fee breakdown before payment; invoices/receipts PDF
+- [x] Buyer requests board + proposals with milestone plans → accept creates the project
+- [→] Custom offers from chat — **moved to Phase 4** (needs chat, D-066)
+- [x] CHECKPOINT (log only)
+
+### Phase 3 log (2026-10-11)
+
+**Tested on the real Docker stack:** lint/typecheck/unit (30 shared, 7 api, 6 worker unit tests incl. Stripe webhook + env safety rails), **77 integration tests** (23 payments + 5 requests/proposals new: idempotency, webhook attacks, concurrent approvals/deliveries/payouts, fee math, refunds, payouts, DB trigger guarantees, auth/ownership 404s), **26 Playwright e2e** (desktop + mobile). New e2e: order → test checkout → accept → deliver → request changes → approve → payout → ops marks paid → receipt PDF → project completes at 100%; the real worker auto-approving a due milestone; requests board → proposal → accept.
+
+**Files (by area):** `packages/db/src/schema/{commerce,money}.ts`, migrations `0005` (+ledger triggers) / `0006`, `packages/shared/src/{money,commerce}.ts`, `apps/api/src/modules/{payments,orders,briefs}`, `apps/worker/src/processors/milestone.processor.ts`, `apps/web/app/{projects,pay,billing,earnings,requests}` + `admin/{payouts,payments,settings}`, `e2e/tests/payments.spec.ts`.
+
+**Found by tests and fixed:** Nest swallows DI errors when logging is off (tests now boot with `abortOnError:false`); admin UI showed non-unique UUIDv7 prefixes (collision between two sellers → wrong payout row); e2e exceeded the general 300 req/min limit (e2e-only override, documented); order-panel fee breakdown now comes from the server quote endpoint.
+
+**Known issues / follow-ups:**
+
+- Stripe adapter API calls (checkout, refund) unverified against Stripe; needs test keys. Webhook secret setup in SETUP.md.
+- No Connect onboarding; payouts are manual-bank only.
+- Disputes, partial refunds, change requests (new funding) are Phase 5. No notifications for payment events yet (Phase 4).
+- Project page is the money view only; the full Live Project Room (board, deliverables, activity feed, chat) is Phase 4.
+- Seller-side milestone template editor not in the UI (API supports it).
+
+**Manual test:** as a buyer open any live service → pick a package → Order & pay → "Pay (simulate success)" → on the project, the seller accepts, starts, submits; approve as buyer; seller `/earnings` → request payout; admin `/admin/payouts` → Mark paid; `/admin/payments` for ledger health; `/billing` for the receipt PDF. Also `/requests` for the requests board.
 
 ## Phase 4 — Live Project Room
 

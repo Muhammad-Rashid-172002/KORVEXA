@@ -12,7 +12,10 @@
     "@glasswork/shared": "workspace:*",
     "@playwright/test": "1.63.0",
     "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "bullmq": "6.3.12",
     "eslint": "10.12.0",
+    "pg": "8.23.1",
     "typescript": "6.0.3"
   }
 }

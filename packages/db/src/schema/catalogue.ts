@@ -90,6 +90,8 @@ export const servicePackages = pgTable(
     currency: char({ length: 3 }).notNull().default('USD'),
     deliveryDays: integer().notNull(),
     revisions: integer().notNull().default(1),
+    /** Optional milestone split: [{ title, percent }] summing to 100. Null = platform default (D-066). */
+    milestoneTemplate: jsonb(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

@@ -83,3 +83,36 @@ export type ServiceStatus = (typeof SERVICE_STATUSES)[number];
 
 export const PACKAGE_TIERS = ['basic', 'standard', 'premium'] as const;
 export type PackageTier = (typeof PACKAGE_TIERS)[number];
+
+export const HEALTH_STATES = ['on_track', 'at_risk', 'blocked'] as const;
+export type HealthState = (typeof HEALTH_STATES)[number];
+
+export const PARTICIPANT_ROLES = [
+  'buyer',
+  'buyer_member',
+  'seller',
+  'seller_member',
+  'admin_observer',
+] as const;
+export type ParticipantRole = (typeof PARTICIPANT_ROLES)[number];
+
+export const PAYMENT_STATUSES = ['pending', 'succeeded', 'failed', 'refunded', 'partially_refunded'] as const;
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
+export const ESCROW_STATUSES = ['held', 'released', 'refunded', 'split', 'disputed'] as const;
+export type EscrowStatus = (typeof ESCROW_STATUSES)[number];
+
+export const TRANSFER_STATUSES = ['pending', 'completed', 'failed', 'reversed'] as const;
+export type TransferStatus = (typeof TRANSFER_STATUSES)[number];
+
+export const PAYOUT_STATUSES = ['requested', 'processing', 'paid', 'failed'] as const;
+export type PayoutStatus = (typeof PAYOUT_STATUSES)[number];
+
+export const LEDGER_ACCOUNT_TYPES = ['asset', 'liability', 'revenue', 'expense'] as const;
+export type LedgerAccountType = (typeof LEDGER_ACCOUNT_TYPES)[number];
+
+export const BRIEF_STATUSES = ['draft', 'open', 'closed'] as const;
+export type BriefStatus = (typeof BRIEF_STATUSES)[number];
+
+export const PROPOSAL_STATUSES = ['sent', 'withdrawn', 'accepted', 'declined'] as const;
+export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];

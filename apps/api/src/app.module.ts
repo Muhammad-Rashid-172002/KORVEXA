@@ -11,11 +11,14 @@ import { AuthGuard } from './common/policy/auth.guard';
 import { RouteAuditService } from './common/policy/route-audit.service';
 import { loadEnv } from './config/env';
 import { InfraModule } from './infra/infra.module';
+import { BriefsModule } from './modules/briefs/briefs.module';
 import { FilesModule } from './modules/files/files.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { PublicConfigController } from './modules/public-config/public-config.controller';
 import { OrgsModule } from './modules/orgs/orgs.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 
@@ -41,6 +44,9 @@ const env = loadEnv();
     OrgsModule,
     SessionsModule,
     ServicesModule,
+    PaymentsModule,
+    OrdersModule,
+    BriefsModule,
     AdminModule,
     RealtimeModule,
   ],
