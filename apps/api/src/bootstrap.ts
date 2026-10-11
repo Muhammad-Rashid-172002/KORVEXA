@@ -48,7 +48,12 @@ export async function createApp(opts: { logger?: boolean } = {}): Promise<NestFa
     contentSecurityPolicy: env.API_DOCS_ENABLED ? false : undefined,
     crossOriginResourcePolicy: { policy: 'same-site' },
   });
-  app.enableCors({ origin: corsOrigins, credentials: true, maxAge: 600 });
+  app.enableCors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    maxAge: 600,
+  });
   await app.register(rateLimit, {
     global: true,
     max: env.RATE_LIMIT_PER_MINUTE,

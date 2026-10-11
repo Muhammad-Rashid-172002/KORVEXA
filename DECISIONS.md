@@ -272,6 +272,24 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 ---
 
+## 9b. Phase 1 — accounts & profiles (2026-10-11)
+
+**D-050 Public profiles may show the owner's published avatar/portfolio images.** Files are owner-only by default (D-030). A file linked from a _public_ profile (avatar or portfolio image, status `clean`) is served via a 5-minute presigned GET in the profile response, because the owner chose to publish it. Nothing else becomes readable. The public profile page is rendered with `cache: 'no-store'` because those URLs expire.
+
+**D-051 Seller opt-in, not a separate account.** "Become a seller" adds the `seller` role and creates a `seller_profiles` row; `users.active_mode` is the buyer/seller switch and can only be `seller` if the role exists. A seller profile is hidden publicly until `onboarding_completed_at` is set, which requires profile (headline, bio, country), at least one skill and an hourly rate. Payout method and identity steps are placeholders (free-text preference, no account data) until Q1/Q6 and Phase 5.
+
+**D-052 Organizations and invites.** Roles `owner | admin | member`. Invite tokens are random 32 bytes, only the SHA-256 is stored, they expire in 7 days and are single-use. Only a signed-in user whose _verified_ email equals the invited address can accept; every other failure returns the same 404. Non-members get 404 on org reads (D-011). Only the owner changes roles; the owner cannot be removed.
+
+**D-053 Sessions and 2FA.** Session list/revoke/log-out-everywhere go through Better Auth (so the Redis session cache is invalidated too), scoped to the caller; another user's session id returns 404. TOTP uses Better Auth's `twoFactor` plugin (secrets encrypted by the plugin). ⚠ Verifying a TOTP code rotates the session cookie (the old one stops working), which is the secure behaviour and is covered by a test.
+
+**D-054 Admin skeleton.** `admin` role gates every `/v1/admin/*` route at the guard; assigning admin scopes additionally requires the `product` scope, and is audit-logged with before/after. Scopes stay data (D-003). The web `/admin` shell returns 404 to non-admins.
+
+**D-055 Bug found by e2e: CORS blocked PATCH/PUT/DELETE.** `@fastify/cors` defaults to GET/HEAD/POST, so browser mutations failed while in-process API tests passed. Fixed by listing methods explicitly (origins stay the allow-list, credentials on) and added a preflight test that also asserts a foreign origin is refused.
+
+**D-056 e2e vs. auth rate limiting.** The limiter (10 sign-in/up per minute per IP) works as designed and trips the e2e suite. The default stays 10. e2e runs set `AUTH_RATE_LIMIT_MAX=500` (CI job and local `.env`, documented in SETUP.md). Note `/request-password-reset` is limited to 3/min per IP, so don't re-run the accounts e2e within a minute of a previous run.
+
+---
+
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):

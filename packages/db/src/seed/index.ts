@@ -3,9 +3,10 @@
  * Idempotent: re-running updates the same seed users instead of duplicating them.
  */
 import { SETTING_KEYS } from '@glasswork/shared';
+import { eq } from 'drizzle-orm';
 import { createDb, type Database } from '../client';
 import { hashPassword } from '../password';
-import { accounts, platformSettings, profiles, users } from '../schema';
+import { accounts, platformSettings, profiles, sellerProfiles, sellerSkills, skills, users } from '../schema';
 
 export const SEED_PASSWORD = 'Glasswork-dev-123!';
 
@@ -75,6 +76,34 @@ const SEED_SETTINGS = [
   },
 ];
 
+/** Dev-only published seller so the public profile page has something to render (clearly marked as seed). */
+async function seedSeller(db: Database, userId: string) {
+  await db
+    .update(profiles)
+    .set({
+      slug: 'dev-seller',
+      bio: '[DEV SEED] Placeholder seller used for local development.',
+      country: 'PK',
+    })
+    .where(eq(profiles.userId, userId));
+  await db
+    .insert(sellerProfiles)
+    .values({
+      userId,
+      hourlyRateAmount: 4000,
+      yearsExperience: 5,
+      onboardingCompletedAt: new Date(),
+      isSeed: true,
+    })
+    .onConflictDoNothing();
+  for (const name of ['React', 'Node.js', 'Flutter']) {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    await db.insert(skills).values({ slug, name, isSeed: true }).onConflictDoNothing();
+    const [sk] = await db.select({ id: skills.id }).from(skills).where(eq(skills.slug, slug));
+    if (sk) await db.insert(sellerSkills).values({ sellerId: userId, skillId: sk.id }).onConflictDoNothing();
+  }
+}
+
 export async function seed(db: Database): Promise<{ users: number; settings: number }> {
   const passwordHash = await hashPassword(SEED_PASSWORD);
   for (const u of SEED_USERS) {
@@ -114,6 +143,8 @@ export async function seed(db: Database): Promise<{ users: number; settings: num
       .insert(profiles)
       .values({ userId: row.id, displayName: u.name, headline: u.headline, isSeed: true })
       .onConflictDoUpdate({ target: profiles.userId, set: { headline: u.headline, isSeed: true } });
+
+    if (u.roles.includes('seller')) await seedSeller(db, row.id);
   }
 
   for (const s of SEED_SETTINGS) {

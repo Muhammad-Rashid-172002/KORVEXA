@@ -125,6 +125,7 @@ export interface OrgView {
   name: string;
   kind: (typeof ORG_KINDS)[number];
   myRole: (typeof ORG_ROLES)[number];
+  myUserId: string;
   members: { userId: string; name: string; email: string; role: (typeof ORG_ROLES)[number] }[];
   invites: { id: string; email: string; role: (typeof ORG_ROLES)[number]; expiresAt: string }[];
 }

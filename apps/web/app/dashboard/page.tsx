@@ -1,6 +1,7 @@
 import { Badge } from '@glasswork/ui/components/badge';
 import { Card, CardDescription, CardTitle } from '@glasswork/ui/components/card';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { serverApi } from '@/lib/server-api';
 import { FileUploader } from './file-uploader';
@@ -35,6 +36,25 @@ export default async function DashboardPage() {
           <Badge>mode: {me.activeMode}</Badge>
           {me.emailVerified && <Badge className="border-primary/40 text-primary">email verified</Badge>}
         </div>
+      </Card>
+
+      <Card className="flex flex-wrap gap-4 text-sm" aria-label="Quick links">
+        <Link className="text-primary underline-offset-4 hover:underline" href="/settings">
+          Settings
+        </Link>
+        <Link className="text-primary underline-offset-4 hover:underline" href="/orgs">
+          Organizations
+        </Link>
+        {me.roles.includes('seller') && (
+          <Link className="text-primary underline-offset-4 hover:underline" href="/seller/onboarding">
+            Seller setup
+          </Link>
+        )}
+        {me.roles.includes('admin') && (
+          <Link className="text-primary underline-offset-4 hover:underline" href="/admin">
+            Admin
+          </Link>
+        )}
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">

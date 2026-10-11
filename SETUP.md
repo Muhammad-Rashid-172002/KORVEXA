@@ -90,7 +90,7 @@ pnpm test:integration                        # starts Postgres + Redis via Testc
 pnpm dev:up && pnpm --filter @glasswork/e2e exec playwright install chromium && pnpm test:e2e
 ```
 
-Screenshots and Playwright reports go to the git-ignored `artifacts/` folder.
+The e2e suite signs up and logs in many times per minute from one IP, so before running it set `AUTH_RATE_LIMIT_MAX=500` in your local `.env` and re-run `pnpm dev:up` (keep the default `10` for normal use). Screenshots and Playwright reports go to the git-ignored `artifacts/` folder.
 
 To reuse already-running databases for integration tests instead of Testcontainers:
 `TEST_DATABASE_URL=postgres://… TEST_REDIS_URL=redis://…/1 pnpm test:integration` (the test database is wiped).

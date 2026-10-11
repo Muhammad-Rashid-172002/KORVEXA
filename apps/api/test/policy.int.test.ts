@@ -132,3 +132,29 @@ describe('authorization policies', () => {
     });
   });
 });
+
+describe('CORS', () => {
+  it('allows PATCH/PUT/DELETE preflights from the web origin with credentials, and refuses other origins', async () => {
+    const app = await createTestApp();
+    try {
+      for (const method of ['PATCH', 'PUT', 'DELETE']) {
+        const res = await app.inject({
+          method: 'OPTIONS',
+          url: '/v1/me/mode',
+          headers: { ...ORIGIN, 'access-control-request-method': method },
+        });
+        expect(res.headers['access-control-allow-methods']).toContain(method);
+        expect(res.headers['access-control-allow-origin']).toBe(ORIGIN.origin);
+        expect(res.headers['access-control-allow-credentials']).toBe('true');
+      }
+      const evil = await app.inject({
+        method: 'OPTIONS',
+        url: '/v1/me/mode',
+        headers: { origin: 'https://evil.example', 'access-control-request-method': 'PATCH' },
+      });
+      expect(evil.headers['access-control-allow-origin']).toBeUndefined();
+    } finally {
+      await app.close();
+    }
+  });
+});

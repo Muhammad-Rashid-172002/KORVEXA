@@ -5,10 +5,9 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phase 0 verified on the real Mac Docker stack and merged to `main`. Next: **Phase 1 — Accounts & profiles** on branch `phase/1-accounts`.
+Phases 0–1 done and merged to `main`. Next: **Phase 2 — Services & discovery** on branch `phase/2-services`.
 
-- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 16 integration tests, 8 Playwright e2e tests (desktop + mobile).
-- Phase 1 STARTED on `phase/1-accounts` (usage limit hit 2026-10-11): code not yet written, only code reading done. Plan: (A) DB schema + migration via `pnpm db:generate` for skills, seller_profiles, seller_skills, portfolio_items, organizations, org_members, org invites, profile avatarFileId; (B) API modules (me/mode switch, profiles, sellers onboarding + portfolio, orgs, sessions list/revoke-all + TOTP via Better Auth twoFactor plugin, admin users + audit viewer) following the pattern in apps/api/src/modules/files (controller + service + dto + scoped repo in packages/db/src/repositories, `@Policy` on every route, 404 on cross-tenant); (C) web pages; (D) policy integration tests + Playwright e2e. Say "continue" to resume.
+- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 34 integration tests, 16 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
 
 ## ⏳ WAITING ON RASHID
@@ -136,17 +135,33 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 
 ---
 
-## Phase 1 — Accounts & profiles
+## Phase 1 — Accounts & profiles · branch `phase/1-accounts`
 
-- [ ] Buyer/seller mode switch (one account, both roles)
-- [ ] Profiles (public profile, avatar via presigned upload)
-- [ ] Organizations + org_members (buyer teams, seller agencies) with invites
-- [ ] Seller onboarding wizard: profile, skills, portfolio, rates, payout method placeholder, identity verification placeholder
-- [ ] Portfolio items CRUD
-- [ ] Session list + "log out everywhere"; password reset; optional TOTP 2FA
-- [ ] Admin skeleton: role-gated layout, users list, audit log viewer; admin roles (Product/Tech, Growth, Operations)
-- [ ] Policy tests for every new endpoint
-- [ ] CHECKPOINT: demo script, screenshots, TODOs, Phase 2 plan
+- [x] Buyer/seller mode switch (one account, both roles) — `PATCH /v1/me/mode`, `POST /v1/me/seller`, `/settings`
+- [x] Profiles (public profile `/u/[slug]`, avatar via presigned upload)
+- [x] Organizations + org_members (buyer teams, seller agencies) with email invites — `/orgs`, `/invites/accept`
+- [x] Seller onboarding wizard: profile, skills, portfolio, rates, payout placeholder, identity placeholder — `/seller/onboarding`
+- [x] Portfolio items CRUD (images via presigned upload are supported by the API; the wizard UI takes title/link/description)
+- [x] Session list + "log out everywhere"; password reset (`/forgot-password`, `/reset-password`); optional TOTP 2FA (`/settings`, `/two-factor`)
+- [x] Admin skeleton: role-gated layout, users list (search), audit log viewer (filter), product-scope admin-scope assignment (API)
+- [x] Policy tests for every new endpoint (`apps/api/test/accounts.int.test.ts`, 17 tests + CORS preflight test)
+- [x] CHECKPOINT (log only): see Phase 1 log below
+
+### Phase 1 log (2026-10-11)
+
+**Tested on the real Docker stack:** lint + typecheck + unit (23 turbo tasks), 34 integration tests (Testcontainers Postgres/Redis), 16 Playwright e2e tests (desktop 1440 + mobile 390) incl. seller wizard → publish → anonymous visitor sees the public profile, forgot-password via Mailpit, org create/invite, sessions panel, admin 404 vs. seeded admin.
+
+**Files (by area):** `packages/db/src/schema/accounts.ts` (+ auth.ts, enums.ts), migrations `0002`/`0003`, `packages/shared/src/accounts.ts`, `packages/emails` (org-invite), `apps/api/src/modules/{profiles,orgs,sessions,admin}`, `apps/api/src/auth/auth.ts` (twoFactor), `apps/api/src/bootstrap.ts` (CORS fix), `apps/web/app/{settings,seller,u,orgs,invites,admin,forgot-password,reset-password,two-factor}`, `apps/web/lib/{gw,server-gw,safe-next}.ts`, `e2e/tests/accounts.spec.ts`, seed (dev seller `dev-seller`).
+
+**Known issues / follow-ups:**
+
+- Admin UI is read-only; assigning scopes is API-only for now (no user ban/verify tools yet; those come with Phase 5 trust tooling).
+- Portfolio image upload exists in the API but the wizard has no image picker yet.
+- The 2FA UI (setup, `/two-factor` step) has no browser e2e; the full flow is covered at API level with real TOTP codes.
+- Invite emails go to Mailpit locally; accepting requires logging in with the invited address.
+- Refresh-token rotation for the future Flutter app (D-010 pushback) still pending; revisit before a mobile client exists.
+
+**Manual test:** sign up → `/settings` → Become a seller → switch mode → `/seller/onboarding` → fill the steps → Publish → open the public link in a private window. Then `/orgs` → create a team → invite an email (check Mailpit). Log in as `admin@dev.glasswork.test` / `Glasswork-dev-123!` → `/admin`.
 
 ## Phase 2 — Services & discovery
 

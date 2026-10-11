@@ -13,7 +13,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: ${uploadOrigin}`,
   "font-src 'self'",
   `connect-src 'self' ${apiUrl} ${wsUrl} ${uploadOrigin}${isDev ? ' ws://localhost:*' : ''} https://*.ingest.sentry.io https://*.ingest.de.sentry.io`,
   "frame-ancestors 'none'",

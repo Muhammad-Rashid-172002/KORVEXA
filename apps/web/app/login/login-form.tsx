@@ -9,6 +9,7 @@ import { Field } from '@/components/field';
 import { OAuthButtons } from '@/components/oauth-buttons';
 import { authClient } from '@/lib/auth-client';
 import { WEB_URL } from '@/lib/config';
+import { safeNext } from '@/lib/safe-next';
 
 export function LoginForm() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(
     params.get('error') ? 'Sign-in with that provider failed.' : null,
   );
+  const next = safeNext(params.get('next'));
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -26,10 +28,10 @@ export function LoginForm() {
     setPending(true);
     setError(null);
     setUnverifiedEmail(null);
-    const { error: err } = await authClient.signIn.email({
+    const { data, error: err } = await authClient.signIn.email({
       email,
       password: String(form.get('password')),
-      callbackURL: `${WEB_URL}/dashboard`,
+      callbackURL: `${WEB_URL}${next}`,
     });
     setPending(false);
     if (err) {
@@ -44,7 +46,11 @@ export function LoginForm() {
       );
       return;
     }
-    router.push('/dashboard');
+    if ((data as { twoFactorRedirect?: boolean } | null)?.twoFactorRedirect) {
+      router.push(`/two-factor?next=${encodeURIComponent(next)}`);
+      return;
+    }
+    router.push(next);
     router.refresh();
   }
 
@@ -54,6 +60,9 @@ export function LoginForm() {
       <form className="flex flex-col gap-4" method="post" onSubmit={onSubmit}>
         <Field id="email" label="Email" type="email" autoComplete="email" required />
         <Field id="password" label="Password" type="password" autoComplete="current-password" required />
+        {params.get('reset') && (
+          <Alert tone="success">Password updated. Log in with your new password.</Alert>
+        )}
         {error && <Alert tone="danger">{error}</Alert>}
         {unverifiedEmail && (
           <Alert tone="warning">
@@ -64,6 +73,11 @@ export function LoginForm() {
           {pending ? 'Logging in…' : 'Log in'}
         </Button>
       </form>
+      <p className="text-sm text-muted">
+        <Link className="text-primary underline-offset-4 hover:underline" href="/forgot-password">
+          Forgot your password?
+        </Link>
+      </p>
       <p className="text-sm text-muted">
         New here?{' '}
         <Link className="text-primary underline-offset-4 hover:underline" href="/signup">

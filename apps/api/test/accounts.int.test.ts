@@ -1,9 +1,31 @@
 import { eq, filesRepository, users, type DbClient } from '@glasswork/db';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { createHmac } from 'node:crypto';
 import { uuidv7 } from 'uuidv7';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DB } from '../src/infra/tokens';
 import { createTestApp, findEmailJob, ORIGIN, signUpVerified } from './helpers';
+
+/** RFC 6238 TOTP (SHA-1, 30 s, 6 digits) from a base32 secret, to drive the real 2FA flow. */
+function totp(base32: string): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '';
+  for (const ch of base32.replace(/=+$/, '').toUpperCase())
+    bits += alphabet.indexOf(ch).toString(2).padStart(5, '0');
+  const key = Buffer.from(bits.match(/.{8}/g)!.map((b) => parseInt(b, 2)));
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30_000)));
+  const h = createHmac('sha1', key).update(counter).digest();
+  const o = h[h.length - 1]! & 0xf;
+  const n = ((h[o]! & 0x7f) << 24) | (h[o + 1]! << 16) | (h[o + 2]! << 8) | h[o + 3]!;
+  return String(n % 1_000_000).padStart(6, '0');
+}
+
+const cookies = (h: string | string[] | undefined) =>
+  [h ?? []]
+    .flat()
+    .map((c) => c.split(';')[0])
+    .join('; ');
 
 type U = Awaited<ReturnType<typeof signUpVerified>>;
 
@@ -206,6 +228,65 @@ describe('Phase 1: accounts, sellers, orgs, sessions, admin', () => {
       expect(second.statusCode).toBe(200);
       expect((await call(bob, 'POST', '/me/sessions/revoke-all')).statusCode).toBe(201);
       expect((await call(bob, 'GET', '/me')).statusCode).toBe(401);
+    });
+  });
+
+  describe('two-factor authentication', () => {
+    it('enables TOTP, then sign-in requires the code', async () => {
+      const carol = await signUpVerified(app, { name: 'Carol Secure' });
+      const enable = await call(carol, 'POST', '/auth/two-factor/enable', {
+        password: 'correct-horse-battery',
+      });
+      expect(enable.statusCode).toBe(200);
+      const { totpURI, backupCodes } = enable.json() as { totpURI: string; backupCodes: string[] };
+      expect(backupCodes.length).toBeGreaterThan(0);
+      const secret = new URL(totpURI).searchParams.get('secret')!;
+
+      const wrong = await call(carol, 'POST', '/auth/two-factor/verify-totp', { code: '000000' });
+      expect(wrong.statusCode).toBeGreaterThanOrEqual(400);
+      const ok = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/two-factor/verify-totp',
+        headers: { ...ORIGIN, cookie: carol.cookie },
+        payload: { code: totp(secret) },
+      });
+      expect(ok.statusCode).toBe(200);
+      // Enabling 2FA rotates the session: the old cookie is dead, the new one works.
+      expect((await call(carol, 'GET', '/me')).statusCode).toBe(401);
+      const rotated = { ...carol, cookie: cookies(ok.headers['set-cookie']) };
+      expect(
+        ((await call(rotated, 'GET', '/me')).json() as { twoFactorEnabled: boolean }).twoFactorEnabled,
+      ).toBe(true);
+
+      // A fresh password sign-in no longer yields a session until the second factor is given.
+      const signIn = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/sign-in/email',
+        headers: ORIGIN,
+        payload: { email: carol.email, password: 'correct-horse-battery' },
+      });
+      expect((signIn.json() as { twoFactorRedirect?: boolean }).twoFactorRedirect).toBe(true);
+      const pending = (
+        Array.isArray(signIn.headers['set-cookie'])
+          ? signIn.headers['set-cookie']
+          : [String(signIn.headers['set-cookie'])]
+      )
+        .map((c) => c.split(';')[0])
+        .join('; ');
+      expect((await call({ ...carol, cookie: pending }, 'GET', '/me')).statusCode).toBe(401);
+
+      const second = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/two-factor/verify-totp',
+        headers: { ...ORIGIN, cookie: pending },
+        payload: { code: totp(secret) },
+      });
+      expect(second.statusCode).toBe(200);
+      const sessionCookie = [second.headers['set-cookie']]
+        .flat()
+        .map((c) => String(c).split(';')[0])
+        .join('; ');
+      expect((await call({ ...carol, cookie: sessionCookie }, 'GET', '/me')).statusCode).toBe(200);
     });
   });
 

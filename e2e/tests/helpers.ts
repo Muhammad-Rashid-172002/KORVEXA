@@ -7,8 +7,8 @@ export const API_URL = process.env.API_URL ?? 'http://localhost:4000';
 export const uniqueEmail = (tag: string) =>
   `e2e-${tag}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.test`;
 
-/** Polls Mailpit's API for the newest message to `to` and returns the verification link inside it. */
-export async function waitForVerificationLink(to: string, timeoutMs = 20_000): Promise<string> {
+/** Polls Mailpit's API for the newest message to `to` and returns the first link matching `pattern`. */
+export async function waitForMailLink(to: string, pattern: RegExp, timeoutMs = 20_000): Promise<string> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const search = await fetch(`${MAILPIT_URL}/api/v1/search?query=${encodeURIComponent(`to:"${to}"`)}`);
@@ -19,15 +19,31 @@ export async function waitForVerificationLink(to: string, timeoutMs = 20_000): P
           HTML: string;
           Text: string;
         };
-        const match = (msg.Text + msg.HTML).match(
-          /https?:\/\/[^\s"'<>]+\/v1\/auth\/verify-email\?[^\s"'<>]+/,
-        );
+        const match = (msg.Text + msg.HTML).match(pattern);
         if (match) return match[0].replace(/&amp;/g, '&');
       }
     }
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error(`No verification email for ${to} within ${timeoutMs}ms`);
+  throw new Error(`No matching email for ${to} within ${timeoutMs}ms`);
+}
+
+export const waitForVerificationLink = (to: string, timeoutMs?: number) =>
+  waitForMailLink(to, /https?:\/\/[^\s"'<>]+\/v1\/auth\/verify-email\?[^\s"'<>]+/, timeoutMs);
+
+export const waitForResetLink = (to: string, timeoutMs?: number) =>
+  waitForMailLink(to, /https?:\/\/[^\s"'<>]+\/v1\/auth\/reset-password\/[^\s"'<>]+/, timeoutMs);
+
+/** Signs up through the UI, verifies via Mailpit, and lands signed-in on the dashboard. */
+export async function signUpAndVerify(page: Page, email: string, name: string, password: string) {
+  await page.goto('/signup');
+  await page.getByLabel('Full name').fill(name);
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill(password);
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await page.waitForURL(/\/verify-email/);
+  await page.goto(await waitForVerificationLink(email));
+  await page.waitForURL(/\/dashboard/);
 }
 
 export async function shot(page: Page, info: TestInfo, name: string): Promise<void> {

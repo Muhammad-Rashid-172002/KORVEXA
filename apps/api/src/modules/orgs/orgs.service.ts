@@ -104,6 +104,7 @@ export class OrgsService {
       name: org.name,
       kind: org.kind,
       myRole,
+      myUserId: actor.userId,
       members,
       invites: invites.map((i) => ({ ...i, expiresAt: i.expiresAt.toISOString() })),
     };
