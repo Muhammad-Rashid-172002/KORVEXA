@@ -25,3 +25,6 @@ next-env.d.ts
 # Screenshots / generated outputs — never commit
 Claude outputs/
 screenshots/
+
+# Local Claude Code settings (per machine, never commit)
+.claude/settings.local.json
