@@ -6,6 +6,7 @@ import {
   apiCall,
   idemKey,
   liveService,
+  payTestCheckout,
   publishedSeller,
   SEED_PASSWORD,
   shot,
@@ -57,8 +58,7 @@ test.describe('Phase 3 orders & payments', () => {
     await expect(buyer).toHaveURL(/\/pay\/test\//);
     await expect(buyer.getByText('Test mode.')).toBeVisible();
     await shot(buyer, info, '31-test-checkout');
-    await buyer.getByRole('button', { name: 'Pay (simulate success)' }).click();
-    await expect(buyer).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    await payTestCheckout(buyer);
     const projectId = new URL(buyer.url()).pathname.split('/').pop()!;
     await expect(buyer.getByTestId('milestone-1').getByTestId('milestone-status')).toContainText('Funded');
     await expect(buyer.getByTestId('escrow-held')).toHaveText('$270');

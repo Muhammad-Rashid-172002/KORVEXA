@@ -1,8 +1,9 @@
 'use client';
 import { Button } from '@glasswork/ui/components/button';
-import { Search } from 'lucide-react';
+import { LayoutDashboard, Search } from 'lucide-react';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
+import { NotificationBell } from './notification-bell';
 import { ThemeToggle } from './theme-toggle';
 
 /** Session-aware navigation. Authorisation is still enforced server-side; this only picks which links to show. */
@@ -17,9 +18,15 @@ export function HeaderNav() {
         </Link>
       </Button>
       {!isPending && session ? (
-        <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
-          <Link href="/dashboard">Dashboard</Link>
-        </Button>
+        <>
+          <NotificationBell />
+          <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
+            <Link href="/dashboard" aria-label="Dashboard">
+              <LayoutDashboard size={16} aria-hidden className="sm:hidden" />
+              <span className="max-sm:hidden">Dashboard</span>
+            </Link>
+          </Button>
+        </>
       ) : (
         <>
           <Button asChild variant="ghost" size="sm" className="whitespace-nowrap px-2.5 sm:px-3">

@@ -485,6 +485,7 @@ export class ServicesService {
         title: r.s.title,
         category: { slug: r.categorySlug, name: r.categoryName },
         seller: {
+          id: r.s.sellerId,
           slug: r.slug,
           displayName: r.displayName,
           avatarUrl: await this.url(r.avatarFileId),

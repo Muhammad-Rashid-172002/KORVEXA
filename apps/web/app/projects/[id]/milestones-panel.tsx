@@ -4,7 +4,6 @@ import { Alert } from '@glasswork/ui/components/alert';
 import { Badge } from '@glasswork/ui/components/badge';
 import { Button } from '@glasswork/ui/components/button';
 import { Card, CardTitle } from '@glasswork/ui/components/card';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { TextareaField } from '@/components/textarea-field';
@@ -24,7 +23,7 @@ const STATUS_LABEL: Record<string, string> = {
   disputed: 'Disputed',
 };
 
-export function ProjectMoney({ project: p }: { project: ProjectView }) {
+export function MilestonesPanel({ project: p }: { project: ProjectView }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -52,62 +51,6 @@ export function ProjectMoney({ project: p }: { project: ProjectView }) {
 
   return (
     <>
-      <div>
-        <p className="text-xs text-muted">{p.code}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">{p.title}</h1>
-        <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-          <Badge data-testid="project-status">{p.status.replace(/_/g, ' ')}</Badge>
-          Buyer {p.buyer.name} · Seller{' '}
-          {p.seller.slug ? (
-            <Link className="text-primary underline-offset-4 hover:underline" href={`/u/${p.seller.slug}`}>
-              {p.seller.name}
-            </Link>
-          ) : (
-            p.seller.name
-          )}
-        </p>
-      </div>
-
-      <Card className="flex flex-col gap-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium">Overall progress</span>
-          <span className="tabular-nums" data-testid="progress-value">
-            {p.progress}%
-          </span>
-        </div>
-        <div
-          className="h-2 w-full rounded-full bg-surface-2"
-          role="progressbar"
-          aria-valuenow={p.progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Overall progress"
-        >
-          <div
-            className="h-full rounded-full bg-primary transition-[width]"
-            style={{ width: `${p.progress}%` }}
-          />
-        </div>
-        <dl className="grid grid-cols-3 gap-3 text-sm">
-          <div>
-            <dt className="text-xs text-muted">Project total</dt>
-            <dd className="tabular-nums">{money(p.totalAmount, p.currency)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Held for milestones</dt>
-            <dd className="tabular-nums" data-testid="escrow-held">
-              {money(p.escrow.held, p.currency)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Paid to seller</dt>
-            <dd className="tabular-nums" data-testid="escrow-released">
-              {money(p.escrow.released, p.currency)}
-            </dd>
-          </div>
-        </dl>
-      </Card>
-
       {error && <Alert tone="danger">{error}</Alert>}
 
       {p.status === 'requirements_submitted' && (

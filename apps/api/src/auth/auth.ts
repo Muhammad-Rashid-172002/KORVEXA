@@ -117,7 +117,8 @@ export function createAuth(deps: { env: ApiEnv; db: DbClient; redis: Redis; emai
       enabled: env.AUTH_RATE_LIMIT_ENABLED,
       storage: 'secondary-storage',
       window: 60,
-      max: 100,
+      // Default for session lookups etc. (100/min); scales up with AUTH_RATE_LIMIT_MAX so e2e runs aren't throttled.
+      max: Math.max(100, env.AUTH_RATE_LIMIT_MAX * 10),
       customRules: {
         '/sign-in/email': { window: 60, max: env.AUTH_RATE_LIMIT_MAX },
         '/sign-up/email': { window: 60, max: env.AUTH_RATE_LIMIT_MAX },
