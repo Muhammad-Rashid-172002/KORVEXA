@@ -5,7 +5,7 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Next: Phase 5 — Trust on branch `phase/5-trust`.
+Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Next: Phase 5 — Trust on branch `phase/5-trust` (in progress; see slices in the Phase 5 section).
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
@@ -255,16 +255,18 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - Feedback region is a point pin (no drag-rectangle); PDF page anchors are numeric inputs, not a PDF viewer.
 - No chat-safety warnings yet (Phase 5); no meeting/video (Phase 7).
 
-## Phase 5 — Trust
+## Phase 5 — Trust · branch `phase/5-trust`
+
+Slices: **A** schema · **B** reviews (private milestone feedback, public final review + sub-ratings, one seller reply) + seller levels (computed, criteria public) + search filters (rating/level/verified) · **C** verifications + badges · **D** change requests · **E** disputes (auto case file, evidence, admin resolution release/refund/split) · **F** chat safety warnings · **G** reports + ban tools · **H** web UI · **I** e2e + docs.
 
 - [ ] Reviews: per-milestone private feedback, public final review with sub-ratings, one seller reply, only paying buyers with completed work
-- [ ] Seller levels from real metrics, criteria published
-- [ ] Verifications + badges (identity, GitHub, Play/App Store link, portfolio reviewed, skill test)
+- [ ] Seller levels from real metrics, criteria published; rating/level/verified-only search filters (deferred from Phase 2)
+- [ ] Verifications + badges (identity, GitHub, Play/App Store link, portfolio reviewed, skill test) shown only when verified
 - [ ] Change requests (time/price impact → milestones updated → funding required)
 - [ ] Disputes: auto-built case file, evidence, admin resolution (refund/release/split)
 - [ ] Chat safety warnings (contact/payment details before an order; log, don't block)
-- [ ] Reports (user/gig reporting) + admin handling
-- [ ] CHECKPOINT
+- [ ] Reports (user/gig/message/review) + admin handling + ban tools
+- [ ] CHECKPOINT (log only)
 
 ## Phase 6 — AI
 
