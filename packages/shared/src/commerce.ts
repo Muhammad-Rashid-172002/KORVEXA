@@ -130,3 +130,73 @@ export interface InvoiceView {
   issuedAt: string;
   lineItems: { description: string; amount: number }[];
 }
+
+// ---- buyer requests board & proposals ------------------------------------------------
+
+export const briefInputSchema = z
+  .object({
+    title: z.string().trim().min(5).max(120),
+    description: z.string().trim().min(30).max(5000),
+    /** Minor units. Estimates only: shown to sellers as the buyer's budget range. */
+    budgetMinAmount: z.number().int().min(0).max(100_000_000).nullable().optional(),
+    budgetMaxAmount: z.number().int().min(0).max(100_000_000).nullable().optional(),
+  })
+  .refine(
+    (v) => v.budgetMinAmount == null || v.budgetMaxAmount == null || v.budgetMinAmount <= v.budgetMaxAmount,
+    {
+      message: 'Minimum budget cannot exceed the maximum',
+      path: ['budgetMaxAmount'],
+    },
+  );
+export type BriefInput = z.infer<typeof briefInputSchema>;
+
+export const proposalMilestoneSchema = z.object({
+  title: z.string().trim().min(2).max(100),
+  acceptanceCriteria: z.string().trim().max(1000).nullable().optional(),
+  amount: z.number().int().min(500).max(10_000_000),
+  days: z.number().int().min(1).max(180),
+});
+
+export const proposalInputSchema = z.object({
+  coverLetter: z.string().trim().min(20).max(3000),
+  milestonePlan: z.array(proposalMilestoneSchema).min(1).max(10),
+});
+export type ProposalInput = z.infer<typeof proposalInputSchema>;
+
+export const briefListQuerySchema = z.object({
+  q: z.string().trim().max(100).optional(),
+  cursor: z.uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+export interface ProposalView {
+  id: string;
+  briefId: string;
+  briefTitle: string;
+  seller: { id: string; name: string; slug: string | null };
+  coverLetter: string;
+  milestonePlan: z.infer<typeof proposalMilestoneSchema>[];
+  totalAmount: number;
+  currency: string;
+  status: 'sent' | 'withdrawn' | 'accepted' | 'declined';
+  projectId: string | null;
+  createdAt: string;
+}
+
+export interface BriefView {
+  id: string;
+  title: string;
+  description: string;
+  budgetMinAmount: number | null;
+  budgetMaxAmount: number | null;
+  currency: string;
+  status: 'draft' | 'open' | 'closed';
+  buyer: { id: string; name: string };
+  proposalCount: number;
+  isOwner: boolean;
+  /** Owner only. */
+  proposals: ProposalView[] | null;
+  /** Seller's own active proposal on this brief. */
+  myProposal: ProposalView | null;
+  createdAt: string;
+}

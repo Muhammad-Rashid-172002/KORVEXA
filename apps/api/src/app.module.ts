@@ -11,6 +11,7 @@ import { AuthGuard } from './common/policy/auth.guard';
 import { RouteAuditService } from './common/policy/route-audit.service';
 import { loadEnv } from './config/env';
 import { InfraModule } from './infra/infra.module';
+import { BriefsModule } from './modules/briefs/briefs.module';
 import { FilesModule } from './modules/files/files.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
@@ -45,6 +46,7 @@ const env = loadEnv();
     ServicesModule,
     PaymentsModule,
     OrdersModule,
+    BriefsModule,
     AdminModule,
     RealtimeModule,
   ],
