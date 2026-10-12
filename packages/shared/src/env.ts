@@ -126,6 +126,12 @@ export const apiEnvSchema = apiEnvObject.superRefine((env, ctx) => {
       message: 'DAILY_API_KEY and DAILY_DOMAIN are required when VIDEO_PROVIDER=daily',
     });
   if (env.NODE_ENV === 'production') {
+    if (env.GITHUB_WEBHOOK_SECRET?.startsWith('dev-only'))
+      ctx.addIssue({
+        code: 'custom',
+        path: ['GITHUB_WEBHOOK_SECRET'],
+        message: 'set a real GITHUB_WEBHOOK_SECRET in production',
+      });
     if (env.VIDEO_PROVIDER === 'stub')
       ctx.addIssue({
         code: 'custom',

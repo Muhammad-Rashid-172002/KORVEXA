@@ -252,6 +252,20 @@ export class ProjectsService {
     const items: ProjectListItem[] = page.map(({ projects: pr }) => {
       const myRole = pr.sellerId === actor.userId ? 'seller' : 'buyer';
       const other = myRole === 'seller' ? pr.buyerId : pr.sellerId;
+      const mine = ms.filter((m) => m.projectId === pr.id).sort((a, b) => a.position - b.position);
+      const health = computeHealth({
+        projectStatus: pr.status,
+        projectCreatedAt: pr.createdAt,
+        now: new Date(),
+        milestones: mine.map((m) => ({
+          position: m.position,
+          status: m.status,
+          plannedDue: m.plannedDue,
+          submittedAt: m.actualSubmittedAt,
+          revisionCount: m.revisionCount,
+        })),
+      });
+      const next = mine.find((m) => !['released', 'cancelled', 'refunded'].includes(m.status));
       return {
         id: pr.id,
         code: pr.code,
@@ -266,6 +280,10 @@ export class ProjectsService {
         currency: pr.currency,
         myRole,
         counterparty: names.find((n) => n.id === other)?.name ?? 'Unknown',
+        counterpartyId: other,
+        health: health.health,
+        healthReason: health.reason,
+        nextMilestone: next ? { title: next.title, status: next.status, dueOn: next.plannedDue } : null,
         createdAt: pr.createdAt.toISOString(),
       };
     });

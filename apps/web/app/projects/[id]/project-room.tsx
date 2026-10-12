@@ -11,6 +11,8 @@ import { Board } from '@/components/room/board';
 import { Changes } from '@/components/room/changes';
 import { Disputes } from '@/components/room/disputes';
 import { MeetingNotes } from '@/components/room/meeting-notes';
+import { CodeActivity } from '@/components/room/code-activity';
+import { Meetings } from '@/components/room/meetings';
 import { Reports } from '@/components/room/reports';
 import { ReviewsPanel } from '@/components/room/reviews-panel';
 import { ChatPanel } from '@/components/room/chat-panel';
@@ -31,6 +33,8 @@ const TAB_LABELS: Record<Tab, string> = {
   changes: 'Changes',
   disputes: 'Disputes',
   reports: 'Reports',
+  meetings: 'Meetings',
+  code: 'Code',
   activity: 'Activity',
   chat: 'Chat',
 };
@@ -199,6 +203,8 @@ function Inner({
       {tab === 'changes' && <Changes projectId={p.id} editable={p.status === 'active'} />}
       {tab === 'disputes' && <Disputes projectId={p.id} />}
       {tab === 'reports' && <Reports projectId={p.id} isSeller={isSeller} />}
+      {tab === 'meetings' && <Meetings projectId={p.id} myId={myId} />}
+      {tab === 'code' && <CodeActivity projectId={p.id} isSeller={isSeller} />}
       {tab === 'activity' && <Activity projectId={p.id} />}
       {tab === 'chat' &&
         (conversationId ? (

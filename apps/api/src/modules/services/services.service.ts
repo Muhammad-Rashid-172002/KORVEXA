@@ -73,7 +73,7 @@ export class ServicesService {
         parentId: categories.parentId,
       })
       .from(categories)
-      .orderBy(asc(categories.sortOrder), asc(categories.name));
+      .orderBy(sql`${categories.parentId} is not null`, asc(categories.sortOrder), asc(categories.name));
   }
 
   async searchPublic(q: ServiceSearchQuery): Promise<ServicePageView> {
@@ -437,6 +437,11 @@ export class ServicesService {
   }
 
   /** Builds listing cards for ids, preserving the given order. */
+  /** Public card views for already-selected service ids (live only, order preserved). */
+  cardsFor(ids: string[]): Promise<ServiceCardView[]> {
+    return this.cards(ids);
+  }
+
   private async cards(ids: string[]): Promise<ServiceCardView[]> {
     if (!ids.length) return [];
     const rows = await this.db.db

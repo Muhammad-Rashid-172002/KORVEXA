@@ -17,6 +17,8 @@ export const TABS = [
   'changes',
   'disputes',
   'reports',
+  'meetings',
+  'code',
   'activity',
   'chat',
 ] as const;

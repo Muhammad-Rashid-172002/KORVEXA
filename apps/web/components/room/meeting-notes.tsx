@@ -1,9 +1,9 @@
 'use client';
-import type { MilestoneView } from '@glasswork/shared';
+import type { MeetingView, MilestoneView } from '@glasswork/shared';
 import { Alert } from '@glasswork/ui/components/alert';
 import { Button } from '@glasswork/ui/components/button';
 import { Card, CardTitle } from '@glasswork/ui/components/card';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { gw } from '@/lib/gw';
 
 interface Suggestion {
@@ -19,6 +19,13 @@ export function MeetingNotes({ projectId, milestones }: { projectId: string; mil
   const [milestoneId, setMilestoneId] = useState('');
   const [msg, setMsg] = useState<{ tone: 'danger' | 'success'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [withNotes, setWithNotes] = useState<MeetingView[]>([]);
+
+  useEffect(() => {
+    void gw<MeetingView[]>('GET', `/projects/${projectId}/meetings`).then((r) =>
+      setWithNotes((r.data ?? []).filter((m) => (m.notes ?? '').trim().length >= 30)),
+    );
+  }, [projectId]);
 
   async function suggest() {
     setBusy(true);
@@ -58,6 +65,24 @@ export function MeetingNotes({ projectId, milestones }: { projectId: string; mil
       <p className="text-sm text-muted">
         Paste your notes from a call. We suggest tasks; you choose which ones go on the board.
       </p>
+      {withNotes.length > 0 && (
+        <label className="flex flex-col gap-1 text-xs text-muted">
+          Load notes from a meeting
+          <select
+            aria-label="Load notes from a meeting"
+            value=""
+            onChange={(e) => setNotes(withNotes.find((m) => m.id === e.target.value)?.notes ?? '')}
+            className="h-10 rounded-md border border-border bg-bg px-3 text-sm text-fg"
+          >
+            <option value="">Choose a meeting…</option>
+            {withNotes.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="flex flex-col gap-1 text-xs text-muted">
         Meeting notes
         <textarea

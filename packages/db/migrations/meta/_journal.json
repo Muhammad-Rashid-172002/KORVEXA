@@ -78,6 +78,13 @@
       "when": 1791763395077,
       "tag": "0010_outgoing_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791763884714,
+      "tag": "0011_brave_glorian",
+      "breakpoints": true
     }
   ]
 }

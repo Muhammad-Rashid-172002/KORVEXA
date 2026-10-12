@@ -94,6 +94,12 @@ export interface ProjectListItem {
   currency: string;
   myRole: 'buyer' | 'seller';
   counterparty: string;
+  counterpartyId: string;
+  /** Computed from facts on every read, never stored. */
+  health: 'on_track' | 'at_risk' | 'blocked';
+  healthReason: string | null;
+  /** The next milestone that is not finished, with its planned due date (YYYY-MM-DD) when it has one. */
+  nextMilestone: { title: string; status: string; dueOn: string | null } | null;
   createdAt: string;
 }
 

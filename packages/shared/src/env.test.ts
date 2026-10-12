@@ -58,6 +58,7 @@ describe('payment safety rails in the env schema', () => {
         SCAN_MODE: 'clamav',
         AI_PROVIDER: 'off',
         VIDEO_PROVIDER: 'off',
+        GITHUB_WEBHOOK_SECRET: 'a-real-random-webhook-secret-value',
       }).success,
     ).toBe(true);
   });

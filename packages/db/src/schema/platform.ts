@@ -32,3 +32,19 @@ export const platformSettings = pgTable('platform_settings', {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+/** Messages from the public Contact page. Staff read them in the admin area; nothing is auto-replied. */
+export const contactMessages = pgTable(
+  'contact_messages',
+  {
+    id: id(),
+    userId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    name: text().notNull(),
+    email: text().notNull(),
+    topic: text().notNull(),
+    message: text().notNull(),
+    status: text().notNull().default('new'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('contact_messages_status_idx').on(t.status, t.createdAt)],
+);
