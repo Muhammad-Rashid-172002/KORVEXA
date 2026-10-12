@@ -10,6 +10,8 @@ export interface AiRequest<T> {
   prompt: string;
   schema: z.ZodType<T>;
   maxTokens: number;
+  /** Overrides the configured default model for this one call (resolved per feature by AiService). */
+  model?: string;
   /** Deterministic answer built from the same real data. Used by the offline stub, and as a reference for tests. */
   fallback: () => T;
 }
@@ -37,7 +39,7 @@ export class StubAiProvider extends AiProvider {
     const data = req.schema.parse(req.fallback());
     return {
       data,
-      model: this.env.AI_MODEL,
+      model: req.model ?? this.env.AI_MODEL,
       usage: {
         input: Math.ceil((req.system.length + req.prompt.length) / 4),
         output: Math.ceil(JSON.stringify(data).length / 4),
@@ -64,7 +66,7 @@ export class AnthropicAiProvider extends AiProvider {
 
   async generate<T>(req: AiRequest<T>): Promise<AiResult<T>> {
     const res = await this.client.messages.parse({
-      model: this.env.AI_MODEL,
+      model: req.model ?? this.env.AI_MODEL,
       max_tokens: req.maxTokens,
       system: req.system,
       messages: [{ role: 'user', content: req.prompt }],

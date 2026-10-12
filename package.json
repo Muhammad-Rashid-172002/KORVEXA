@@ -26,7 +26,13 @@
     "prepare": "husky || true",
     "dev:reset": "docker compose -f infra/docker-compose.yml --env-file .env down -v",
     "dev:pull": "node scripts/dev-pull.mjs",
-    "smoke:storage": "docker compose -f infra/docker-compose.yml --env-file .env exec -T api node dist/scripts/storage-smoke.js"
+    "smoke:storage": "docker compose -f infra/docker-compose.yml --env-file .env exec -T api node dist/scripts/storage-smoke.js",
+    "dev:up:api": "docker compose -f infra/docker-compose.yml --env-file .env up --build -d api && node scripts/wait-for-stack.mjs",
+    "dev:up:web": "docker compose -f infra/docker-compose.yml --env-file .env up --build -d web && node scripts/wait-for-stack.mjs",
+    "dev:up:worker": "docker compose -f infra/docker-compose.yml --env-file .env up --build -d worker && node scripts/wait-for-stack.mjs",
+    "dev:clean": "docker builder prune -f --keep-storage 8GB && node scripts/disk-check.mjs",
+    "disk:check": "node scripts/disk-check.mjs",
+    "verify": "turbo run lint typecheck test && pnpm test:integration && pnpm test:e2e; code=$?; pnpm dev:clean; exit $code"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

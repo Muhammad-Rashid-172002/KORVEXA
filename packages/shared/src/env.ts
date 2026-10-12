@@ -68,7 +68,13 @@ const apiEnvObject = z.object({
   /** 'stub' = deterministic offline answers (dev/CI, no network); 'anthropic' = Claude API; 'off' = AI features disabled. */
   AI_PROVIDER: z.enum(['stub', 'anthropic', 'off']).default('stub'),
   ANTHROPIC_API_KEY: optional(),
-  AI_MODEL: z.string().default('claude-opus-5-5'),
+  /** Default model for every AI feature. Sonnet 5.5 is plenty for extraction, summaries and ranking explanations. */
+  AI_MODEL: z.string().default('claude-sonnet-5-5'),
+  /** Optional per-feature overrides, e.g. AI_MODEL_BRIEF_BUILDER=claude-opus-5-5. Empty = use AI_MODEL. */
+  AI_MODEL_BRIEF_BUILDER: optional(),
+  AI_MODEL_MATCHING: optional(),
+  AI_MODEL_PROGRESS_REPORT: optional(),
+  AI_MODEL_MEETING_NOTES: optional(),
   AI_EFFORT: z.enum(['low', 'medium', 'high']).default('medium'),
   /** Hard spend ceilings, in US cents. Requests are refused (429) once reached; usage is measured from real token counts. */
   AI_DAILY_USER_CAP_CENTS: z.coerce.number().int().nonnegative().default(100),

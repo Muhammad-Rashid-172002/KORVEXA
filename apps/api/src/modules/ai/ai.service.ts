@@ -35,6 +35,17 @@ export class AiService {
     return this.provider.name;
   }
 
+  /** The model for a feature: its own AI_MODEL_<FEATURE> override, else the AI_MODEL default. */
+  modelFor(feature: AiFeature): string {
+    const override = {
+      brief_builder: this.env.AI_MODEL_BRIEF_BUILDER,
+      matching: this.env.AI_MODEL_MATCHING,
+      progress_report: this.env.AI_MODEL_PROGRESS_REPORT,
+      meeting_notes: this.env.AI_MODEL_MEETING_NOTES,
+    }[feature];
+    return override?.trim() || this.env.AI_MODEL;
+  }
+
   get enabled() {
     return this.env.AI_PROVIDER !== 'off';
   }
@@ -93,7 +104,7 @@ export class AiService {
   ): Promise<{ data: T; model: string }> {
     await this.assertAllowed(userId);
     try {
-      const out = await this.provider.generate(req);
+      const out = await this.provider.generate({ ...req, model: this.modelFor(feature) });
       await this.db.db.insert(aiUsage).values({
         userId,
         feature,
@@ -113,7 +124,7 @@ export class AiService {
         userId,
         feature,
         provider: this.provider.name,
-        model: this.env.AI_MODEL,
+        model: this.modelFor(feature),
         ok: false,
         error: err instanceof Error ? err.message.slice(0, 300) : 'unknown error',
         projectId,

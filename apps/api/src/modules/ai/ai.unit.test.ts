@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { describe, expect, it, vi } from 'vitest';
 import type { ApiEnv } from '../../config/env';
+import { AiService } from './ai.service';
 import { AiUnavailableError, AnthropicAiProvider, StubAiProvider } from './ai.provider';
 import { fallbackBrief, fallbackQuestions } from './brief-builder.service';
 import { ruleExplanation } from './matching.service';
@@ -149,5 +150,20 @@ describe('rules fallbacks (the same code the stub serves)', () => {
     expect(t).toMatch(/no reviews yet/);
     expect(t).toMatch(/above your budget/);
     expect(t).toMatch(/currently busy/);
+  });
+});
+
+describe('AiService.modelFor', () => {
+  const svc = (e: Partial<ApiEnv>) =>
+    new AiService(null as never, { AI_MODEL: 'claude-sonnet-5-5', ...e } as ApiEnv, null as never);
+  it('defaults every feature to AI_MODEL', () => {
+    expect(svc({}).modelFor('matching')).toBe('claude-sonnet-5-5');
+    expect(svc({}).modelFor('brief_builder')).toBe('claude-sonnet-5-5');
+  });
+  it('lets one feature opt into another model without touching the rest', () => {
+    const s = svc({ AI_MODEL_BRIEF_BUILDER: 'claude-opus-5-5', AI_MODEL_MATCHING: '  ' });
+    expect(s.modelFor('brief_builder')).toBe('claude-opus-5-5');
+    expect(s.modelFor('matching')).toBe('claude-sonnet-5-5'); // blank = default
+    expect(s.modelFor('progress_report')).toBe('claude-sonnet-5-5');
   });
 });

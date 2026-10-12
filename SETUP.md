@@ -144,3 +144,12 @@ Fees are zero placeholders; change them in **Admin → Fees** (product scope). P
 - **Live Project Room / chat / bell** use one authenticated WebSocket (`/v1/realtime`); nothing to configure locally.
 - **Web push** is off until you set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (generate with `npx web-push generate-vapid-keys`) and `VAPID_SUBJECT` in `.env`, then enable it under **Settings → Notifications**.
 - **Virus scanning** is off locally (`SCAN_MODE=off`). To try it: `docker compose -f infra/docker-compose.yml --env-file .env --profile scan up -d clamav`, wait for it to become healthy (first start downloads signatures), set `SCAN_MODE=clamav` in `.env`, then `pnpm dev:up`. Uploads then stay "Scanning…" until the worker reports a verdict. Production refuses `SCAN_MODE=off`.
+
+## Keeping disk space under control
+
+Docker build cache grows with every image rebuild (it once filled a Mac's disk to 100%).
+
+- Rebuild only what changed: `pnpm dev:up:api`, `pnpm dev:up:web` or `pnpm dev:up:worker` (instead of `pnpm dev:up`). For day-to-day coding, `pnpm dev` runs api/worker/web on your machine with hot reload and needs no image builds.
+- `pnpm dev:clean` trims the build cache to 8 GB (`docker builder prune -f --keep-storage 8GB`) and then prints free disk space.
+- `pnpm disk:check` warns when free space is below 15 GB (`MIN_FREE_GB=20 pnpm disk:check` to change the threshold).
+- `pnpm verify` runs lint, typecheck, unit, integration and e2e, then always runs `pnpm dev:clean`.
