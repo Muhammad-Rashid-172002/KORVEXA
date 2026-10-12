@@ -10,3 +10,4 @@ export * from './room';
 export * from './chat';
 export * from './trust';
 export * from './ai';
+export * from './meetings';

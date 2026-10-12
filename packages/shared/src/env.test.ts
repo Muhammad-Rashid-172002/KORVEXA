@@ -57,6 +57,7 @@ describe('payment safety rails in the env schema', () => {
         INTERNAL_API_TOKEN: 'a-real-random-token-with-24-plus-chars',
         SCAN_MODE: 'clamav',
         AI_PROVIDER: 'off',
+        VIDEO_PROVIDER: 'off',
       }).success,
     ).toBe(true);
   });
@@ -65,5 +66,13 @@ describe('payment safety rails in the env schema', () => {
     expect(messages({ NODE_ENV: 'production' }).join()).toMatch(/offline stub AI cannot run in production/);
     expect(messages({ AI_PROVIDER: 'anthropic' }).join()).toMatch(/ANTHROPIC_API_KEY/);
     expect(parse({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'sk-ant-test' }).success).toBe(true);
+  });
+
+  it('video: stub is refused in production and daily needs its keys', () => {
+    expect(messages({ NODE_ENV: 'production' }).join()).toMatch(
+      /stub video provider cannot run in production/,
+    );
+    expect(messages({ VIDEO_PROVIDER: 'daily' }).join()).toMatch(/DAILY_API_KEY/);
+    expect(parse({ VIDEO_PROVIDER: 'daily', DAILY_API_KEY: 'k', DAILY_DOMAIN: 'acme' }).success).toBe(true);
   });
 });

@@ -307,6 +307,14 @@ export const NOTIFICATION_TYPES = {
     label: 'A progress report draft is ready to review',
     defaults: { inApp: true, email: false, push: false },
   },
+  'meeting.scheduled': {
+    label: 'A meeting was scheduled',
+    defaults: { inApp: true, email: true, push: true },
+  },
+  'meeting.cancelled': {
+    label: 'A meeting was cancelled',
+    defaults: { inApp: true, email: true, push: false },
+  },
   'report.sent': {
     label: 'You received a progress report',
     defaults: { inApp: true, email: true, push: false },

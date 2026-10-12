@@ -5,6 +5,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthModule } from './auth/auth.module';
 import { TrustModule } from './modules/trust/trust.module';
 import { AiModule } from './modules/ai/ai.module';
+import { MeetingsModule } from './modules/meetings/meetings.module';
 import { AccessModule } from './modules/access/access.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -59,6 +60,7 @@ const env = loadEnv();
     ChatModule,
     TrustModule,
     AiModule,
+    MeetingsModule,
     AdminModule,
     RealtimeModule,
   ],

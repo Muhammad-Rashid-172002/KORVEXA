@@ -80,6 +80,12 @@ const apiEnvObject = z.object({
   AI_DAILY_USER_CAP_CENTS: z.coerce.number().int().nonnegative().default(100),
   AI_DAILY_GLOBAL_CAP_CENTS: z.coerce.number().int().nonnegative().default(2000),
   AI_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(30),
+  /** 'stub' = no real video (join page explains), 'daily' = Daily.co rooms (unverified until keys exist), 'off' = meetings hidden. */
+  VIDEO_PROVIDER: z.enum(['stub', 'daily', 'off']).default('stub'),
+  DAILY_API_KEY: optional(),
+  DAILY_DOMAIN: optional(),
+  /** Shared secret of the GitHub App/webhook that delivers code activity. Without it the webhook route answers 503. */
+  GITHUB_WEBHOOK_SECRET: optional(),
   VAPID_PUBLIC_KEY: optional(),
   VAPID_PRIVATE_KEY: optional(),
   VAPID_SUBJECT: z.string().default('mailto:support@localhost'),
@@ -113,7 +119,19 @@ export const apiEnvSchema = apiEnvObject.superRefine((env, ctx) => {
       path: ['ANTHROPIC_API_KEY'],
       message: 'required when AI_PROVIDER=anthropic',
     });
+  if (env.VIDEO_PROVIDER === 'daily' && (!env.DAILY_API_KEY || !env.DAILY_DOMAIN))
+    ctx.addIssue({
+      code: 'custom',
+      path: ['DAILY_API_KEY'],
+      message: 'DAILY_API_KEY and DAILY_DOMAIN are required when VIDEO_PROVIDER=daily',
+    });
   if (env.NODE_ENV === 'production') {
+    if (env.VIDEO_PROVIDER === 'stub')
+      ctx.addIssue({
+        code: 'custom',
+        path: ['VIDEO_PROVIDER'],
+        message: 'the stub video provider cannot run in production (use daily or off)',
+      });
     if (env.AI_PROVIDER === 'stub')
       ctx.addIssue({
         code: 'custom',
