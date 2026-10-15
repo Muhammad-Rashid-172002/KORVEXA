@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { brand } from './brand';
 
 export const MEETING_STATUSES = ['scheduled', 'started', 'ended', 'cancelled'] as const;
 export type MeetingStatus = (typeof MEETING_STATUSES)[number];
@@ -50,7 +51,7 @@ export function isJoinable(
 // ---- ICS (RFC 5545) ------------------------------------------------------------------------
 
 const icsEscape = (s: string) =>
-  s.replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 const icsDate = (d: Date) =>
   d
     .toISOString()
@@ -98,7 +99,7 @@ export function buildIcs(i: IcsInput): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//KorvenzaTech//Glasswork//EN',
+    `PRODID:-//${brand.parentName}//${brand.productName}//EN`,
     'CALSCALE:GREGORIAN',
     `METHOD:${i.cancelled ? 'CANCEL' : 'REQUEST'}`,
     'BEGIN:VEVENT',

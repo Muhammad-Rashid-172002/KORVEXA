@@ -21,7 +21,7 @@ describe('ICS', () => {
     expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true);
     expect(ics).toContain('DTSTART:20261102T140000Z\r\n');
     expect(ics).toContain('DTEND:20261102T143000Z\r\n');
-    expect(ics).toContain('SUMMARY:Kickoff\\, scope\; review\r\n');
+    expect(ics).toContain('SUMMARY:Kickoff\\, scope\\; review\r\n');
     expect(ics).toContain('DESCRIPTION:Line one\\nLine two\r\n');
     expect(ics).toContain(
       'ATTENDEE;CN=Bea Buyer;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION:mailto:bea@example.test',

@@ -1,5 +1,4 @@
 import {
-  and,
   asc,
   auditLogs,
   eq,
@@ -13,6 +12,7 @@ import {
   type DbClient,
 } from '@glasswork/db';
 import {
+  brand,
   buildIcs,
   isJoinable,
   type MeetingInput,
@@ -306,8 +306,8 @@ export class MeetingsService {
     const organizer = people.find((x) => x.id === m.organizerId) ?? people[0];
     if (!organizer) throw new NotFoundException('Meeting not found');
     return buildIcs({
-      uid: `${m.id}@glasswork`,
-      title: `${m.title} (${p?.code ?? 'Glasswork'})`,
+      uid: `${m.id}@${brand.productName.toLowerCase()}`,
+      title: `${m.title} (${p?.code ?? brand.productName})`,
       description: [m.agenda, `Join: ${this.env.WEB_URL}/meetings/${m.id}/call`].filter(Boolean).join('\n\n'),
       startsAt: m.startsAt,
       endsAt: m.endsAt,

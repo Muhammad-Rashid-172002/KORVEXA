@@ -147,7 +147,7 @@ describe('Phase 7: meetings, calendar invites and GitHub code activity', () => {
       expect(r.headers['content-disposition']).toMatch(/attachment/);
       const ics = r.body.replace(/\r\n /g, '');
       expect(ics).toContain(`UID:${v.id}@glasswork`);
-      expect(ics).toContain('SUMMARY:Design\\, review\; v2');
+      expect(ics).toContain('SUMMARY:Design\\, review\\; v2');
       expect(ics).toContain('ORGANIZER;CN=Seller:mailto:');
       expect(ics).toContain('ATTENDEE;CN=Buyer');
       expect(ics).toContain('METHOD:REQUEST');
