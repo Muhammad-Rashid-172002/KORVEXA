@@ -8,7 +8,8 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Phase 5 done and merged to `main`. Phase 6 done. Next: **Phase 7 — Meetings & integrations** on branch `phase/7-meetings`.
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
-- Remaining unverified: first GitHub Actions run (no repo yet), OAuth with real keys.
+- Remaining unverified: OAuth with real keys.
+- 2026-10-15: project moved from `~/Desktop/Glasswork` to **`~/Projects/Glasswork`** (macOS blocked Desktop; Desktop may be iCloud-synced). Work only in the new path. Phase 7 is committed (`19a68c2`, `8facba9`) and pushed on `phase/7-meetings`. **Deployment rule: do not deploy anything until Rashid says "deploy".**
 
 ## ⏳ WAITING ON RASHID
 
@@ -23,6 +24,19 @@ Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `m
 | Google + GitHub OAuth keys                                            | Social login                                                                                       | Buttons hidden until set                                     |
 | Anthropic API key (`ANTHROPIC_API_KEY`, then `AI_PROVIDER=anthropic`) | Real AI answers (Phase 6)                                                                          | Not provided; runs on the offline stub                       |
 | Resend API key + sender domain (Q9), Sentry DSNs                      | Production email, error tracking                                                                   | Off locally (Mailpit / no-op Sentry)                         |
+| **Phase 10 — production accounts (see Phase 10 for detail)**          |                                                                                                    |                                                              |
+| Domain registered + DNS access (Cloudflare recommended) (Q3)          | Caddy HTTPS, email SPF/DKIM/DMARC, R2 custom domain                                                | Not started                                                  |
+| VPS account (Hetzner or DigitalOcean, Q8) + SSH public key            | Production host                                                                                    | Not started                                                  |
+| Managed Postgres (Neon or DO Managed Postgres) with backups/PITR      | Production database                                                                                | Not started                                                  |
+| Cloudflare account: R2 bucket + API token                             | Production file storage                                                                            | Not started                                                  |
+| Stripe LIVE keys + live webhook secret (after Q1 entity decision)     | Real payments                                                                                      | Blocked on Q1                                                |
+| Resend account, domain verified (SPF/DKIM/DMARC records)              | Production email                                                                                   | Not started                                                  |
+| Anthropic production API key + spend limit                            | Real AI                                                                                            | Not started                                                  |
+| Sentry project (web + api DSNs); PostHog project key                  | Errors, analytics                                                                                  | Not started                                                  |
+| Daily (or LiveKit) account + API key                                  | Real video calls                                                                                   | Not started                                                  |
+| GitHub App (created under the KorvenzaTech org) + private key         | Code activity                                                                                      | Not started                                                  |
+| GitHub Actions secrets + deploy SSH key; uptime monitor account       | Zero-downtime deploys, alerting                                                                    | Not started                                                  |
+| Lawyer review of the legal drafts (Phase 8)                           | Publishing Terms/Privacy                                                                           | Not started                                                  |
 
 Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason inline)
 
@@ -327,8 +341,35 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - [ ] OWASP Top 10 review + fixes
 - [ ] Accessibility audit (WCAG 2.2 AA)
 - [ ] Lighthouse ≥ 90 on public pages
-- [ ] Production deploy: VPS + Docker + Caddy, managed Postgres, R2; deploy on main
-- [ ] Backups + nightly restore verification; uptime monitoring
+- [→] Production deploy, backups, restore verification, uptime monitoring — **moved to Phase 10**
 - [ ] Data export + account deletion flows
 - [ ] Runbooks in docs/; launch checklist
 - [ ] FINAL CHECKPOINT
+
+## Phase 10 — Production launch (new, 2026-10-15)
+
+**Rule: nothing is deployed, provisioned or paid for until Rashid says "deploy".** Until then this phase is code, config, scripts and docs only, all testable locally. Real providers are switched on **by environment variables only** (no code changes, no rebuild per provider); the dev stub/test providers stay the default and are refused in production.
+
+- [ ] **Production topology** (`infra/prod/`): one VPS (Hetzner or DigitalOcean, Q8) running Docker; `docker-compose.prod.yml` with web, api, worker, redis, Caddy; managed Postgres and Cloudflare R2 are external (no Postgres/storage containers in prod)
+- [ ] **Caddy**: automatic HTTPS, HTTP→HTTPS, security headers, gzip/zstd, `www`/apex redirect, WebSocket proxying for Socket.io, separate `api.` host (or path) per domain decision, health-gated upstreams
+- [ ] **Managed Postgres**: Neon or DO Managed (PITR on), TLS-only connection string, migrations run as an explicit deploy step (never at API boot), least-privilege app role vs migration role
+- [ ] **Backups**: provider PITR + nightly logical dump to a separate R2 bucket (encrypted), retention policy, **nightly restore-verification** script (restores into a scratch DB and runs sanity queries), alert on failure
+- [ ] **Cloudflare R2**: `S3_*` env only (private buckets, presigned URLs, CORS for the web origin, lifecycle rules for abandoned uploads); ClamAV scan service enabled (`SCAN_MODE=clamav`) and verified
+- [ ] **Zero-downtime deploys from GitHub Actions**: build and push versioned images (GHCR), `deploy.yml` triggered only by a manually approved GitHub Environment (`production`) so nothing ships on its own; pull → migrate (expand/contract-safe migrations) → start new containers → health-check → switch Caddy upstream → drain and stop old; automatic rollback on failed health check; `rollback` workflow to the previous image tag
+- [ ] **Production starts clean**: production boot refuses `is_seed` data, dev seed, stub providers and test-mode payments (env validation fails fast); a `bootstrap:admin` command creates the first admin accounts (Rashid, Taha, Suliman) with a one-time password-reset link instead of a seeded password; the seed script stays development-only (already refuses `NODE_ENV=production`); a CI test proves a fresh production DB contains zero seed rows
+- [ ] **Real providers, env-only switch** (each documented in `docs/GO_LIVE.md` with the exact variables and a "how to verify" step):
+  - [ ] Stripe live (`PAYMENTS_PROVIDER=stripe`, live keys, live webhook endpoint + secret) — only after Q1
+  - [ ] Resend (`EMAIL_PROVIDER=resend`) with **SPF, DKIM and DMARC** records documented (start `p=none`, move to `quarantine` after a week of clean reports), bounce/complaint webhook
+  - [ ] Anthropic (`AI_PROVIDER=anthropic`) with daily caps set in prod env
+  - [ ] Sentry (api, worker, web incl. source maps) and PostHog analytics (cookie-consent gated)
+  - [ ] Daily or LiveKit video (`VIDEO_PROVIDER`), recording consent flow re-verified with the real provider
+  - [ ] GitHub App (webhook secret, private key, install flow) for code activity
+  - [ ] OAuth redirect URIs for Google + GitHub on the production domain
+- [ ] **Monitoring**: external uptime checks on `/health` and `/ready`, alert routing (email + one chat channel), log shipping/retention, disk and memory alerts on the VPS, worker queue-depth alert
+- [ ] **Server hardening**: non-root deploy user, SSH keys only, firewall (22/80/443 only), unattended security updates, fail2ban, Docker log rotation, `disk:check` equivalent for the VPS
+- [ ] **`docs/GO_LIVE.md`** — step-by-step guide written for Rashid (non-engineer-friendly): accounts to create in order, what to click, which values to paste where, DNS records, how to say "deploy", how to verify, how to roll back
+- [ ] **Launch checklist** (`docs/LAUNCH_CHECKLIST.md`): legal pages lawyer-reviewed, entity + payments live-mode decision, test purchase with a real card and refund, email deliverability test (mail-tester ≥ 9/10), backup restore drill done, Sentry test event received, uptime alert test, rollback rehearsed, admin accounts + 2FA enabled, fee settings set, seed data confirmed absent, robots/sitemap on the final domain
+- [ ] Dry run on a **local production-like stack** (prod compose + Caddy with a local domain) without touching any paid account
+- [ ] FINAL CHECKPOINT: report to Rashid and **wait for the word "deploy"**
+
+Relationship to Phase 9: Phase 9 keeps load tests, OWASP, accessibility, Lighthouse, data export/deletion; its production-deploy and backup lines move here. Phase 10 follows Phase 9.
