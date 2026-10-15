@@ -404,6 +404,28 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 ---
 
+## 9h. Phase 7 and 8 additions (2026-10-15)
+
+**D-099 3D hero stack.** The brief names React Three Fiber + GSAP. The hero uses R3F (+ drei) for the 3D scene and `motion` for scroll reveals instead of GSAP: one animation library already covers our needs (reveals, reduced-motion handling) and adds less JavaScript. The hero is **poster-first**: the server renders a static poster of the same composition (LCP never waits for three.js); the 3D bundle loads after idle, only when `prefers-reduced-motion` is off, the viewport is at least 640px, save-data is off and WebGL exists; it pauses when off-screen. Mobile gets the poster only.
+
+**D-100 Marketing vs app density.** Marketing pages use the glass look (`.glass`, hero glow, grid) and 16px body; app pages stay solid and dense (D-040). Glass is also used for overlays (dialog, menus, tooltips, command palette).
+
+**D-101 Demo data is separate from dev personas.** `pnpm db:seed` (4 personas) is what tests and e2e use. `pnpm db:seed:demo` adds a realistic catalogue (invented people, services, reviews via real completed projects) for design work and screenshots. Rows are `is_seed`, services carry `isDemo` so the UI shows a "Demo" badge, analytics exclude them (D-027), the script refuses `NODE_ENV=production`, and a second run is a no-op. No review or rating is a hand-typed number: they are computed from the seeded rows by the same code as real data.
+
+**D-102 No fake imagery.** Services without uploaded images show a generated gradient + category icon cover (decoration, not a photo). The landing page project-room preview is labelled "Illustrative example, not a real project", and the page contains no customer logos, counts or testimonials (brief §4.4).
+
+**D-103 Analytics and consent.** `track()` is a typed no-op until (a) `NEXT_PUBLIC_POSTHOG_KEY` is set at build time, (b) the visitor chose "Accept analytics", and (c) a provider registers a sink. With no key, there is no banner (nothing to consent to) and the Cookie Policy says no analytics cookies are used. PostHog loading itself is Phase 10.
+
+**D-104 Style guide gating.** `/design` is served only when `ENABLE_STYLEGUIDE=1` (set in the dev compose file, never in production) and is `noindex`.
+
+**D-105 Legal pages are drafts.** Six pages render from `apps/web/lib/legal-content.ts` with a visible "draft pending lawyer review" notice. Governing law, retention periods and transfer mechanisms are marked TODO(lawyer). Contract/NDA e-acceptance waits for lawyer-approved text.
+
+**D-106 CI.** Playwright runs with one worker on CI and uses the GitHub reporter (failures become annotations readable through the API). CI now also runs on pushes to `phase/**` so branch work is checked before merging.
+
+**D-107 Production launch is Phase 10, deploy only on Rashid's word.** Nothing is deployed or provisioned until Rashid says "deploy". Providers switch on by env only; production refuses seed data, stub providers and test-mode payments.
+
+---
+
 ## 10. Open questions for Rashid (non-blocking unless marked)
 
 Answers so far (2026-10-11):

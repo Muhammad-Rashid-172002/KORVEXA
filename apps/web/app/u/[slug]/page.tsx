@@ -1,13 +1,16 @@
 /* eslint-disable @next/next/no-img-element -- avatars/portfolio are short-lived presigned storage URLs, not optimisable by next/image */
-import type { ProfileView, ReviewView, SellerStatsView } from '@glasswork/shared';
+import type { ProfileView, ReviewView, SellerStatsView, ServicePageView } from '@glasswork/shared';
+import { Avatar } from '@glasswork/ui/components/avatar';
 import { Badge } from '@glasswork/ui/components/badge';
 import { Card, CardTitle } from '@glasswork/ui/components/card';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { MessageSellerButton } from '@/components/message-seller-button';
+import { ServiceCard } from '@/components/service-card';
 import { ReportButton } from '@/components/report-button';
 import { LevelBadge, Stars, VerifiedBadges } from '@/components/trust';
 import { API_INTERNAL_URL } from '@/lib/config';
+import { publicGw } from '@/lib/public-api';
 import { serverGw } from '@/lib/server-gw';
 import { ReplyForm } from './reply-form';
 
@@ -41,36 +44,37 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   const me = await serverGw<{ id: string }>('/me');
   const isOwner = me.data?.id === p.userId;
   const s = p.seller;
+  const services = s
+    ? ((await publicGw<ServicePageView>(`/services?seller=${p.userId}&limit=6`)).data?.items ?? [])
+    : [];
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
-      <div className="flex items-center gap-4">
-        {p.avatarUrl ? (
-          <img src={p.avatarUrl} alt="" className="size-20 rounded-full object-cover" />
-        ) : (
-          <div
-            className="flex size-20 items-center justify-center rounded-full bg-surface-2 text-2xl"
-            aria-hidden
-          >
-            {p.displayName.slice(0, 1).toUpperCase()}
-          </div>
-        )}
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{p.displayName}</h1>
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10">
+      <div className="bg-hero-glow flex flex-wrap items-center gap-5 rounded-2xl border border-border bg-surface p-6">
+        <Avatar name={p.displayName} src={p.avatarUrl} size="xl" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{p.displayName}</h1>
           {p.headline && <p className="text-muted">{p.headline}</p>}
           <p className="text-xs text-muted">{[p.country, p.timezone].filter(Boolean).join(' · ')}</p>
           {s && (
             <div className="flex flex-wrap items-center gap-2">
               <LevelBadge level={s.trust.level} label={s.trust.levelLabel} />
               <Stars value={s.trust.avgRating} count={s.trust.reviewCount} />
+              {services.some((x) => x.isDemo) && (
+                <Badge className="border-warning/50 text-warning">Demo profile</Badge>
+              )}
             </div>
           )}
         </div>
+        {!isOwner && (
+          <div className="flex flex-wrap items-start gap-3">
+            <MessageSellerButton sellerId={p.userId} next={`/u/${p.slug}`} />
+          </div>
+        )}
       </div>
       {s && <VerifiedBadges badges={s.trust.badges} />}
       {p.bio && <p className="whitespace-pre-wrap text-sm">{p.bio}</p>}
       {!isOwner && (
         <div className="flex flex-wrap items-start gap-4">
-          <MessageSellerButton sellerId={p.userId} next={`/u/${p.slug}`} />
           <ReportButton
             targetType="user"
             targetId={p.userId}
@@ -78,6 +82,20 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             next={`/u/${p.slug}`}
           />
         </div>
+      )}
+      {s && services.length > 0 && (
+        <section aria-labelledby="svc" className="flex flex-col gap-3">
+          <h2 id="svc" className="text-lg font-semibold">
+            Services by {p.displayName}
+          </h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="profile-services">
+            {services.map((x) => (
+              <li key={x.id}>
+                <ServiceCard s={x} showFavorite={false} />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
       {s && (
         <>

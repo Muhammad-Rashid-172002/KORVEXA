@@ -1,9 +1,16 @@
+import type { ProjectListItem } from '@glasswork/shared';
 import { Badge } from '@glasswork/ui/components/badge';
 import { Card, CardDescription, CardTitle } from '@glasswork/ui/components/card';
+import { EmptyState } from '@glasswork/ui/components/empty-state';
+import { Progress } from '@glasswork/ui/components/progress';
+import { Stat } from '@glasswork/ui/components/stat';
+import { FolderKanban } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { money } from '@/lib/format';
 import { serverApi } from '@/lib/server-api';
+import { serverGw } from '@/lib/server-gw';
 import { FileUploader } from './file-uploader';
 import { RealtimeStatus } from './realtime-status';
 import { SignOutButton } from './sign-out-button';
@@ -17,6 +24,11 @@ export default async function DashboardPage() {
   const { data: me, response } = await api.GET('/v1/me');
   if (response.status === 401 || !me) redirect('/login');
 
+  const projectsRes = await serverGw<{ items: ProjectListItem[] }>('/projects?limit=50');
+  const all = projectsRes.data?.items ?? [];
+  const open = all.filter((p) => !['completed', 'reviewed', 'cancelled'].includes(p.status));
+  const done = all.filter((p) => ['completed', 'reviewed'].includes(p.status));
+
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -26,6 +38,67 @@ export default async function DashboardPage() {
         </div>
         <SignOutButton />
       </div>
+
+      <section aria-labelledby="active-projects" className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Stat label="Active projects" value={open.length} />
+          <Stat label="Completed" value={done.length} />
+          <Stat
+            label="Value in active projects"
+            value={
+              open.length
+                ? money(
+                    open.reduce((a, p) => a + p.totalAmount, 0),
+                    open[0]!.currency,
+                  )
+                : null
+            }
+            className="max-sm:col-span-2"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <h2 id="active-projects" className="text-lg font-semibold">
+            Active projects
+          </h2>
+          <Link className="text-sm text-primary underline-offset-4 hover:underline" href="/projects">
+            View all
+          </Link>
+        </div>
+        {open.length === 0 ? (
+          <EmptyState
+            icon={<FolderKanban />}
+            title="No active projects yet"
+            description="Browse services or post a request. Your project room appears here as soon as an order starts."
+            action={
+              <Link className="text-sm text-primary underline-offset-4 hover:underline" href="/services">
+                Browse services
+              </Link>
+            }
+          />
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {open.slice(0, 4).map((p) => (
+              <li key={p.id}>
+                <Link href={`/projects/${p.id}`} className="block">
+                  <Card className="card-lift flex flex-col gap-3 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="line-clamp-2 text-sm font-medium">{p.title}</p>
+                      <Badge>{p.status.replace(/_/g, ' ')}</Badge>
+                    </div>
+                    <Progress value={p.progress} label={`${p.title} progress`} />
+                    <p className="flex justify-between text-xs text-muted">
+                      <span>
+                        {p.code} · {p.myRole === 'buyer' ? 'Seller' : 'Buyer'}: {p.counterparty}
+                      </span>
+                      <span className="tabular-nums">{p.progress}%</span>
+                    </p>
+                  </Card>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <Card className="flex flex-col gap-3">
         <CardTitle>Your account</CardTitle>

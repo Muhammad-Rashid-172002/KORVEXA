@@ -85,3 +85,61 @@
   backdrop-filter: blur(16px);
   border: 1px solid color-mix(in oklab, var(--gw-text) 10%, transparent);
 }
+
+/* ---- Phase 8 design-system additions ---------------------------------------------------------- */
+:root,
+.dark {
+  --gw-glass: rgb(12 26 21 / 0.72);
+  --gw-glass-border: rgb(232 243 238 / 0.1);
+  --gw-glow: rgb(25 199 132 / 0.18);
+}
+.light {
+  --gw-glass: rgb(255 255 255 / 0.78);
+  --gw-glass-border: rgb(11 26 20 / 0.08);
+  --gw-glow: rgb(8 127 91 / 0.12);
+}
+
+@layer components {
+  /* Glass only on overlays and marketing surfaces (D-040). */
+  .glass {
+    background: var(--gw-glass);
+    border: 1px solid var(--gw-glass-border);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+  .text-gradient {
+    background: linear-gradient(120deg, var(--gw-text) 20%, var(--gw-primary) 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-hero-glow {
+    background:
+      radial-gradient(60% 50% at 50% 0%, var(--gw-glow), transparent 70%),
+      radial-gradient(40% 40% at 90% 20%, var(--gw-glow), transparent 70%);
+  }
+  .bg-grid {
+    background-image:
+      linear-gradient(var(--gw-border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--gw-border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+  .card-lift {
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--gw-primary) 45%, var(--gw-border));
+    box-shadow: 0 12px 32px -16px var(--gw-glow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-lift:hover {
+    transform: none;
+  }
+}

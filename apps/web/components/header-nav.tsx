@@ -3,6 +3,7 @@ import { Button } from '@glasswork/ui/components/button';
 import { LayoutDashboard, Search } from 'lucide-react';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
+import { PaletteButton } from './command-palette';
 import { NotificationBell } from './notification-bell';
 import { ThemeToggle } from './theme-toggle';
 
@@ -11,6 +12,7 @@ export function HeaderNav() {
   const { data: session, isPending } = authClient.useSession();
   return (
     <nav className="flex items-center gap-1" aria-label="Main">
+      <PaletteButton />
       <Button
         asChild
         variant="ghost"
@@ -22,6 +24,11 @@ export function HeaderNav() {
           <span className="max-sm:hidden">Browse</span>
         </Link>
       </Button>
+      {!isPending && !session && (
+        <Button asChild variant="ghost" size="sm" className="whitespace-nowrap max-lg:hidden">
+          <Link href="/how-it-works">How it works</Link>
+        </Button>
+      )}
       {!isPending && session ? (
         <>
           <NotificationBell />

@@ -503,6 +503,7 @@ export class ServicesService {
         minDeliveryDays: a?.days ?? 0,
         imageUrl: await this.url(imgBy.get(id) ?? null),
         operatedByPlatform: r.s.operatedByPlatform,
+        isDemo: r.s.isSeed,
         status: r.s.status,
         trust: {
           level: trust.get(r.s.sellerId)?.level ?? 'new',

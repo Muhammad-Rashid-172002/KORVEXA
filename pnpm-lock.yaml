@@ -709,6 +709,9 @@ importers:
       clsx:
         specifier: 2.1.1
         version: 2.1.1
+      lucide-react:
+        specifier: 1.55.0
+        version: 1.55.0(@types/react@19.3.0)(react@19.3.0)
       tailwind-merge:
         specifier: 3.7.0
         version: 3.7.0

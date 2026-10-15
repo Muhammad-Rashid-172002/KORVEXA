@@ -320,20 +320,38 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked (reason i
 - e2e is timing-sensitive under heavy machine load (a load average near 200 from macOS storage indexing made 4 older tests time out); `pnpm --filter @glasswork/e2e exec playwright test --workers=1` passes 58/58. The AI cap test cleans up its own spend rows because the platform daily cap is shared.
 - Environment: the Mac disk reached ~100% from Docker build cache; run `docker builder prune --keep-storage 8GB` now and then.
 
-## Phase 7 — Meetings & integrations
+## Phase 7 — Meetings & integrations · branch `phase/7-meetings`
 
-- [ ] VideoService interface + LiveKit or Daily adapter; consented recording
-- [ ] GitHub App: commits, PRs and deployments in plain language
-- [ ] Calendar invites (ICS)
-- [ ] CHECKPOINT
+- [x] VideoService interface + adapters (`stub` for dev/CI, `daily` behind env); consent-gated recording (recording starts only when every participant has consented)
+- [x] GitHub App code activity: commits, PRs and deployments in plain language, signature-verified webhooks, once per delivery
+- [x] Calendar invites (ICS)
+- [x] Web UI: meetings panel in the project room, call page, code-activity panel; meeting notes feed the Phase 6 notes-to-tasks flow
+- [x] CHECKPOINT (log only)
 
-## Phase 8 — Landing & marketing
+### Phase 7 log (2026-10-15)
 
-- [ ] Landing page: R3F + GSAP 3D hero (project moving through milestones), poster-first LCP, reduced-motion support
-- [ ] About page, "by KorvenzaTech" lockups, product mark
-- [ ] Legal drafts (flagged for lawyer review): Terms, Privacy, Seller Agreement, Buyer Protection, Acceptable Use, Cookie Policy; contract + NDA templates with e-acceptance
-- [ ] SEO (metadata, OG images, sitemap), PostHog analytics events, cookie consent
-- [ ] CHECKPOINT
+**Verified 2026-10-15 on the real Docker stack:** 161 API integration tests (16 files, includes meetings), 4 Playwright e2e tests for meetings and code activity (desktop + mobile).
+
+**Files:** `packages/db/src/schema/meetings.ts` (migrations 0010/0011), `packages/shared/src/meetings.ts`, `apps/api/src/modules/meetings/*`, web `components/room/{meetings,code-activity}.tsx`, `app/meetings/[id]/call/*`, `e2e/tests/meetings.spec.ts`.
+
+**Known issues / waiting:** Daily and GitHub App calls are unverified against the real services (need accounts: see WAITING ON RASHID / Phase 10). CI: the first runs failed on the e2e step with no readable reason; the workflow now uses one worker plus GitHub annotations and runs on `phase/**` pushes.
+
+## Phase 8 — Marketplace UI, design system & marketing · branch `phase/7-meetings` (continues the same branch; see log)
+
+Scope set by Rashid on 2026-10-15: complete, realistic, premium marketplace UI; all pages; design system; dev-only realistic seed data; screenshots. Old Phase 8 items (3D landing, legal, SEO, analytics, cookie consent) are included.
+
+- [x] Design system: tokens (glass, glow, gradients, motion), 12 new components in `packages/ui` (Avatar, Dialog, Dropdown, Progress, Tabs, Tooltip, Skeleton, Stat, EmptyState, PageHeader, Section), living style guide at `/design` (dev only)
+- [x] Product mark + lockup, sticky glass header, ⌘K command palette, rich footer
+- [x] Landing page: poster-first react-three-fiber hero (milestone panes + progress orb), reduced-motion/mobile/save-data fallbacks, how it works, project-room preview (labelled illustrative), features, categories, FAQ
+- [x] Marketing pages: How it works, Fees & escrow, Trust & safety, For sellers, About, Contact
+- [x] Legal drafts (flagged for lawyer review): Terms, Privacy, Seller Agreement, Buyer Protection, Acceptable Use, Cookies
+- [x] Marketplace: browse (category chips, empty state), service cards with generated covers, service detail (seller card, sticky order panel), dashboard (stats, active projects)
+- [x] Dev-only demo seed (`pnpm db:seed:demo`): 10 sellers, 11 services, 47 reviews through real completed projects, open requests; "Demo" badge in UI; excluded from analytics
+- [x] SEO: sitemap includes marketing + legal pages, default OG image, robots; analytics: typed `track()` + consent banner, active only when `NEXT_PUBLIC_POSTHOG_KEY` is set
+- [~] Remaining polish pass on secondary pages (see Phase 8 log for what was and was not restyled)
+- [ ] Contract + NDA templates with in-app e-acceptance (needs lawyer-approved text first; moved to after legal review)
+- [ ] PostHog SDK loading (needs a project key; Phase 10)
+- [ ] CHECKPOINT: page list + screenshots folder reported to Rashid
 
 ## Phase 9 — Hardening & launch
 

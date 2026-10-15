@@ -13,6 +13,7 @@ x-app-build: &app-build
     NEXT_PUBLIC_WEB_URL: ${WEB_URL:-http://localhost:3000}
     NEXT_PUBLIC_UPLOAD_ORIGIN: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
     NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+    NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
 
 # Environment shared by api + migrate. Hostnames point at compose services; public URLs stay localhost.
 x-api-env: &api-env
@@ -215,6 +216,8 @@ services:
     environment:
       API_INTERNAL_URL: http://api:4000
       SENTRY_DSN: ${SENTRY_DSN:-}
+      # Dev only: serves /design. The production compose file must not set this.
+      ENABLE_STYLEGUIDE: '1'
     ports: ['3000:3000']
     depends_on:
       api: { condition: service_healthy }

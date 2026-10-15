@@ -52,6 +52,7 @@ export class PostgresSearchService extends SearchService {
         sql`(c.slug = ${q.category} or c.parent_id in (select id from categories where slug = ${q.category}))`,
       );
     }
+    if (q.seller) where.push(sql`s.seller_id = ${q.seller}::uuid`);
     if (q.minPrice !== undefined) where.push(sql`p.max_price >= ${q.minPrice}`);
     if (q.maxPrice !== undefined) where.push(sql`p.min_price <= ${q.maxPrice}`);
     if (q.maxDelivery !== undefined) where.push(sql`p.min_days <= ${q.maxDelivery}`);

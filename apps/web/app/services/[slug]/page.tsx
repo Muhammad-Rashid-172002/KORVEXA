@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- presigned storage URLs are short-lived and not optimisable by next/image */
 import { brand } from '@glasswork/shared/brand';
 import type { ServiceDetailView } from '@glasswork/shared';
+import { Avatar } from '@glasswork/ui/components/avatar';
 import { Badge } from '@glasswork/ui/components/badge';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -8,6 +9,8 @@ import { notFound } from 'next/navigation';
 import { FavoriteButton } from '@/components/favorite-button';
 import { MessageSellerButton } from '@/components/message-seller-button';
 import { ReportButton } from '@/components/report-button';
+import { ServiceCover } from '@/components/service-cover';
+import { LevelBadge, Stars } from '@/components/trust';
 import { OrderPanel } from './order-panel';
 import { WEB_URL } from '@/lib/config';
 import { publicGw } from '@/lib/public-api';
@@ -78,8 +81,17 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
               s.seller.displayName
             )}
             {s.operatedByPlatform && <Badge>Operated by {brand.parentName}</Badge>}
+            {s.isDemo && <Badge className="border-warning/50 text-warning">Demo listing</Badge>}
           </p>
         </div>
+
+        {s.images.length === 0 && (
+          <ServiceCover
+            category={s.category.slug}
+            seed={s.slug}
+            className="aspect-[21/9] w-full rounded-xl"
+          />
+        )}
 
         {s.images.length > 0 && (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -95,7 +107,33 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
           <h2 id="about" className="text-lg font-semibold">
             About this service
           </h2>
-          <p className="whitespace-pre-wrap text-sm">{s.description}</p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed">{s.description}</p>
+        </section>
+
+        <section
+          aria-labelledby="seller"
+          className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface p-4"
+        >
+          <Avatar name={s.seller.displayName} src={s.seller.avatarUrl} size="lg" />
+          <div className="min-w-0 flex-1">
+            <h2 id="seller" className="text-base font-semibold">
+              About the seller
+            </h2>
+            <p className="text-sm">{s.seller.displayName}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <Stars value={s.trust.avgRating} count={s.trust.reviewCount || undefined} />
+              {s.trust.level !== 'new' && <LevelBadge level={s.trust.level} label={s.trust.levelLabel} />}
+              {s.trust.verified && <Badge className="border-success/50 text-success">Verified</Badge>}
+            </div>
+          </div>
+          {s.seller.slug && (
+            <Link
+              className="text-sm text-primary underline-offset-4 hover:underline"
+              href={`/u/${s.seller.slug}`}
+            >
+              View profile and reviews
+            </Link>
+          )}
         </section>
 
         {s.faqs.length > 0 && (
@@ -113,7 +151,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
         )}
       </div>
 
-      <aside className="flex flex-col gap-4" aria-label="Packages">
+      <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start" aria-label="Packages">
         <div className="relative h-8">
           <FavoriteButton serviceId={s.id} title={s.title} />
         </div>

@@ -62,6 +62,8 @@ export const serviceSearchSchema = z.object({
     .optional()
     .transform((v) => (v === 'true' ? true : undefined)),
   sort: z.enum(SERVICE_SORTS).optional(),
+  /** Only this seller's live services (used by the public profile page). */
+  seller: z.uuid().optional(),
   cursor: z.string().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(12),
 });
@@ -92,6 +94,8 @@ export interface ServiceCardView {
   minDeliveryDays: number;
   imageUrl: string | null;
   operatedByPlatform: boolean;
+  /** True only for rows created by the development demo seed; always false in production. */
+  isDemo: boolean;
   status: (typeof SERVICE_STATUSES)[number];
   /** Real, computed trust signals (null/0 when there is no data yet). */
   trust: {

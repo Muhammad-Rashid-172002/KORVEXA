@@ -1,5 +1,8 @@
 import { SELLER_LEVELS, SERVICE_SORTS, type ServicePageView } from '@glasswork/shared';
 import { Button } from '@glasswork/ui/components/button';
+import { EmptyState } from '@glasswork/ui/components/empty-state';
+import { PageHeader } from '@glasswork/ui/components/page-header';
+import { SearchX } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ServiceCard } from '@/components/service-card';
@@ -56,12 +59,34 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Browse services</h1>
-        <p className="text-sm text-muted">
-          Only live listings from sellers who completed onboarding appear here.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Marketplace"
+        title="Browse services"
+        description="Only live listings from sellers who completed onboarding appear here."
+      />
+
+      <nav aria-label="Categories" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        {[{ slug: '', name: 'All' }, ...(cats.data ?? [])].map((c) => {
+          const active = (p.category ?? '') === c.slug;
+          const q = new URLSearchParams(
+            Object.entries(p).filter(([k, v]) => v && k !== 'cursor' && k !== 'category') as [
+              string,
+              string,
+            ][],
+          );
+          if (c.slug) q.set('category', c.slug);
+          return (
+            <Link
+              key={c.slug || 'all'}
+              href={`/services${q.size ? `?${q}` : ''}`}
+              aria-current={active ? 'true' : undefined}
+              className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-sm transition-colors ${active ? 'border-primary bg-primary/15 text-primary' : 'border-border text-muted hover:text-fg'}`}
+            >
+              {c.name}
+            </Link>
+          );
+        })}
+      </nav>
 
       <form
         action="/services"
@@ -187,12 +212,18 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
       </p>
 
       {items.length === 0 ? (
-        <p
-          className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted"
-          data-testid="no-results"
-        >
-          No services match yet. Try fewer filters{res.status === 0 ? ' (the API is unreachable)' : ''}.
-        </p>
+        <div data-testid="no-results">
+          <EmptyState
+            icon={<SearchX />}
+            title="No services match yet"
+            description={`Try fewer filters or a broader search${res.status === 0 ? ' (the API is unreachable)' : ''}.`}
+            action={
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/services">Reset filters</Link>
+              </Button>
+            }
+          />
+        </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="service-grid">
           {items.map((s) => (

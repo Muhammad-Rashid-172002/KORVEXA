@@ -26,7 +26,8 @@
     "generate": "drizzle-kit generate",
     "migrate": "node --env-file-if-exists=../../.env dist/migrate.js",
     "seed": "node --env-file-if-exists=../../.env dist/seed/index.js",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio",
+    "seed:demo": "node --env-file-if-exists=../../.env dist/seed/demo.js"
   },
   "dependencies": {
     "@glasswork/shared": "workspace:*",
