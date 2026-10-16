@@ -92,7 +92,7 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
   const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<{ id: string; name: string }[]>([]);
   const [busy, setBusy] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSent = useRef(0);
   const lastRead = useRef<string | null>(null);
@@ -157,7 +157,9 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
   }, [socket, conversationId, myId, markRead, load]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end' });
+    // Scroll only the message list: scrollIntoView would also scroll the page (and slide the composer under the sticky header).
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
     const lastFromOther = [...items].reverse().find((m) => m.sender.id !== myId);
     if (lastFromOther) markRead(lastFromOther.id);
   }, [items, myId, markRead]);
@@ -236,6 +238,7 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
 
       <div
         className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-3"
+        ref={listRef}
         data-testid="chat-messages"
         aria-live="polite"
       >
@@ -321,7 +324,6 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
             </div>
           );
         })}
-        <div ref={bottomRef} />
       </div>
 
       <div className="h-5 px-4 text-xs text-muted" data-testid="typing-indicator" aria-live="polite">
