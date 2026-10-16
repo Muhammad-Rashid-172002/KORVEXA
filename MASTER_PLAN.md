@@ -5,7 +5,7 @@ Rule (brief §3): continue from the first unchecked item and never redo ticked w
 
 ## ▶ RESUME HERE (updated 2026-10-11)
 
-Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Phase 5 done and merged to `main`. Phase 6 done. Next: **Phase 7 — Meetings & integrations** on branch `phase/7-meetings`.
+Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Phase 5 done and merged to `main`. Phase 6 done. Phase 7 done and verified (2026-10-15). Phase 8 done (2026-10-16), **at its checkpoint, waiting for Rashid's feedback**. Then Phase 9, then Phase 10 (deploy only on "deploy"). All on branch `phase/7-meetings` (not yet merged to `main`).
 
 - Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
 - Remaining unverified: OAuth with real keys.
@@ -348,10 +348,26 @@ Scope set by Rashid on 2026-10-15: complete, realistic, premium marketplace UI; 
 - [x] Marketplace: browse (category chips, empty state), service cards with generated covers, service detail (seller card, sticky order panel), dashboard (stats, active projects)
 - [x] Dev-only demo seed (`pnpm db:seed:demo`): 10 sellers, 11 services, 47 reviews through real completed projects, open requests; "Demo" badge in UI; excluded from analytics
 - [x] SEO: sitemap includes marketing + legal pages, default OG image, robots; analytics: typed `track()` + consent banner, active only when `NEXT_PUBLIC_POSTHOG_KEY` is set
-- [~] Remaining polish pass on secondary pages (see Phase 8 log for what was and was not restyled)
+- [x] Smoke + screenshot pass over 67 page captures per viewport (`pnpm shots`): no HTTP errors, no console errors, no horizontal overflow at 390px
 - [ ] Contract + NDA templates with in-app e-acceptance (needs lawyer-approved text first; moved to after legal review)
 - [ ] PostHog SDK loading (needs a project key; Phase 10)
-- [ ] CHECKPOINT: page list + screenshots folder reported to Rashid
+- [x] CHECKPOINT: page list + screenshots folder reported to Rashid (2026-10-16); **waiting for feedback before Phase 9**
+
+### Phase 8 log (2026-10-16)
+
+**Verified on the real Docker stack (fresh DB + demo seed):** lint/typecheck/unit (23 turbo tasks), 161 integration tests, 62 Playwright e2e (desktop + mobile), `pnpm shots` on both viewports (0 issues). Screenshots: `artifacts/screenshots/phase8/{desktop,mobile}` (+ `light/`), index in `INDEX.md`.
+
+**Found and fixed along the way:** ICS text never escaped semicolons (an old test asserted the wrong output); Phase 7 lint errors that would have failed CI; scroll-reveal content was invisible to a non-scrolling full-page screenshot (script now scrolls); every favorite button fetched the favorites list on its own (now one shared request per page); a `loading.tsx` on `/services` and `/dashboard` made 404s return 200 and duplicated DOM during streaming, so it was removed (do not add route-level `loading.tsx` to pages that call `notFound()`).
+
+**Known issues / not done:**
+
+- Secondary app pages (admin tables, settings, messages, requests, seller wizard) keep their existing, functional layout; they inherit the new header, footer, tokens and components but were not individually redesigned.
+- The 3D hero rendered in headless Chromium; real-device performance and Lighthouse numbers are measured in Phase 9.
+- No uploaded photos exist in dev, so covers are generated gradients; real seller images will replace them automatically.
+- Legal text is draft (D-105); contract/NDA e-acceptance, PostHog loading and the KorvenzaTech K logo are still open.
+- Demo data is invented and dev-only; the first `pnpm db:seed:demo` after `pnpm dev:reset` recreates it.
+
+**Manual test:** `pnpm dev:up && pnpm db:seed:demo`, open http://localhost:3000 (landing, `/services`, a service, `/u/amara-okafor`, `/design`, legal pages, ⌘K). Sign in as `buyer@dev.glasswork.test` / `Glasswork-dev-123!` for the dashboard; demo sellers use `<first.last>@demo.glasswork.test` with the same password.
 
 ## Phase 9 — Hardening & launch
 

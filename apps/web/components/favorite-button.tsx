@@ -4,16 +4,27 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { gw } from '@/lib/gw';
 
-const cache: { ids: Set<string> | null; promise: Promise<Set<string> | null> | null } = {
+const cache: {
+  ids: Set<string> | null;
+  promise: Promise<Set<string> | null> | null;
+  pending: boolean;
+} = {
   ids: null,
   promise: null,
+  pending: false,
 };
 
-/** One shared fetch of the viewer's favorite ids; null = signed out. */
+/**
+ * One shared fetch of the viewer's favorite ids; null = signed out. Buttons mounting together share the in-flight
+ * request (a grid of cards makes one call, not one per card); a later mount refetches so the state is never stale.
+ */
 function loadIds(force = false): Promise<Set<string> | null> {
+  if (cache.pending && cache.promise) return cache.promise;
   if (force || !cache.promise) {
+    cache.pending = true;
     cache.promise = gw<string[]>('GET', '/me/favorites/ids').then((r) => {
       cache.ids = r.data ? new Set(r.data) : null;
+      cache.pending = false;
       return cache.ids;
     });
   }

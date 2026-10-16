@@ -47,18 +47,37 @@ async function login(
 async function snap(ctx: BrowserContext, page: Page, viewport: string, theme: string, e: Entry) {
   const errors: string[] = [];
   const onConsole = (m: { type(): string; text(): string }) => {
-    if (m.type() === 'error') errors.push(m.text().slice(0, 200));
+    // Failed network loads are reported (with their URL) by onResponse below.
+    if (m.type() === 'error' && !m.text().startsWith('Failed to load resource'))
+      errors.push(m.text().slice(0, 200));
+  };
+  // Expected noise: signed-out visitors get 401 from the favorites call; the not-found page is a 404 by design.
+  const onResponse = (r: { status(): number; url(): string }) => {
+    if (r.status() < 400) return;
+    if (r.status() === 401 && r.url().includes('/me/favorites/ids')) return;
+    if (r.status() === 404 && e.name === 'not-found') return;
+    errors.push(`${r.status()} ${r.url().replace(/^https?:\/\/[^/]+/, '')}`);
   };
   page.on('console', onConsole);
+  page.on('response', onResponse);
   const res = await page.goto(e.url, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => undefined);
-  await page.waitForTimeout(700);
+  // Scroll through the page so scroll-triggered reveals run, then return to the top for the capture.
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.body.scrollHeight; y += 500) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(900);
   const overflowX = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   const dir = path.join(OUT, viewport, theme === 'dark' ? '' : 'light');
   fs.mkdirSync(dir, { recursive: true });
   const file = `${e.group}-${e.name}.png`;
   await page.screenshot({ path: path.join(dir, file), fullPage: true });
   page.off('console', onConsole);
+  page.off('response', onResponse);
   findings.push({
     viewport,
     theme,

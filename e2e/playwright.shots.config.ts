@@ -5,6 +5,7 @@ const executablePath = process.env.PW_CHROMIUM_PATH || undefined;
 
 export default defineConfig({
   testDir: './shots',
+  testMatch: '**/*.shots.ts',
   timeout: 15 * 60_000,
   fullyParallel: false,
   workers: 1,
