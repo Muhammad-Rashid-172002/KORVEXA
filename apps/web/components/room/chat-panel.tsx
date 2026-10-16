@@ -235,7 +235,7 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
       </div>
 
       <div
-        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-3"
+        className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-3"
         data-testid="chat-messages"
         aria-live="polite"
       >
