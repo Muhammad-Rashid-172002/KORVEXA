@@ -136,8 +136,11 @@ describe('Phase 4: chat, custom offers and realtime', () => {
       const members = (await projectChat(seller, projectId)).members;
       expect(members.find((x) => x.userId === seller.userId)!.lastReadMessageId).toBe(ids[2]);
       expect(
-        (await call(seller, 'POST', `/conversations/${cid}/read`, { messageId: reply.id.replace(/.$/, '0') }))
-          .statusCode,
+        (
+          await call(seller, 'POST', `/conversations/${cid}/read`, {
+            messageId: reply.id.replace(/.$/, reply.id.endsWith('0') ? '1' : '0'),
+          })
+        ).statusCode,
       ).toBe(404); // not a message of this chat
     });
 

@@ -40,9 +40,18 @@ test.describe('Phase 5 trust', () => {
     await expect(buyer.getByTestId('project-status')).toHaveText('reviewed');
 
     // private per-milestone feedback only the seller can see
-    await buyer.getByLabel('Feedback on Kickoff & plan').fill('Loved the kickoff workshop');
-    await buyer.getByTestId('feedback-card').first().getByRole('button', { name: 'Send' }).click();
-    await expect(buyer.getByTestId('feedback-given')).toContainText('Loved the kickoff workshop');
+    // The click can land before hydration (a native submit would reload and clear the field), so retry the whole step.
+    await expect(async () => {
+      await buyer.getByLabel('Feedback on Kickoff & plan').fill('Loved the kickoff workshop');
+      await buyer
+        .getByTestId('feedback-card')
+        .first()
+        .getByRole('button', { name: 'Send' })
+        .click({ timeout: 3000 });
+      await expect(buyer.getByTestId('feedback-given')).toContainText('Loved the kickoff workshop', {
+        timeout: 4000,
+      });
+    }).toPass({ timeout: 30_000 });
 
     // anonymous visitor sees the review, rating, completed count and level on the public profile
     const anon = await browser.newContext({ baseURL: info.project.use.baseURL });

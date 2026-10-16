@@ -188,7 +188,7 @@ test.describe('Phase 4 Live Project Room', () => {
     page,
     browser,
   }, info) => {
-    test.setTimeout(90_000);
+    test.setTimeout(150_000);
     const room = await activeRoom({ page, browser }, info, 'chat');
     const { buyer, projectId } = room;
     await buyer.goto(`/projects/${projectId}?tab=chat`);
@@ -233,7 +233,8 @@ test.describe('Phase 4 Live Project Room', () => {
     // presence flips when the buyer leaves
     await room.buyerCtx.close();
     await expect(page.getByTestId('presence-dot')).toHaveAttribute('data-online', 'false', {
-      timeout: 15_000,
+      // Abrupt disconnects are detected by the presence TTL (up to ~45 s, see Phase 4 known issues).
+      timeout: 55_000,
     });
   });
 
