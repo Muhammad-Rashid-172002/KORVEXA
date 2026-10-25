@@ -13,6 +13,7 @@ import { ServicesModule } from './modules/services/services.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { RoomModule } from './modules/room/room.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
+import { AccountModule } from './modules/account/account.module';
 import { AllExceptionsFilter } from './common/errors/http-exception.filter';
 import { AuthGuard } from './common/policy/auth.guard';
 import { RouteAuditService } from './common/policy/route-audit.service';
@@ -52,6 +53,7 @@ const env = loadEnv();
     ProfilesModule,
     OrgsModule,
     SessionsModule,
+    AccountModule,
     ServicesModule,
     PaymentsModule,
     OrdersModule,

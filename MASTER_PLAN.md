@@ -369,14 +369,14 @@ Scope set by Rashid on 2026-10-15: complete, realistic, premium marketplace UI; 
 
 **Manual test:** `pnpm dev:up && pnpm db:seed:demo`, open http://localhost:3000 (landing, `/services`, a service, `/u/amara-okafor`, `/design`, legal pages, ⌘K). Sign in as `buyer@dev.glasswork.test` / `Glasswork-dev-123!` for the dashboard; demo sellers use `<first.last>@demo.glasswork.test` with the same password.
 
-## Phase 9 — Hardening & launch
+## Phase 9 — Hardening & launch · branch `phase/9-hardening`
 
 - [ ] Load tests (k6) on critical paths
 - [ ] OWASP Top 10 review + fixes
 - [ ] Accessibility audit (WCAG 2.2 AA)
 - [ ] Lighthouse ≥ 90 on public pages
 - [→] Production deploy, backups, restore verification, uptime monitoring — **moved to Phase 10**
-- [ ] Data export + account deletion flows
+- [x] Data export + account deletion flows (D-108; `/settings` → Your data; API tests + e2e)
 - [ ] Runbooks in docs/; launch checklist
 - [ ] FINAL CHECKPOINT
 

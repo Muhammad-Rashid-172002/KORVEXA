@@ -424,6 +424,8 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 **D-107 Production launch is Phase 10, deploy only on Rashid's word.** Nothing is deployed or provisioned until Rashid says "deploy". Providers switch on by env only; production refuses seed data, stub providers and test-mode payments.
 
+**D-108 Account deletion anonymises, it does not delete rows (Phase 9).** `POST /v1/me/delete` (email typed to confirm) sets `users.deletedAt`, rewrites email/name, and removes profile text, avatar/portfolio files, sign-in methods, sessions, 2FA, favorites, notifications and org memberships; listings are paused. Ledger, invoices, payouts, disputes and the other party's projects/messages/reviews stay (financial and dispute integrity), shown as "Deleted user". Deletion is refused while a project is live, a dispute is open, a payout is pending, a balance is unpaid, or the user is the only owner of a team with members. `GET /v1/me/export` returns the caller's data as JSON and never includes password hashes, tokens or 2FA secrets. `SessionService.resolve` treats `deletedAt` like `bannedAt`. Retention periods for the kept records are a lawyer question (D-105).
+
 ---
 
 ## 10. Open questions for Rashid (non-blocking unless marked)

@@ -30,10 +30,10 @@ export class SessionService {
     if (!result) return null;
     // A banned account is treated as signed out everywhere (HTTP and sockets), even with a still-valid cached session.
     const [row] = await this.db.db
-      .select({ bannedAt: users.bannedAt })
+      .select({ bannedAt: users.bannedAt, deletedAt: users.deletedAt })
       .from(users)
       .where(eq(users.id, result.user.id));
-    if (!row || row.bannedAt) return null;
+    if (!row || row.bannedAt || row.deletedAt) return null;
     return {
       userId: result.user.id,
       email: result.user.email,

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { serverApi } from '@/lib/server-api';
 import { serverGw } from '@/lib/server-gw';
+import { DataPanel } from './data-panel';
 import { ModePanel } from './mode-panel';
 import { ProfileForm } from './profile-form';
 import { SecurityPanel } from './security-panel';
@@ -68,6 +69,8 @@ export default async function SettingsPage() {
       </Card>
 
       <SecurityPanel sessions={sessions.data ?? []} twoFactorEnabled={me.twoFactorEnabled} />
+
+      <DataPanel email={me.email} />
     </div>
   );
 }

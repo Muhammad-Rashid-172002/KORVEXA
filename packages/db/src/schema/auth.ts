@@ -38,6 +38,8 @@ export const users = pgTable(
     activeMode: activeMode().notNull().default('buyer'),
     twoFactorEnabled: boolean().notNull().default(false),
     bannedAt: timestamp({ withTimezone: true }),
+    /** Set when the user deletes their account: the row is anonymised, never removed (ledger and dispute history stay intact). */
+    deletedAt: timestamp({ withTimezone: true }),
     isSeed: isSeed(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
