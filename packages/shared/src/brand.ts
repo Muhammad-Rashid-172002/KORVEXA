@@ -8,16 +8,16 @@ export const brand = {
   /** Always present the product as "<productName> by <parentName>". */
   lockup: 'Glasswork by KorvenzaTech',
   tagline: 'Hire verified builders. Watch your project move.',
-  /** TODO(Rashid): final product domain (Q3). */
-  domain: 'TODO-domain',
+  /** Final product domain (Q3). `null` hides it everywhere until set. */
+  domain: null as string | null,
   parentDomain: 'korvenzatech.com',
   parentUrl: 'https://korvenzatech.com',
   /** TODO(Rashid): exact registered company name (Q2). */
   legalEntity: 'KorvenzaTech',
-  /** TODO(Rashid): registered address (Q2). */
-  legalAddress: 'TODO-address',
-  /** TODO(Rashid): support inbox on the final domain (Q9). */
-  supportEmail: 'support@example.com',
+  /** Registered address (Q2). `null` hides it everywhere until set. */
+  legalAddress: null as string | null,
+  /** Support inbox on the final domain (Q9). `null` hides it everywhere until set. */
+  supportEmail: null as string | null,
   /** Label for services run by KorvenzaTech's own agency (DECISIONS D-002). */
   operatedByLabel: 'Operated by KorvenzaTech',
   colors: {

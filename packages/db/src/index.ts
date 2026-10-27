@@ -2,6 +2,7 @@ export * from './client';
 export * from './password';
 export * from './repositories/files';
 export { runMigrations, MIGRATIONS_DIR } from './migrate';
+export { assertNoSeedData, findSeedData } from './prod-guard';
 export * from './schema';
 
 /** Query helpers re-exported so apps never import a second drizzle-orm instance directly. */

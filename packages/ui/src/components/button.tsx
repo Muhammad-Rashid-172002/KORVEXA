@@ -11,7 +11,7 @@ export const buttonVariants = cva(
         primary: 'bg-primary text-on-primary hover:bg-primary-hover',
         secondary: 'border border-border bg-surface-2 text-fg hover:bg-surface',
         ghost: 'text-fg hover:bg-surface-2',
-        danger: 'bg-danger text-white hover:opacity-90',
+        danger: 'bg-danger text-on-danger hover:opacity-90',
       },
       size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-11 px-5 text-base' },
     },

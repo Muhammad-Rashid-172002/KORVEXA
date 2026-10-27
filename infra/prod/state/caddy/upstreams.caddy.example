@@ -1,0 +1,14 @@
+(web_upstream) {
+	reverse_proxy web-blue:3000 {
+		health_uri /
+		health_interval 10s
+		lb_try_duration 5s
+	}
+}
+(api_upstream) {
+	reverse_proxy api-blue:4000 {
+		health_uri /health
+		health_interval 10s
+		lb_try_duration 5s
+	}
+}

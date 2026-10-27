@@ -80,7 +80,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: '11. Governing law and disputes',
         body: [
-          'TODO (lawyer): governing law, jurisdiction and arbitration clause depend on the registered entity and country (open question Q1/Q2).',
+          'The governing law, jurisdiction and dispute-resolution clause will be set out here once the operating entity and its country of registration are confirmed. Until then this section is intentionally left open.',
         ],
       },
       {
@@ -96,7 +96,14 @@ export const LEGAL_DOCS: LegalDoc[] = [
     title: 'Privacy Policy',
     summary: 'What personal data we collect, why, and the choices you have.',
     sections: [
-      { heading: '1. Controller', body: [`${E}, ${brand.legalAddress}. Contact: ${brand.supportEmail}.`] },
+      {
+        heading: '1. Controller',
+        body: [
+          [`${E}`, brand.legalAddress, brand.supportEmail ? `Contact: ${brand.supportEmail}` : null]
+            .filter(Boolean)
+            .join(', ') + '.',
+        ],
+      },
       {
         heading: '2. Data we collect',
         body: [
@@ -124,7 +131,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: '6. Retention',
         body: [
-          'We keep data while your account is active and as required for financial records and disputes. TODO (lawyer): exact retention periods.',
+          'We keep data while your account is active and as required for financial records and disputes. Exact retention periods will be listed here in the final version.',
         ],
       },
       {
@@ -136,7 +143,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: '8. Security and transfers',
         body: [
-          'We use encryption in transit, hashed passwords, access controls and audit logs. Data may be processed in countries other than yours; TODO (lawyer): transfer mechanisms.',
+          'We use encryption in transit, hashed passwords, access controls and audit logs. Data may be processed in countries other than yours; the transfer mechanisms we rely on will be listed here in the final version.',
         ],
       },
     ],

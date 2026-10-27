@@ -1,4 +1,3 @@
-import { brand } from '@glasswork/shared/brand';
 import { Alert } from '@glasswork/ui/components/alert';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -20,8 +19,8 @@ export default async function LegalPage({ params }: { params: Promise<{ doc: str
   return (
     <ProsePage eyebrow="Legal" title={doc.title} description={doc.summary}>
       <Alert data-testid="legal-draft-notice">
-        <strong>Draft pending lawyer review.</strong> This document is not final and is not legal advice.
-        Entity name and address ({brand.legalEntity}) are still to be confirmed.
+        <strong>Draft pending lawyer review.</strong> This document is not final and is not legal advice. The
+        operating entity details will be completed before launch.
       </Alert>
       {doc.sections.map((s) => (
         <Block key={s.heading} title={s.heading}>

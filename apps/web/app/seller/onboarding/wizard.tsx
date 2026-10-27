@@ -186,10 +186,10 @@ export function Wizard({ profile, status }: { profile: ProfileView; status: Onbo
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <CardTitle>5. Payout method (placeholder)</CardTitle>
+        <CardTitle>5. Payout preference</CardTitle>
         <p className="text-sm text-muted">
-          Tell us how you would like to be paid. No account details are collected yet; the payout rail depends
-          on the platform&apos;s legal setup.
+          Tell us how you would like to be paid. We do not collect bank or card details here; payout setup is
+          completed securely with our payment provider when payouts are available for your country.
         </p>
         <form className="flex flex-col gap-3" onSubmit={onPayout}>
           <Field
@@ -205,8 +205,11 @@ export function Wizard({ profile, status }: { profile: ProfileView; status: Onbo
       </Card>
 
       <Card className="flex flex-col gap-2">
-        <CardTitle>6. Identity verification (placeholder)</CardTitle>
-        <p className="text-sm text-muted">Identity checks and verified badges arrive in a later release.</p>
+        <CardTitle>6. Verification badges</CardTitle>
+        <p className="text-sm text-muted">
+          Badges (identity, GitHub, portfolio) appear on your profile only once verified.{' '}
+          <Link href="/seller/verification">Manage verification</Link>
+        </p>
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">

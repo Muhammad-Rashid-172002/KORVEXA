@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { WEB_URL } from '@/lib/config';
 import { publicGw } from '@/lib/public-api';
 import type { ServicePageView } from '@glasswork/shared';
+import { HELP_ARTICLES } from '@/lib/help-content';
 import { LEGAL_DOCS } from '@/lib/legal-content';
 
 export const dynamic = 'force-dynamic';
@@ -16,10 +17,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/for-sellers',
     '/about',
     '/contact',
+    '/help',
     '/seller-levels',
   ];
   const urls: MetadataRoute.Sitemap = [
     ...pages.map((p) => ({ url: `${WEB_URL}${p}` })),
+    ...HELP_ARTICLES.map((a) => ({ url: `${WEB_URL}/help/${a.slug}` })),
     ...LEGAL_DOCS.map((d) => ({ url: `${WEB_URL}/legal/${d.slug}` })),
   ];
   let cursor: string | null = null;

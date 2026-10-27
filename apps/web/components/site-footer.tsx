@@ -34,6 +34,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     title: 'Company',
     links: [
       { href: '/about', label: 'About' },
+      { href: '/help', label: 'Help center' },
       { href: '/contact', label: 'Contact' },
       { href: '/legal/terms', label: 'Terms of Service' },
       { href: '/legal/privacy', label: 'Privacy Policy' },
@@ -87,7 +88,6 @@ export function SiteFooter() {
           <span>
             {brand.lockup} · © {new Date().getFullYear()} {brand.legalEntity}
           </span>
-          <span>Legal pages are drafts pending lawyer review.</span>
         </div>
       </div>
     </footer>

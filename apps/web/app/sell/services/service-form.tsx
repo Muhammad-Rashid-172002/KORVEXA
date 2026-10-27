@@ -403,6 +403,7 @@ export function ServiceForm({
         </p>
         <input
           type="file"
+          aria-label="Add a gallery image"
           accept="image/png,image/jpeg,image/webp"
           data-testid="gallery-input"
           disabled={imageIds.length >= 6}

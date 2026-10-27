@@ -19,6 +19,7 @@
   --gw-success: #19c784;
   --gw-warning: #f5b544;
   --gw-danger: #f0616d;
+  --gw-on-danger: #1a0508;
   --gw-info: #5ab4f0;
   color-scheme: dark;
 }
@@ -37,6 +38,7 @@
   --gw-success: #087f5b;
   --gw-warning: #a86b00;
   --gw-danger: #c2313e;
+  --gw-on-danger: #ffffff;
   --gw-info: #1f6fb2;
   color-scheme: light;
 }
@@ -55,6 +57,7 @@
   --color-success: var(--gw-success);
   --color-warning: var(--gw-warning);
   --color-danger: var(--gw-danger);
+  --color-on-danger: var(--gw-on-danger);
   --color-info: var(--gw-info);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -72,6 +75,13 @@
     font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+  }
+  /* Links inside running text must not rely on colour alone (WCAG 1.4.1). */
+  p a:not([class*='no-underline']),
+  li a:not([class*='no-underline']),
+  label a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   :focus-visible {
     outline: 2px solid var(--gw-focus);

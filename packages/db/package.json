@@ -27,6 +27,7 @@
     "migrate": "node --env-file-if-exists=../../.env dist/migrate.js",
     "seed": "node --env-file-if-exists=../../.env dist/seed/index.js",
     "studio": "drizzle-kit studio",
+    "bootstrap:admin": "node --env-file-if-exists=../../.env dist/bootstrap-admin.js",
     "seed:demo": "node --env-file-if-exists=../../.env dist/seed/demo.js"
   },
   "dependencies": {

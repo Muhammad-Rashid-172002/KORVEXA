@@ -144,6 +144,29 @@ export const apiEnvSchema = apiEnvObject.superRefine((env, ctx) => {
         path: ['AI_PROVIDER'],
         message: 'the offline stub AI cannot run in production (use anthropic or off)',
       });
+    if (!env.WEB_URL.startsWith('https://') || !env.API_PUBLIC_URL.startsWith('https://'))
+      ctx.addIssue({
+        code: 'custom',
+        path: ['WEB_URL'],
+        message: 'WEB_URL and API_PUBLIC_URL must be https:// in production',
+      });
+    if (!env.TRUST_PROXY)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['TRUST_PROXY'],
+        message: 'TRUST_PROXY=true is required behind Caddy so rate limits see real client IPs',
+      });
+    if (env.API_DOCS_ENABLED)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['API_DOCS_ENABLED'],
+        message: 'the API docs must be disabled in production',
+      });
+    if (
+      env.TEST_PAYMENTS_WEBHOOK_SECRET === 'dev-only-test-payments-secret' &&
+      env.PAYMENTS_PROVIDER === 'test'
+    )
+      ctx.addIssue({ code: 'custom', path: ['PAYMENTS_PROVIDER'], message: 'test payments are not allowed' });
     if (env.SCAN_MODE === 'off')
       ctx.addIssue({
         code: 'custom',
@@ -166,27 +189,50 @@ export const apiEnvSchema = apiEnvObject.superRefine((env, ctx) => {
 });
 export type ApiEnv = z.infer<typeof apiEnvObject>;
 
-export const workerEnvSchema = z.object({
-  ...base,
-  WORKER_HEALTH_PORT: z.coerce.number().int().default(4001),
-  REDIS_URL: z.string().min(1),
-  EMAIL_FROM: z.string().default('no-reply@localhost'),
-  SMTP_HOST: optional(),
-  SMTP_PORT: z.coerce.number().int().default(1025),
-  RESEND_API_KEY: optional(),
-  /** Where the worker calls internal API routes (auto-approve timers). */
-  API_INTERNAL_URL: z.url().default('http://localhost:4000'),
-  INTERNAL_API_TOKEN: z.string().min(24).default('dev-only-internal-token-change-me-0123456789'),
-  SCAN_MODE: z.enum(['off', 'clamav']).default('off'),
-  CLAMD_HOST: z.string().default('clamav'),
-  CLAMD_PORT: z.coerce.number().int().default(3310),
-  S3_ENDPOINT: z.url().optional(),
-  S3_REGION: z.string().default('us-east-1'),
-  S3_BUCKET: z.string().optional(),
-  S3_ACCESS_KEY_ID: z.string().optional(),
-  S3_SECRET_ACCESS_KEY: z.string().optional(),
-  S3_FORCE_PATH_STYLE: bool(true),
-});
+export const workerEnvSchema = z
+  .object({
+    ...base,
+    WORKER_HEALTH_PORT: z.coerce.number().int().default(4001),
+    REDIS_URL: z.string().min(1),
+    EMAIL_FROM: z.string().default('no-reply@localhost'),
+    SMTP_HOST: optional(),
+    SMTP_PORT: z.coerce.number().int().default(1025),
+    RESEND_API_KEY: optional(),
+    /** Where the worker calls internal API routes (auto-approve timers). */
+    API_INTERNAL_URL: z.url().default('http://localhost:4000'),
+    INTERNAL_API_TOKEN: z.string().min(24).default('dev-only-internal-token-change-me-0123456789'),
+    SCAN_MODE: z.enum(['off', 'clamav']).default('off'),
+    CLAMD_HOST: z.string().default('clamav'),
+    CLAMD_PORT: z.coerce.number().int().default(3310),
+    S3_ENDPOINT: z.url().optional(),
+    S3_REGION: z.string().default('us-east-1'),
+    S3_BUCKET: z.string().optional(),
+    S3_ACCESS_KEY_ID: z.string().optional(),
+    S3_SECRET_ACCESS_KEY: z.string().optional(),
+    S3_FORCE_PATH_STYLE: bool(true),
+  })
+  .superRefine((env, ctx) => {
+    if (env.NODE_ENV === 'production') {
+      if (!env.RESEND_API_KEY)
+        ctx.addIssue({
+          code: 'custom',
+          path: ['RESEND_API_KEY'],
+          message: 'required in production (emails must not go to the local mail catcher)',
+        });
+      if (env.SCAN_MODE === 'off')
+        ctx.addIssue({
+          code: 'custom',
+          path: ['SCAN_MODE'],
+          message: 'uploads must be virus-scanned in production (SCAN_MODE=clamav)',
+        });
+      if (env.INTERNAL_API_TOKEN === 'dev-only-internal-token-change-me-0123456789')
+        ctx.addIssue({
+          code: 'custom',
+          path: ['INTERNAL_API_TOKEN'],
+          message: 'set a real INTERNAL_API_TOKEN in production',
+        });
+    }
+  });
 export type WorkerEnv = z.infer<typeof workerEnvSchema>;
 
 export function parseEnv<T extends z.ZodTypeAny>(

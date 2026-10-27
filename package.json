@@ -34,7 +34,8 @@
     "disk:check": "node scripts/disk-check.mjs",
     "verify": "turbo run lint typecheck test && pnpm test:integration && pnpm test:e2e; code=$?; pnpm dev:clean; exit $code",
     "db:seed:demo": "pnpm --filter @glasswork/db seed:demo",
-    "shots": "pnpm --filter @glasswork/e2e exec playwright test -c playwright.shots.config.ts"
+    "shots": "pnpm --filter @glasswork/e2e exec playwright test -c playwright.shots.config.ts",
+    "crawl": "pnpm --filter @glasswork/e2e exec playwright test -c playwright.shots.config.ts crawl.shots"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

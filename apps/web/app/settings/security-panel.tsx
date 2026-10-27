@@ -75,7 +75,8 @@ export function SecurityPanel({
               <span className="min-w-0">
                 <span className="block truncate">{s.userAgent ?? 'Unknown device'}</span>
                 <span className="text-xs text-muted">
-                  {s.ipAddress ?? 'unknown IP'} · since {new Date(s.createdAt).toLocaleString()}
+                  {s.ipAddress ?? 'unknown IP'} · since{' '}
+                  <time suppressHydrationWarning>{new Date(s.createdAt).toLocaleString()}</time>
                 </span>
               </span>
               {s.current ? (

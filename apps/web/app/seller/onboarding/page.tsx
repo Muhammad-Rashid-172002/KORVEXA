@@ -20,8 +20,8 @@ export default async function SellerOnboardingPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Set up your seller profile</h1>
         <p className="text-sm text-muted">
-          Finish the required steps to publish. Payout and identity steps are placeholders until payments go
-          live.
+          Complete the steps marked * to publish. Payout setup and identity verification can be finished any
+          time after you publish.
         </p>
       </div>
       <Wizard profile={profile.data} status={status.data} />

@@ -1,0 +1,64 @@
+# One "slot" of the app (web + api). Deploys start the idle slot, health-check it, switch Caddy, then stop the old slot.
+#   SLOT=blue|green IMAGE_TAG=<sha> docker compose -p glasswork-$SLOT -f docker-compose.app.yml up -d --wait
+name: glasswork-${SLOT:-blue}
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: '10m', max-file: '5' }
+
+networks:
+  edge:
+    name: glasswork_edge
+    external: true
+
+services:
+  api:
+    image: ghcr.io/${GHCR_OWNER:?}/glasswork-api:${IMAGE_TAG:?}
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      API_PORT: 4000
+      REDIS_URL: redis://redis:6379
+      TRUST_PROXY: 'true'
+      API_DOCS_ENABLED: 'false'
+      SCAN_MODE: clamav
+    networks:
+      edge:
+        aliases: ['api-${SLOT:-blue}']
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4000/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+    logging: *logging
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:?}/glasswork-web:${IMAGE_TAG:?}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      API_INTERNAL_URL: http://api:4000
+    depends_on:
+      api: { condition: service_healthy }
+    networks:
+      edge:
+        aliases: ['web-${SLOT:-blue}']
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+    logging: *logging

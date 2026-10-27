@@ -17,6 +17,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HeroVisual } from '@/components/marketing/hero-visual';
 import { Reveal } from '@/components/marketing/reveal';
+import { AiSection, FeaturedServices, ProtectionSection } from '@/components/marketing/home-sections';
 import { RoomPreview } from '@/components/marketing/room-preview';
 
 export const metadata: Metadata = {
@@ -126,7 +127,7 @@ const FAQ = [
   ],
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
   return (
     <>
       <section className="bg-hero-glow relative overflow-hidden px-4 pt-14 sm:pt-24">
@@ -183,6 +184,8 @@ export default function HomePage() {
         </ol>
       </Section>
 
+      <FeaturedServices />
+
       <Section className="bg-surface/40">
         <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.35fr]">
           <Reveal>
@@ -224,6 +227,10 @@ export default function HomePage() {
           ))}
         </div>
       </Section>
+
+      <AiSection />
+
+      <ProtectionSection />
 
       <Section className="bg-surface/40">
         <Reveal>
