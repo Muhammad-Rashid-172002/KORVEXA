@@ -3,13 +3,13 @@
 Source of truth for progress. Built from docs/BRIEF.md §12; decisions live in DECISIONS.md.
 Rule (brief §3): continue from the first unchecked item and never redo ticked work. Each ticked item records files changed, known issues and what to test manually.
 
-## ▶ RESUME HERE (updated 2026-10-11)
+## ▶ RESUME HERE (updated 2026-10-28)
 
-Phases 0–4 done and merged to `main` (Phase 1 commits were made directly on `main`; `phase/1-accounts` is a marker branch at the same commit). Phase 3 done (merged to `main`). Phase 4 done = **MVP checkpoint reached; report sent to Rashid, waiting for feedback before Phase 5**. Phase 5 done and merged to `main`. Phase 6 done. Phase 7 done and verified (2026-10-15). Phase 8 done (2026-10-16), **at its checkpoint, waiting for Rashid's feedback**. Then Phase 9, then Phase 10 (deploy only on "deploy"). All on branch `phase/7-meetings` (not yet merged to `main`).
+Phases 0–8 done. **2026-10-28: Rashid switched to FULL AUTONOMY MODE** (no checkpoints; the agent self-reviews). Work this session on branch `phase/9-hardening`: Phase 8 self-review and fixes, Phase 9 hardening, Phase 10 preparation (nothing deployed). See "Autonomy session log" at the end of this file for the exact state, then continue from the first unchecked item.
 
-- Verified 2026-10-11: `pnpm dev:up` (7 services healthy, `/ready` ok, RustFS storage smoke test ok), lint/typecheck/unit (23 turbo tasks), 77 integration tests, 26 Playwright e2e tests (desktop + mobile).
-- Remaining unverified: OAuth with real keys.
-- 2026-10-15: project moved from `~/Desktop/Glasswork` to **`~/Projects/Glasswork`** (macOS blocked Desktop; Desktop may be iCloud-synced). Work only in the new path. Phase 7 is committed (`19a68c2`, `8facba9`) and pushed on `phase/7-meetings`. **Deployment rule: do not deploy anything until Rashid says "deploy".**
+- Local stack: `pnpm dev:up && pnpm db:seed:demo` (site http://localhost:3000, accounts in the log below).
+- Disk rules: single-service rebuilds (`pnpm dev:up:web|api|worker`), `pnpm dev:clean` after full runs, `docker builder prune -af` if the Docker cache balloons (it reached 116 GB once), warn under 15 GB free.
+- **Deployment rule unchanged: nothing is deployed until Rashid says "deploy".**
 
 ## ⏳ WAITING ON RASHID
 
@@ -371,13 +371,13 @@ Scope set by Rashid on 2026-10-15: complete, realistic, premium marketplace UI; 
 
 ## Phase 9 — Hardening & launch · branch `phase/9-hardening`
 
-- [ ] Load tests (k6) on critical paths
-- [ ] OWASP Top 10 review + fixes
-- [ ] Accessibility audit (WCAG 2.2 AA)
-- [ ] Lighthouse ≥ 90 on public pages
+- [x] Load tests (k6) on critical paths: `infra/load/*.js`, results in docs/PHASE9_REPORT.md
+- [x] OWASP Top 10 review + fixes: docs/SECURITY_REVIEW.md (SSRF fix, write rate limit, 429 mapping, prod guards)
+- [x] Accessibility audit (WCAG 2.2 AA): docs/ACCESSIBILITY.md, e2e/tests/a11y.spec.ts
+- [x] Lighthouse ≥ 90 on public pages (see docs/PHASE9_REPORT.md for scores)
 - [→] Production deploy, backups, restore verification, uptime monitoring — **moved to Phase 10**
 - [x] Data export + account deletion flows (D-108; `/settings` → Your data; API tests + e2e)
-- [ ] Runbooks in docs/; launch checklist
+- [x] Runbooks in docs/ (RUNBOOKS.md); launch checklist (LAUNCH_CHECKLIST.md)
 - [ ] FINAL CHECKPOINT
 
 ## Phase 10 — Production launch (new, 2026-10-15)

@@ -48,6 +48,40 @@ export default function HowItWorksPage() {
           operations team resolves it with a release, refund or split.
         </p>
       </Block>
+      <section aria-labelledby="sellers" className="rounded-2xl border border-border bg-surface/60 p-6">
+        <h2 id="sellers" className="text-xl font-semibold tracking-tight">
+          How it works for sellers
+        </h2>
+        <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-relaxed text-muted marker:text-primary sm:text-base">
+          <li>
+            <strong className="text-fg">Set up your profile.</strong> Add skills, rates and real portfolio
+            work. Badges appear once verified.
+          </li>
+          <li>
+            <strong className="text-fg">List a service or answer requests.</strong> Offer three packages with
+            milestones, or send proposals to buyers with a milestone plan and a price.
+          </li>
+          <li>
+            <strong className="text-fg">Start when funds are in escrow.</strong> A funded milestone is your
+            signal to begin; the money is already committed.
+          </li>
+          <li>
+            <strong className="text-fg">Keep the room current.</strong> Update tasks, upload versions and
+            share previews. Progress is calculated for you and weekly reports are drafted for you to edit.
+          </li>
+          <li>
+            <strong className="text-fg">Get paid on approval.</strong> Funds are released when the buyer
+            approves or the review window passes. Earnings and fees are itemised per milestone.
+          </li>
+          <li>
+            <strong className="text-fg">Build a reputation that counts.</strong> Levels come from completed
+            work, reviews, rating and on-time delivery, with public criteria.
+          </li>
+        </ol>
+        <Button asChild variant="secondary" className="mt-5">
+          <Link href="/for-sellers">Become a seller</Link>
+        </Button>
+      </section>
       <div className="flex flex-wrap gap-3">
         <Button asChild size="lg">
           <Link href="/services">Browse services</Link>

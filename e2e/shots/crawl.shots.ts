@@ -152,12 +152,11 @@ test('crawl', async ({ browser }, info) => {
   const issues: Issue[] = [];
   const visited = new Set<string>();
   let total = 0;
-  let personaPages = 0;
 
   for (const persona of PERSONAS) {
     const { ctx, page } = await newPersonaPage(browser, baseURL, persona.email, theme);
     const queue = [...persona.seeds];
-    personaPages = 0;
+    let personaPages = 0;
     let pageUrl = '';
     const add = (kind: string, detail: string) =>
       issues.push({ persona: persona.name, url: pageUrl, kind, detail: detail.slice(0, 300) });

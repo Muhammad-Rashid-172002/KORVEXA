@@ -16,6 +16,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <div className="flex flex-wrap items-center gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">Admin</h1>
         <nav className="flex flex-wrap gap-x-4 gap-y-2 text-sm" aria-label="Admin">
+          <Link className="text-primary underline-offset-4 hover:underline" href="/admin">
+            Overview
+          </Link>
           <Link className="text-primary underline-offset-4 hover:underline" href="/admin/users">
             Users
           </Link>

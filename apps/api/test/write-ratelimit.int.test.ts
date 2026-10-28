@@ -1,17 +1,27 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { Redis } from 'ioredis';
+import { afterAll, beforeAll, describe, expect, it, inject } from 'vitest';
 import { resetEnvCache } from '../src/config/env';
 import { createTestApp, makeCaller, signUpVerified } from './helpers';
 
 describe('write rate limiting (OWASP A04/A07)', () => {
   let app: NestFastifyApplication;
+  // Counters live in the shared Redis; clear them so earlier test files in the same minute do not count against this budget.
+  const clearCounters = async () => {
+    const redis = new Redis(inject('redisUrl'));
+    const keys = await redis.keys('gw-rl:*');
+    if (keys.length) await redis.del(...keys);
+    redis.disconnect();
+  };
   beforeAll(async () => {
+    await clearCounters();
     process.env.WRITE_RATE_LIMIT_PER_MINUTE = '15';
     resetEnvCache();
     app = await createTestApp();
   });
   afterAll(async () => {
     await app.close();
+    await clearCounters();
     process.env.WRITE_RATE_LIMIT_PER_MINUTE = '10000';
     resetEnvCache();
   });

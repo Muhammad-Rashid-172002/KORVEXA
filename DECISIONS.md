@@ -426,6 +426,20 @@ Picked **RustFS** for the least setup. Trade-off: it's young (1.0 in Sept 2026).
 
 **D-108 Account deletion anonymises, it does not delete rows (Phase 9).** `POST /v1/me/delete` (email typed to confirm) sets `users.deletedAt`, rewrites email/name, and removes profile text, avatar/portfolio files, sign-in methods, sessions, 2FA, favorites, notifications and org memberships; listings are paused. Ledger, invoices, payouts, disputes and the other party's projects/messages/reviews stay (financial and dispute integrity), shown as "Deleted user". Deletion is refused while a project is live, a dispute is open, a payout is pending, a balance is unpaid, or the user is the only owner of a team with members. `GET /v1/me/export` returns the caller's data as JSON and never includes password hashes, tokens or 2FA secrets. `SessionService.resolve` treats `deletedAt` like `bannedAt`. Retention periods for the kept records are a lawyer question (D-105).
 
+**D-109 Unset owner details are hidden, never shown as TODO.** `brand.domain`, `legalAddress` and `supportEmail` are `null` until Rashid fills them in `packages/shared/src/brand.ts`; pages, emails and legal text simply omit them (contact page falls back to in-product messaging). Legal text says "will be confirmed" instead of "TODO". Sections that need social proof (featured services) render only when real data exists (three or more published services).
+
+**D-110 Help center is code, not CMS.** 16 articles live in `apps/web/lib/help-content.ts` and render at `/help/*` (statically generated, in the sitemap). They describe real behaviour and must be updated with the feature. Levels criteria in the articles are read from `SELLER_LEVELS`, so they cannot drift.
+
+**D-111 Production safety rails.** The API refuses to boot in production if: any `is_seed` row or `*.glasswork.test` account exists (`assertNoSeedData`); URLs are not https; `TRUST_PROXY` is off; API docs are on; payments, AI or video use the stub/test providers; uploads are unscanned. The worker refuses a missing `RESEND_API_KEY`, `SCAN_MODE=off` and the dev internal token. The first admins are created by `bootstrap-admin` (no seeded password; they set one through "Forgot password").
+
+**D-112 Blue/green deploys on one VPS.** Caddy stays up; `scripts/deploy.sh` starts the idle slot (`web-blue/green`, `api-blue/green`), health-checks it, rewrites `state/caddy/upstreams.caddy`, reloads Caddy (graceful), verifies through the public host, then stops the old slot. Failure before the switch leaves the live slot untouched; failure after switches back. Migrations run before the switch and must be expand/contract compatible. Rollback is the same script with the previous tag. Deploys only start from a manually triggered, environment-approved GitHub workflow.
+
+**D-113 Write rate limit per user.** POST/PUT/PATCH/DELETE are limited per session (hashed cookie) or per IP when anonymous (`WRITE_RATE_LIMIT_PER_MINUTE`, default 120; dev compose uses 2000). Reads stay per IP. Fastify plugin errors (429, 413, malformed JSON) are mapped to proper 4xx envelopes instead of 500 (they were being sent to Sentry).
+
+**D-114 Push endpoints are allow-listed (SSRF).** Web-push subscriptions are accepted only for https endpoints on FCM, Mozilla, WNS or Apple push hosts.
+
+**D-115 CSP keeps `unsafe-inline` for scripts (accepted risk).** Nonces would force dynamic rendering of every page and cost Lighthouse performance; mitigated by React escaping, no user HTML and `frame-ancestors 'none'`. Revisit when Next supports static pages with nonces.
+
 ---
 
 ## 10. Open questions for Rashid (non-blocking unless marked)
