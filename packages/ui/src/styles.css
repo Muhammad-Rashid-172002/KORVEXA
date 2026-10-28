@@ -31,12 +31,12 @@
   --gw-border: #d9e6e0;
   --gw-text: #0b1a14;
   --gw-text-muted: #4e6159;
-  --gw-primary: #087f5b;
-  --gw-primary-hover: #066b4c;
+  --gw-primary: #06704f;
+  --gw-primary-hover: #055a40;
   --gw-on-primary: #ffffff;
-  --gw-focus: #087f5b;
-  --gw-success: #087f5b;
-  --gw-warning: #a86b00;
+  --gw-focus: #06704f;
+  --gw-success: #06704f;
+  --gw-warning: #8a5800;
   --gw-danger: #c2313e;
   --gw-on-danger: #ffffff;
   --gw-info: #1f6fb2;

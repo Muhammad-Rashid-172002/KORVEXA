@@ -35,7 +35,7 @@ export function Avatar({
       {src ? <AvatarPrimitive.Image src={src} alt="" className="size-full object-cover" /> : null}
       <AvatarPrimitive.Fallback
         delayMs={src ? 300 : 0}
-        className="flex size-full items-center justify-center bg-primary/15 font-medium text-primary"
+        className="flex size-full items-center justify-center bg-primary/15 font-medium text-fg"
       >
         {initials(name)}
       </AvatarPrimitive.Fallback>

@@ -1,7 +1,8 @@
 import type { MilestoneView } from '@glasswork/shared';
 import { Badge } from '@glasswork/ui/components/badge';
 
-const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : '—');
+const day = (iso: string | null) =>
+  iso ? new Date(iso).toLocaleDateString('en-CA', { timeZone: 'UTC' }) : '—';
 
 /** Planned vs actual per milestone (brief §8.1: "milestone roadmap, planned vs actual dates"). */
 export function Timeline({ milestones }: { milestones: MilestoneView[] }) {

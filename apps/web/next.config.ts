@@ -3,6 +3,9 @@ import type { NextConfig } from 'next';
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 const uploadOrigin = process.env.NEXT_PUBLIC_UPLOAD_ORIGIN ?? 'http://localhost:9000';
 const isDev = process.env.NODE_ENV !== 'production';
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_KEY
+  ? ` ${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'}`
+  : '';
 const wsUrl = apiUrl.replace(/^http/, 'ws');
 
 /**
@@ -15,7 +18,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${uploadOrigin}`,
   "font-src 'self'",
-  `connect-src 'self' ${apiUrl} ${wsUrl} ${uploadOrigin}${isDev ? ' ws://localhost:*' : ''} https://*.ingest.sentry.io https://*.ingest.de.sentry.io`,
+  `connect-src 'self' ${apiUrl} ${wsUrl} ${uploadOrigin}${isDev ? ' ws://localhost:*' : ''} https://*.ingest.sentry.io https://*.ingest.de.sentry.io${posthogHost}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self' " + apiUrl,

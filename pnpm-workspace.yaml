@@ -19,6 +19,8 @@ allowBuilds:
   ssh2: false
   # Sentry CLI binary is only needed for source-map uploads (not configured yet).
   '@sentry/cli': false
+  # core-js (via posthog-js) only prints a funding banner in postinstall.
+  core-js: false
 
 # Peers are declared explicitly. Auto-installing them made the API's production bundle pick up the
 # web app's optional better-auth peers (next/react/playwright, +450 MB).

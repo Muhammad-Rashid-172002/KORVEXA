@@ -134,7 +134,8 @@ export function MilestonesPanel({ project: p }: { project: ProjectView }) {
                 )}
                 {m.status === 'submitted' && m.autoApproveAt && (
                   <p className="text-xs text-muted">
-                    Approved automatically on {new Date(m.autoApproveAt).toLocaleDateString()} unless the
+                    Approved automatically on{' '}
+                    {new Date(m.autoApproveAt).toLocaleDateString('en-CA', { timeZone: 'UTC' })} unless the
                     buyer responds.
                   </p>
                 )}

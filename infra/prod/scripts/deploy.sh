@@ -6,6 +6,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Local dry-run switches (never needed in production): SKIP_PULL=1 uses images already on this machine,
+# EDGE_SERVICES limits which always-on services start, CURL_OPTS=-k trusts Caddy's local CA.
 TAG="${1:?usage: deploy.sh <image-tag>}"
 ENV_FILE=".env.production"
 [ -f "$ENV_FILE" ] || { echo "✗ $ENV_FILE missing"; exit 1; }
@@ -44,10 +46,10 @@ EOF
 
 # 0. Edge services (Caddy, Redis, ClamAV) — idempotent, never restarted by a deploy.
 [ -f "$STATE/caddy/upstreams.caddy" ] || cp "$STATE/caddy/upstreams.caddy.example" "$STATE/caddy/upstreams.caddy"
-SLOT="${ACTIVE/none/blue}" docker compose -p glasswork-edge -f docker-compose.edge.yml --env-file "$ENV_FILE" up -d caddy redis clamav
+SLOT="${ACTIVE/none/blue}" docker compose -p glasswork-edge -f docker-compose.edge.yml --env-file "$ENV_FILE" up -d ${EDGE_SERVICES:-caddy redis clamav}
 
 # 1. Pull images (fails here if the tag does not exist; nothing has changed yet).
-compose_app "$NEW" pull
+[ "${SKIP_PULL:-0}" = 1 ] || compose_app "$NEW" pull
 
 # 2. Migrations with the migration role. Must be backward compatible with the live version (expand/contract).
 echo "▶ running migrations"
@@ -68,8 +70,8 @@ SLOT="$NEW" docker compose -p glasswork-edge -f docker-compose.edge.yml --env-fi
 # 5. Switch traffic, then verify through the public front door.
 write_upstream "$NEW"
 sleep 3
-if ! curl -fsS --max-time 10 --resolve "api.$DOMAIN:443:127.0.0.1" "https://api.$DOMAIN/ready" >/dev/null \
-  || ! curl -fsS --max-time 10 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" >/dev/null; then
+if ! curl -fsS ${CURL_OPTS:-} --max-time 10 --resolve "api.$DOMAIN:443:127.0.0.1" "https://api.$DOMAIN/ready" >/dev/null \
+  || ! curl -fsS ${CURL_OPTS:-} --max-time 10 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" >/dev/null; then
   echo "✗ post-switch check failed; switching back"
   [ "$ACTIVE" != none ] && write_upstream "$ACTIVE"
   compose_app "$NEW" down || true

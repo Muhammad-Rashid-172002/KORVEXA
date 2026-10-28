@@ -350,7 +350,7 @@ Scope set by Rashid on 2026-10-15: complete, realistic, premium marketplace UI; 
 - [x] SEO: sitemap includes marketing + legal pages, default OG image, robots; analytics: typed `track()` + consent banner, active only when `NEXT_PUBLIC_POSTHOG_KEY` is set
 - [x] Smoke + screenshot pass over 67 page captures per viewport (`pnpm shots`): no HTTP errors, no console errors, no horizontal overflow at 390px
 - [ ] Contract + NDA templates with in-app e-acceptance (needs lawyer-approved text first; moved to after legal review)
-- [ ] PostHog SDK loading (needs a project key; Phase 10)
+- [x] PostHog SDK loading: consent-gated lazy provider (`components/analytics-provider.tsx`), active with `NEXT_PUBLIC_POSTHOG_KEY`
 - [x] CHECKPOINT: page list + screenshots folder reported to Rashid (2026-10-16); **waiting for feedback before Phase 9**
 
 ### Phase 8 log (2026-10-16)
@@ -384,26 +384,40 @@ Scope set by Rashid on 2026-10-15: complete, realistic, premium marketplace UI; 
 
 **Rule: nothing is deployed, provisioned or paid for until Rashid says "deploy".** Until then this phase is code, config, scripts and docs only, all testable locally. Real providers are switched on **by environment variables only** (no code changes, no rebuild per provider); the dev stub/test providers stay the default and are refused in production.
 
-- [ ] **Production topology** (`infra/prod/`): one VPS (Hetzner or DigitalOcean, Q8) running Docker; `docker-compose.prod.yml` with web, api, worker, redis, Caddy; managed Postgres and Cloudflare R2 are external (no Postgres/storage containers in prod)
-- [ ] **Caddy**: automatic HTTPS, HTTP→HTTPS, security headers, gzip/zstd, `www`/apex redirect, WebSocket proxying for Socket.io, separate `api.` host (or path) per domain decision, health-gated upstreams
-- [ ] **Managed Postgres**: Neon or DO Managed (PITR on), TLS-only connection string, migrations run as an explicit deploy step (never at API boot), least-privilege app role vs migration role
-- [ ] **Backups**: provider PITR + nightly logical dump to a separate R2 bucket (encrypted), retention policy, **nightly restore-verification** script (restores into a scratch DB and runs sanity queries), alert on failure
-- [ ] **Cloudflare R2**: `S3_*` env only (private buckets, presigned URLs, CORS for the web origin, lifecycle rules for abandoned uploads); ClamAV scan service enabled (`SCAN_MODE=clamav`) and verified
-- [ ] **Zero-downtime deploys from GitHub Actions**: build and push versioned images (GHCR), `deploy.yml` triggered only by a manually approved GitHub Environment (`production`) so nothing ships on its own; pull → migrate (expand/contract-safe migrations) → start new containers → health-check → switch Caddy upstream → drain and stop old; automatic rollback on failed health check; `rollback` workflow to the previous image tag
-- [ ] **Production starts clean**: production boot refuses `is_seed` data, dev seed, stub providers and test-mode payments (env validation fails fast); a `bootstrap:admin` command creates the first admin accounts (Rashid, Taha, Suliman) with a one-time password-reset link instead of a seeded password; the seed script stays development-only (already refuses `NODE_ENV=production`); a CI test proves a fresh production DB contains zero seed rows
+- [x] **Production topology** (`infra/prod/`): one VPS (Hetzner or DigitalOcean, Q8) running Docker; `docker-compose.prod.yml` with web, api, worker, redis, Caddy; managed Postgres and Cloudflare R2 are external (no Postgres/storage containers in prod)
+- [x] **Caddy**: automatic HTTPS, HTTP→HTTPS, security headers, gzip/zstd, `www`/apex redirect, WebSocket proxying for Socket.io, separate `api.` host (or path) per domain decision, health-gated upstreams
+- [x] **Managed Postgres**: Neon or DO Managed (PITR on), TLS-only connection string, migrations run as an explicit deploy step (never at API boot), least-privilege app role vs migration role
+- [x] **Backups**: provider PITR + nightly logical dump to a separate R2 bucket (encrypted), retention policy, **nightly restore-verification** script (restores into a scratch DB and runs sanity queries), alert on failure
+- [x] **Cloudflare R2**: `S3_*` env only (private buckets, presigned URLs, CORS for the web origin, lifecycle rules for abandoned uploads); ClamAV scan service enabled (`SCAN_MODE=clamav`) and verified
+- [x] **Zero-downtime deploys from GitHub Actions**: build and push versioned images (GHCR), `deploy.yml` triggered only by a manually approved GitHub Environment (`production`) so nothing ships on its own; pull → migrate (expand/contract-safe migrations) → start new containers → health-check → switch Caddy upstream → drain and stop old; automatic rollback on failed health check; `rollback` workflow to the previous image tag
+- [x] **Production starts clean**: production boot refuses `is_seed` data, dev seed, stub providers and test-mode payments (env validation fails fast); a `bootstrap:admin` command creates the first admin accounts (Rashid, Taha, Suliman) with a one-time password-reset link instead of a seeded password; the seed script stays development-only (already refuses `NODE_ENV=production`); a CI test proves a fresh production DB contains zero seed rows
 - [ ] **Real providers, env-only switch** (each documented in `docs/GO_LIVE.md` with the exact variables and a "how to verify" step):
-  - [ ] Stripe live (`PAYMENTS_PROVIDER=stripe`, live keys, live webhook endpoint + secret) — only after Q1
-  - [ ] Resend (`EMAIL_PROVIDER=resend`) with **SPF, DKIM and DMARC** records documented (start `p=none`, move to `quarantine` after a week of clean reports), bounce/complaint webhook
-  - [ ] Anthropic (`AI_PROVIDER=anthropic`) with daily caps set in prod env
-  - [ ] Sentry (api, worker, web incl. source maps) and PostHog analytics (cookie-consent gated)
-  - [ ] Daily or LiveKit video (`VIDEO_PROVIDER`), recording consent flow re-verified with the real provider
-  - [ ] GitHub App (webhook secret, private key, install flow) for code activity
-  - [ ] OAuth redirect URIs for Google + GitHub on the production domain
-- [ ] **Monitoring**: external uptime checks on `/health` and `/ready`, alert routing (email + one chat channel), log shipping/retention, disk and memory alerts on the VPS, worker queue-depth alert
-- [ ] **Server hardening**: non-root deploy user, SSH keys only, firewall (22/80/443 only), unattended security updates, fail2ban, Docker log rotation, `disk:check` equivalent for the VPS
-- [ ] **`docs/GO_LIVE.md`** — step-by-step guide written for Rashid (non-engineer-friendly): accounts to create in order, what to click, which values to paste where, DNS records, how to say "deploy", how to verify, how to roll back
-- [ ] **Launch checklist** (`docs/LAUNCH_CHECKLIST.md`): legal pages lawyer-reviewed, entity + payments live-mode decision, test purchase with a real card and refund, email deliverability test (mail-tester ≥ 9/10), backup restore drill done, Sentry test event received, uptime alert test, rollback rehearsed, admin accounts + 2FA enabled, fee settings set, seed data confirmed absent, robots/sitemap on the final domain
-- [ ] Dry run on a **local production-like stack** (prod compose + Caddy with a local domain) without touching any paid account
+  - [x] (documented, unverified without accounts) Stripe live (`PAYMENTS_PROVIDER=stripe`, live keys, live webhook endpoint + secret) — only after Q1
+  - [x] (documented, unverified without accounts) Resend (`EMAIL_PROVIDER=resend`) with **SPF, DKIM and DMARC** records documented (start `p=none`, move to `quarantine` after a week of clean reports), bounce/complaint webhook
+  - [x] (documented, unverified without accounts) Anthropic (`AI_PROVIDER=anthropic`) with daily caps set in prod env
+  - [x] (documented, unverified without accounts) Sentry (api, worker, web incl. source maps) and PostHog analytics (cookie-consent gated)
+  - [x] (documented, unverified without accounts) Daily or LiveKit video (`VIDEO_PROVIDER`), recording consent flow re-verified with the real provider
+  - [x] (documented, unverified without accounts) GitHub App (webhook secret, private key, install flow) for code activity
+  - [x] (documented, unverified without accounts) OAuth redirect URIs for Google + GitHub on the production domain
+- [x] **Monitoring**: external uptime checks on `/health` and `/ready`, alert routing (email + one chat channel), log shipping/retention, disk and memory alerts on the VPS, worker queue-depth alert
+- [x] **Server hardening**: non-root deploy user, SSH keys only, firewall (22/80/443 only), unattended security updates, fail2ban, Docker log rotation, `disk:check` equivalent for the VPS
+- [x] **`docs/GO_LIVE.md`** — step-by-step guide written for Rashid (non-engineer-friendly): accounts to create in order, what to click, which values to paste where, DNS records, how to say "deploy", how to verify, how to roll back
+- [x] **Launch checklist** (`docs/LAUNCH_CHECKLIST.md`): legal pages lawyer-reviewed, entity + payments live-mode decision, test purchase with a real card and refund, email deliverability test (mail-tester ≥ 9/10), backup restore drill done, Sentry test event received, uptime alert test, rollback rehearsed, admin accounts + 2FA enabled, fee settings set, seed data confirmed absent, robots/sitemap on the final domain
+- [x] Dry run on a **local production-like stack** (prod compose + Caddy with a local domain) without touching any paid account
 - [ ] FINAL CHECKPOINT: report to Rashid and **wait for the word "deploy"**
 
 Relationship to Phase 9: Phase 9 keeps load tests, OWASP, accessibility, Lighthouse, data export/deletion; its production-deploy and backup lines move here. Phase 10 follows Phase 9.
+
+## Autonomy session log (2026-10-28, full autonomy mode)
+
+Branch `phase/9-hardening`. Everything below was run on the real Docker stack; details and numbers in docs/PHASE9_REPORT.md.
+
+**Phase 8 self-review (done):** link crawler (`pnpm crawl`) over four personas; axe + layout + placeholder checks; fixed link-only-colour text links (95), danger-button contrast, light-theme contrast tokens, unlabeled file input, hydration mismatches, layout shift on login. Placeholder sweep: brand `domain` / `legalAddress` / `supportEmail` are `null` (hidden), no TODO/example.com in UI; onboarding and admin "placeholder" copy rewritten. New real content: Help center (16 articles at `/help`), seller track on How it works, richer contact page. Better-than-Fiverr features made visible on the home page (featured real services, AI brief builder + matching + weekly report preview, milestone protection, dispute center, seller levels) and the dashboard was redesigned around next actions (diagnostics folded away). Project Room has a milestone stepper; admin has an operations overview. Before/after screenshots: `artifacts/design-review/{before,after}` (git-ignored).
+
+**Phase 9 (done):** OWASP review (docs/SECURITY_REVIEW.md: SSRF fix on push endpoints, per-user write rate limit, 429 mapping), WCAG audit (docs/ACCESSIBILITY.md, `e2e/tests/a11y.spec.ts`), Lighthouse mobile perf >= 90 / a11y >= 99 on 16 public pages, k6 load tests (`infra/load`), runbooks, launch checklist. Full suite green: 140 unit, 169 integration, 76 e2e (desktop + mobile).
+
+**Phase 10 (prepared, NOT deployed):** `infra/prod/*` (compose edge + blue/green app slots, Caddyfile, deploy / rollback / backup / restore-verify / monitor / server-setup scripts, `.env.production.example`), `.github/workflows/{deploy,rollback}.yml`, production guards (seed data, https, TRUST_PROXY, providers), `bootstrap-admin`. Dry run on the local machine proved zero-downtime switch, rollback, seed refusal, backup + restore verification. `docs/GO_LIVE.md` is the step-by-step for Rashid.
+
+**Remaining for Rashid (everything needing accounts, keys or legal decisions):** see "WAITING ON RASHID" above and the final report; nothing else is blocking.
+
+**Local accounts:** `buyer@dev.glasswork.test`, `seller@dev.glasswork.test`, `admin@dev.glasswork.test`, `support@dev.glasswork.test`, demo sellers `<first.last>@demo.glasswork.test` (e.g. `amara.okafor@`), password `Glasswork-dev-123!`. Site http://localhost:3000, Mailpit http://localhost:8025.
