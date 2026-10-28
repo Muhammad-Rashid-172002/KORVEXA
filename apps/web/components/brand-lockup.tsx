@@ -8,7 +8,6 @@ export function BrandLockup() {
     <Link
       href="/"
       className="flex min-w-0 items-center gap-2 whitespace-nowrap font-semibold tracking-tight text-fg"
-      aria-label={brand.lockup}
     >
       <ProductMark />
       <span className="flex items-baseline gap-1.5">

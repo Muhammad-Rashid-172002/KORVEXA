@@ -18,9 +18,21 @@ const CODE_BY_STATUS: Record<number, string> = {
   403: ERROR_CODES.forbidden,
   404: ERROR_CODES.notFound,
   409: ERROR_CODES.conflict,
+  413: ERROR_CODES.validation,
   429: ERROR_CODES.rateLimited,
   503: 'service_unavailable',
 };
+
+function isFastifyClientError(e: unknown): e is { statusCode: number; message: string } {
+  if (typeof e !== 'object' || e === null) return false;
+  const code = (e as { statusCode?: unknown }).statusCode;
+  return (
+    typeof code === 'number' &&
+    code >= 400 &&
+    code < 500 &&
+    typeof (e as { message?: unknown }).message === 'string'
+  );
+}
 
 /** Maps every error to the standard envelope `{ error: { code, message, details?, requestId } }` (D-015). */
 @Catch()
@@ -52,6 +64,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const res = exception.getResponse();
       message = typeof res === 'string' ? res : ((res as { message?: string }).message ?? exception.message);
       if (Array.isArray(message)) message = message.join('; ');
+    } else if (isFastifyClientError(exception)) {
+      // Errors raised by Fastify plugins (rate limit 429, body too large 413, malformed JSON 400, ...): client errors,
+      // not server faults, so they are neither logged as errors nor sent to Sentry.
+      status = exception.statusCode;
+      message =
+        status === 429 ? 'Too many requests. Please slow down and try again shortly.' : exception.message;
     } else {
       this.logger.error(exception);
       Sentry.captureException(exception);

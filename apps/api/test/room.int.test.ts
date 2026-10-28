@@ -521,13 +521,22 @@ describe('Phase 4: Live Project Room API', () => {
 
     it('push subscriptions: registered per user, moved on re-register, removed on request; disabled without VAPID keys', async () => {
       const sub = {
-        endpoint: 'https://push.example.com/send/abc123',
+        endpoint: 'https://fcm.googleapis.com/fcm/send/abc123',
         keys: { p256dh: 'BPublicKeyBPublicKeyBPublicKey', auth: 'authsecret1' },
       };
       expect((await call(null, 'POST', '/me/push-subscriptions', sub)).statusCode).toBe(401);
       expect(
         (await call(buyer, 'POST', '/me/push-subscriptions', { ...sub, endpoint: 'not-a-url' })).statusCode,
       ).toBe(400);
+      // SSRF guard: only real browser push services are accepted, never internal or arbitrary hosts
+      for (const endpoint of [
+        'https://169.254.169.254/x',
+        'https://push.example.com/x',
+        'http://fcm.googleapis.com/x',
+      ])
+        expect((await call(buyer, 'POST', '/me/push-subscriptions', { ...sub, endpoint })).statusCode).toBe(
+          400,
+        );
       expect((await call(buyer, 'POST', '/me/push-subscriptions', sub)).statusCode).toBe(201);
       expect((await call(seller, 'POST', '/me/push-subscriptions', sub)).statusCode).toBe(201); // same browser, new user
       const key = json<{ enabled: boolean; publicKey: string | null }>(

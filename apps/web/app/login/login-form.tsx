@@ -2,7 +2,7 @@
 import { Alert } from '@glasswork/ui/components/alert';
 import { Button } from '@glasswork/ui/components/button';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { AuthCard } from '@/components/auth-card';
 import { Field } from '@/components/field';
@@ -11,13 +11,20 @@ import { authClient } from '@/lib/auth-client';
 import { WEB_URL } from '@/lib/config';
 import { safeNext } from '@/lib/safe-next';
 
-export function LoginForm() {
+export function LoginForm({
+  hasError = false,
+  nextParam = null,
+  reset = false,
+  providers,
+}: {
+  hasError?: boolean;
+  nextParam?: string | null;
+  reset?: boolean;
+  providers?: { google: boolean; github: boolean };
+}) {
   const router = useRouter();
-  const params = useSearchParams();
-  const [error, setError] = useState<string | null>(
-    params.get('error') ? 'Sign-in with that provider failed.' : null,
-  );
-  const next = safeNext(params.get('next'));
+  const [error, setError] = useState<string | null>(hasError ? 'Sign-in with that provider failed.' : null);
+  const next = safeNext(nextParam);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -56,13 +63,11 @@ export function LoginForm() {
 
   return (
     <AuthCard title="Log in">
-      <OAuthButtons />
+      <OAuthButtons initial={providers} />
       <form className="flex flex-col gap-4" method="post" onSubmit={onSubmit}>
         <Field id="email" label="Email" type="email" autoComplete="email" required />
         <Field id="password" label="Password" type="password" autoComplete="current-password" required />
-        {params.get('reset') && (
-          <Alert tone="success">Password updated. Log in with your new password.</Alert>
-        )}
+        {reset && <Alert tone="success">Password updated. Log in with your new password.</Alert>}
         {error && <Alert tone="danger">{error}</Alert>}
         {unverifiedEmail && (
           <Alert tone="warning">

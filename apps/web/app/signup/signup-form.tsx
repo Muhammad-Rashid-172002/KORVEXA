@@ -11,7 +11,7 @@ import { OAuthButtons } from '@/components/oauth-buttons';
 import { authClient } from '@/lib/auth-client';
 import { WEB_URL } from '@/lib/config';
 
-export function SignupForm() {
+export function SignupForm({ providers }: { providers?: { google: boolean; github: boolean } }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -41,7 +41,7 @@ export function SignupForm() {
       title="Create your account"
       subtitle={`Join ${brand.productName} to hire or offer software work.`}
     >
-      <OAuthButtons />
+      <OAuthButtons initial={providers} />
       <form className="flex flex-col gap-4" method="post" onSubmit={onSubmit}>
         <Field id="name" label="Full name" autoComplete="name" required maxLength={100} />
         <Field id="email" label="Email" type="email" autoComplete="email" required />

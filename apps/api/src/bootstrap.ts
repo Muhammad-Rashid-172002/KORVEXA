@@ -3,6 +3,7 @@ import rateLimit from '@fastify/rate-limit';
 import { RequestMethod } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { createHash } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 import type { Redis } from 'ioredis';
 import { Logger } from 'nestjs-pino';
@@ -61,7 +62,19 @@ export async function createApp(
   });
   await app.register(rateLimit, {
     global: true,
-    max: env.RATE_LIMIT_PER_MINUTE,
+    // Reads: per client IP. Writes (POST/PUT/PATCH/DELETE): a tighter budget, per signed-in user when there is a session
+    // cookie (so shared office/NAT addresses are not punished and one abusive account is capped), else per IP.
+    max: (req) =>
+      req.method === 'GET' || req.method === 'HEAD'
+        ? env.RATE_LIMIT_PER_MINUTE
+        : env.WRITE_RATE_LIMIT_PER_MINUTE,
+    keyGenerator: (req) => {
+      const write = req.method !== 'GET' && req.method !== 'HEAD';
+      const cookie = /(?:^|;\s*)(?:__Secure-)?gw\.session_token=([^;]+)/.exec(req.headers.cookie ?? '')?.[1];
+      const who =
+        write && cookie ? `u:${createHash('sha256').update(cookie).digest('hex').slice(0, 24)}` : req.ip;
+      return `${write ? 'w' : 'r'}:${who}`;
+    },
     timeWindow: '1 minute',
     redis: app.get<Redis>(REDIS),
     nameSpace: 'gw-rl:',

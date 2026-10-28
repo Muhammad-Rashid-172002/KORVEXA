@@ -51,6 +51,8 @@ const apiEnvObject = z.object({
   S3_FORCE_PATH_STYLE: bool(true),
   S3_AUTO_CREATE_BUCKET: bool(false),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(300),
+  /** Budget for POST/PUT/PATCH/DELETE per user (or per IP when anonymous) per minute. */
+  WRITE_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(120),
   API_DOCS_ENABLED: bool(false),
   /** 'test' = built-in simulated provider (local dev/CI, no network); 'stripe' = Stripe (test keys until Q1 is answered). */
   PAYMENTS_PROVIDER: z.enum(['test', 'stripe']).default('test'),

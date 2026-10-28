@@ -335,8 +335,27 @@ export const notificationPrefsSchema = z.object({
     .max(50),
 });
 
+/**
+ * The server POSTs to a subscription's endpoint, so it must be one of the browser vendors' push services; otherwise a
+ * user could make the API call arbitrary internal URLs (SSRF, OWASP A10).
+ */
+export const PUSH_ENDPOINT_HOSTS = [
+  /(^|\.)googleapis\.com$/, // Chrome / Edge / Opera (FCM)
+  /(^|\.)push\.services\.mozilla\.com$/, // Firefox
+  /(^|\.)notify\.windows\.com$/, // legacy Edge (WNS)
+  /(^|\.)push\.apple\.com$/, // Safari
+];
+export const isAllowedPushEndpoint = (endpoint: string): boolean => {
+  try {
+    const u = new URL(endpoint);
+    return u.protocol === 'https:' && !u.port && PUSH_ENDPOINT_HOSTS.some((re) => re.test(u.hostname));
+  } catch {
+    return false;
+  }
+};
+
 export const pushSubscriptionSchema = z.object({
-  endpoint: z.url().max(1000),
+  endpoint: z.url().max(1000).refine(isAllowedPushEndpoint, 'Not a supported browser push service'),
   keys: z.object({ p256dh: z.string().min(10).max(300), auth: z.string().min(6).max(100) }),
 });
 

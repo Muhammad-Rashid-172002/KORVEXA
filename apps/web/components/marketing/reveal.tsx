@@ -1,8 +1,10 @@
 'use client';
-import { motion, useReducedMotion } from 'motion/react';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
-/** Fade-up on scroll. Renders plain content under prefers-reduced-motion. */
+/**
+ * Fade-up on scroll without an animation library. Content is visible in the server HTML; only elements that start
+ * below the fold are hidden on mount and revealed when they scroll into view. Skipped under prefers-reduced-motion.
+ */
 export function Reveal({
   children,
   delay = 0,
@@ -12,17 +14,28 @@ export function Reveal({
   delay?: number;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
-  if (reduce) return <div className={className}>{children}</div>;
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (el.getBoundingClientRect().top < window.innerHeight) return; // already on screen
+    el.dataset.reveal = 'pending';
+    el.style.transitionDelay = `${delay}s`;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          el.dataset.reveal = 'done';
+          io.disconnect();
+        }
+      },
+      { rootMargin: '0px 0px -60px 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [delay]);
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.5, delay, ease: 'easeOut' }}
-    >
+    <div ref={ref} className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }

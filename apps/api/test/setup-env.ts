@@ -17,4 +17,5 @@ Object.assign(process.env, {
   S3_AUTO_CREATE_BUCKET: 'false',
   API_DOCS_ENABLED: 'false',
   RATE_LIMIT_PER_MINUTE: '10000',
+  WRITE_RATE_LIMIT_PER_MINUTE: process.env.WRITE_RATE_LIMIT_PER_MINUTE ?? '10000',
 });

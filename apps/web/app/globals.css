@@ -1,3 +1,14 @@
 @import 'tailwindcss';
 @import '@glasswork/ui/styles.css';
 @source '../../../packages/ui/src';
+
+/* Scroll reveal (see components/marketing/reveal.tsx) */
+[data-reveal] {
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s ease-out;
+}
+[data-reveal='pending'] {
+  opacity: 0;
+  transform: translateY(16px);
+}

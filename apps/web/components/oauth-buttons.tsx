@@ -8,14 +8,15 @@ import { WEB_URL } from '@/lib/config';
 type Providers = { google: boolean; github: boolean };
 
 /** Google/GitHub buttons — rendered only when the API reports the provider keys are configured. */
-export function OAuthButtons() {
-  const [providers, setProviders] = useState<Providers | null>(null);
+export function OAuthButtons({ initial }: { initial?: Providers | null }) {
+  const [providers, setProviders] = useState<Providers | null>(initial ?? null);
   useEffect(() => {
+    if (initial !== undefined) return; // resolved on the server: no client fetch, no layout shift
     api
       .GET('/v1/config/public')
       .then(({ data }) => setProviders(data?.oauth ?? null))
       .catch(() => setProviders(null));
-  }, []);
+  }, [initial]);
   if (!providers || (!providers.google && !providers.github)) return null;
 
   const signIn = (provider: 'google' | 'github') =>

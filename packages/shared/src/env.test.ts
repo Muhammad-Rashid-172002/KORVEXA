@@ -59,8 +59,18 @@ describe('payment safety rails in the env schema', () => {
         AI_PROVIDER: 'off',
         VIDEO_PROVIDER: 'off',
         GITHUB_WEBHOOK_SECRET: 'a-real-random-webhook-secret-value',
+        WEB_URL: 'https://example.org',
+        API_PUBLIC_URL: 'https://api.example.org',
+        TRUST_PROXY: 'true',
       }).success,
     ).toBe(true);
+  });
+
+  it('production also needs https URLs, a trusted proxy and no public API docs', () => {
+    const m = messages({ NODE_ENV: 'production', API_DOCS_ENABLED: 'true' }).join();
+    expect(m).toMatch(/must be https/);
+    expect(m).toMatch(/TRUST_PROXY=true is required/);
+    expect(m).toMatch(/API docs must be disabled/);
   });
 
   it('AI: the offline stub is refused in production and the anthropic provider needs its key', () => {
