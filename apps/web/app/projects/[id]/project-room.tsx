@@ -123,6 +123,28 @@ function Inner({
             style={{ width: `${p.progress}%` }}
           />
         </div>
+        <ol className="grid gap-2 sm:grid-flow-col sm:auto-cols-fr" aria-label="Milestone steps">
+          {p.milestones.map((m) => {
+            const done = ['approved', 'released'].includes(m.status);
+            const active = ['in_progress', 'submitted', 'revision_requested', 'funded'].includes(m.status);
+            return (
+              <li
+                key={m.id}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${done ? 'border-primary/40 bg-primary/10' : active ? 'border-primary/60' : 'border-border'}`}
+              >
+                <span
+                  aria-hidden
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${done ? 'bg-primary text-on-primary' : active ? 'border border-primary text-primary' : 'border border-border text-muted'}`}
+                >
+                  {done ? '✓' : m.position}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{m.title}</span>
+                <span className="sr-only">{done ? 'done' : active ? 'in progress' : 'not started'}</span>
+                <span className="tabular-nums text-muted">{money(m.amount, p.currency)}</span>
+              </li>
+            );
+          })}
+        </ol>
         <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <div>
             <dt className="text-xs text-muted">Project total</dt>

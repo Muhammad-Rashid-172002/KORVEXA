@@ -73,7 +73,7 @@ export function SecurityPanel({
           {sessions.map((s) => (
             <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
               <span className="min-w-0">
-                <span className="block truncate">{s.userAgent ?? 'Unknown device'}</span>
+                <span className="block truncate">{describeDevice(s.userAgent)}</span>
                 <span className="text-xs text-muted">
                   {s.ipAddress ?? 'unknown IP'} · since{' '}
                   <time suppressHydrationWarning>{new Date(s.createdAt).toLocaleString()}</time>
@@ -154,4 +154,30 @@ export function SecurityPanel({
       </section>
     </Card>
   );
+}
+
+/** "Chrome on Windows" instead of a 150-character user-agent string. */
+function describeDevice(ua: string | null | undefined): string {
+  if (!ua) return 'Unknown device';
+  const browser = /Edg\//.test(ua)
+    ? 'Edge'
+    : /Firefox\//.test(ua)
+      ? 'Firefox'
+      : /Chrome\//.test(ua)
+        ? 'Chrome'
+        : /Safari\//.test(ua)
+          ? 'Safari'
+          : 'Browser';
+  const os = /Windows/.test(ua)
+    ? 'Windows'
+    : /Android/.test(ua)
+      ? 'Android'
+      : /iPhone|iPad/.test(ua)
+        ? 'iOS'
+        : /Mac OS X/.test(ua)
+          ? 'macOS'
+          : /Linux/.test(ua)
+            ? 'Linux'
+            : 'unknown system';
+  return `${browser} on ${os}`;
 }

@@ -28,3 +28,9 @@ screenshots/
 
 # Local Claude Code settings (per machine, never commit)
 .claude/settings.local.json
+
+# Production runtime state/secrets (never commit)
+infra/prod/.env.production
+infra/prod/state/*
+!infra/prod/state/caddy/
+infra/prod/state/caddy/upstreams.caddy

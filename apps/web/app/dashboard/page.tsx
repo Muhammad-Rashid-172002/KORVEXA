@@ -4,7 +4,16 @@ import { Card, CardDescription, CardTitle } from '@glasswork/ui/components/card'
 import { EmptyState } from '@glasswork/ui/components/empty-state';
 import { Progress } from '@glasswork/ui/components/progress';
 import { Stat } from '@glasswork/ui/components/stat';
-import { FolderKanban } from 'lucide-react';
+import {
+  BarChart3,
+  Briefcase,
+  FolderKanban,
+  Inbox,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Wand2,
+} from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -29,12 +38,80 @@ export default async function DashboardPage() {
   const open = all.filter((p) => !['completed', 'reviewed', 'cancelled'].includes(p.status));
   const done = all.filter((p) => ['completed', 'reviewed'].includes(p.status));
 
+  const isSeller = me.roles.includes('seller');
+  const actions = isSeller
+    ? [
+        {
+          href: '/sell/services',
+          icon: Briefcase,
+          title: 'Your services',
+          body: 'Edit packages, pricing and your gallery.',
+        },
+        {
+          href: '/requests',
+          icon: Inbox,
+          title: 'Open requests',
+          body: 'Send proposals to buyers who need your skills.',
+        },
+        {
+          href: '/seller/analytics',
+          icon: BarChart3,
+          title: 'Analytics',
+          body: 'Conversion, response time and on-time delivery.',
+        },
+        {
+          href: '/seller/verification',
+          icon: ShieldCheck,
+          title: 'Trust and level',
+          body: 'Badges and what is left for your next level.',
+        },
+      ]
+    : [
+        {
+          href: '/requests/new/ai',
+          icon: Sparkles,
+          title: 'AI brief builder',
+          body: 'Turn an idea into a structured brief with milestones.',
+        },
+        {
+          href: '/match',
+          icon: Wand2,
+          title: 'Find a match',
+          body: 'Sellers ranked for your project, with reasons.',
+        },
+        {
+          href: '/services',
+          icon: Search,
+          title: 'Browse services',
+          body: 'Ready-made packages with fixed milestones.',
+        },
+        {
+          href: '/requests/new',
+          icon: Briefcase,
+          title: 'Post a request',
+          body: 'Let sellers send you proposals.',
+        },
+      ];
+  const shortcuts = [
+    { href: '/messages', label: 'Messages' },
+    { href: '/requests/mine', label: 'My requests' },
+    { href: '/billing', label: 'Billing' },
+    { href: '/favorites', label: 'Favorites' },
+    { href: '/orgs', label: 'Teams' },
+    ...(isSeller ? [{ href: '/earnings', label: 'Earnings' }] : []),
+    { href: '/settings', label: 'Settings' },
+    ...(me.roles.includes('admin') ? [{ href: '/admin', label: 'Admin' }] : []),
+  ];
+
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Welcome, {me.displayName ?? me.name}</h1>
-          <p className="text-sm text-muted">{me.email}</p>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+            {me.email}
+            {me.emailVerified && <Badge className="border-primary/40 text-primary">email verified</Badge>}
+          </p>
         </div>
         <SignOutButton />
       </div>
@@ -100,88 +177,51 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      <Card className="flex flex-col gap-3">
-        <CardTitle>Your account</CardTitle>
-        <div className="flex flex-wrap gap-2" aria-label="Account roles">
-          {me.roles.map((r) => (
-            <Badge key={r}>{r}</Badge>
+      <section aria-labelledby="next-steps" className="flex flex-col gap-3">
+        <h2 id="next-steps" className="text-lg font-semibold">
+          {isSeller ? 'Grow your business' : 'Start something new'}
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {actions.map((a) => (
+            <li key={a.href}>
+              <Link href={a.href} className="no-underline block h-full">
+                <Card className="card-lift flex h-full flex-col gap-2 p-4">
+                  <a.icon size={20} className="text-primary" aria-hidden />
+                  <p className="font-medium">{a.title}</p>
+                  <p className="text-xs text-muted">{a.body}</p>
+                </Card>
+              </Link>
+            </li>
           ))}
-          <Badge>mode: {me.activeMode}</Badge>
-          {me.emailVerified && <Badge className="border-primary/40 text-primary">email verified</Badge>}
+        </ul>
+      </section>
+
+      <nav
+        aria-label="Account shortcuts"
+        className="flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4 text-sm"
+      >
+        {shortcuts.map((l) => (
+          <Link key={l.href} className="text-muted no-underline hover:text-primary" href={l.href}>
+            {l.label}
+          </Link>
+        ))}
+      </nav>
+
+      <details className="group rounded-xl border border-border bg-surface/60 px-4 py-3 text-sm">
+        <summary className="cursor-pointer select-none font-medium">Connection and private files</summary>
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
+          <div className="flex flex-col gap-3">
+            <CardTitle>Live updates</CardTitle>
+            <CardDescription>Whether your browser is receiving real-time updates.</CardDescription>
+            <RealtimeStatus />
+          </div>
+          <div className="flex flex-col gap-3">
+            <CardTitle>Your private files</CardTitle>
+            <CardDescription>Files only you can see. Uploads go straight to secure storage.</CardDescription>
+            <FileUploader />
+          </div>
         </div>
-      </Card>
-
-      <Card className="flex flex-wrap gap-4 text-sm" aria-label="Quick links">
-        <Link className="text-primary underline-offset-4 hover:underline" href="/settings">
-          Settings
-        </Link>
-        <Link className="text-primary underline-offset-4 hover:underline" href="/projects">
-          Projects
-        </Link>
-        <Link className="text-primary underline-offset-4 hover:underline" href="/messages">
-          Messages
-        </Link>
-        <Link className="text-primary underline-offset-4 hover:underline" href="/requests">
-          Requests
-        </Link>
-        <Link className="text-primary underline-offset-4 hover:underline" href="/billing">
-          Billing
-        </Link>
-        <Link className="text-primary underline-offset-4 hover:underline" href="/favorites">
-          Favorites
-        </Link>
-        <Link className="text-primary underline-offset-4 hover:underline" href="/orgs">
-          Organizations
-        </Link>
-        {me.roles.includes('seller') && (
-          <Link className="text-primary underline-offset-4 hover:underline" href="/seller/onboarding">
-            Seller setup
-          </Link>
-        )}
-        {me.roles.includes('seller') && (
-          <Link className="text-primary underline-offset-4 hover:underline" href="/seller/verification">
-            Trust &amp; verification
-          </Link>
-        )}
-        {me.roles.includes('seller') && (
-          <Link className="text-primary underline-offset-4 hover:underline" href="/seller/analytics">
-            Analytics
-          </Link>
-        )}
-        <Link className="text-primary underline-offset-4 hover:underline" href="/match">
-          Find sellers (AI match)
-        </Link>
-        {me.roles.includes('seller') && (
-          <Link className="text-primary underline-offset-4 hover:underline" href="/earnings">
-            Earnings
-          </Link>
-        )}
-        {me.roles.includes('seller') && (
-          <Link className="text-primary underline-offset-4 hover:underline" href="/sell/services">
-            My services
-          </Link>
-        )}
-        {me.roles.includes('admin') && (
-          <Link className="text-primary underline-offset-4 hover:underline" href="/admin">
-            Admin
-          </Link>
-        )}
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="flex flex-col gap-3">
-          <CardTitle>Realtime</CardTitle>
-          <CardDescription>Authenticated Socket.io connection to the API.</CardDescription>
-          <RealtimeStatus />
-        </Card>
-        <Card className="flex flex-col gap-3">
-          <CardTitle>Files</CardTitle>
-          <CardDescription>
-            Direct-to-storage upload with a presigned URL. Only you can see your files.
-          </CardDescription>
-          <FileUploader />
-        </Card>
-      </div>
+      </details>
     </div>
   );
 }

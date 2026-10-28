@@ -3,7 +3,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { API_URL, WEB_ORIGIN, apiCall, idemKey, SEED_PASSWORD } from '../tests/helpers';
 
-const OUT = path.resolve(__dirname, '../../artifacts/screenshots/phase8');
+const OUT = process.env.SHOTS_OUT
+  ? path.resolve(process.env.SHOTS_OUT)
+  : path.resolve(__dirname, '../../artifacts/screenshots/phase8');
 const DEMO_SELLER = 'amara.okafor@demo.glasswork.test';
 const DEMO_SERVICE = 'demo-nextjs-saas-mvp';
 

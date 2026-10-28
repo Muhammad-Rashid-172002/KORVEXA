@@ -50,6 +50,7 @@ test.describe('Phase 0 foundation', () => {
     await expect(page.getByText('email verified')).toBeVisible();
 
     // 5. Authenticated websocket
+    await page.getByText('Connection and private files').click();
     const status = page.getByTestId('realtime-status');
     await expect(status).toHaveAttribute('data-status', 'connected');
     await page.getByRole('button', { name: 'Ping' }).click();

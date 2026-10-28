@@ -1,0 +1,34 @@
+name: Rollback (production)
+
+# Switches traffic back to the previous release (or a tag you name) without downtime.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to roll back to (empty = previous release)'
+        required: false
+        default: ''
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    steps:
+      - name: Roll back
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_deploy "deploy@${{ secrets.DEPLOY_HOST }}" \
+            "echo '${{ github.token }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin && cd /opt/glasswork/infra/prod && ./scripts/rollback.sh ${{ inputs.tag }}"

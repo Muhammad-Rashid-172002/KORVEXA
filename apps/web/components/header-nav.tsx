@@ -1,10 +1,13 @@
 'use client';
 import { Button } from '@glasswork/ui/components/button';
 import { LayoutDashboard, Search } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
 import { PaletteButton } from './command-palette';
-import { NotificationBell } from './notification-bell';
+const NotificationBell = dynamic(() => import('./notification-bell').then((m) => m.NotificationBell), {
+  ssr: false,
+});
 import { ThemeToggle } from './theme-toggle';
 
 /** Session-aware navigation. Authorisation is still enforced server-side; this only picks which links to show. */
