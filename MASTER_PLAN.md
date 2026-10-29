@@ -425,7 +425,7 @@ Trigger: Rashid's honest feedback after using the site: (1) a first-time visitor
 
 ### Phase 11 log (2026-10-29)
 
-**Verified on the real Docker stack:** lint/typecheck/unit, API integration (onboarding, gig helper, tags, moderation queue + notification), Playwright desktop + mobile: new `ux.spec.ts` (visitor reaches a gig in 2-3 clicks, new seller publishes a complete gig with an image, new buyer + project summary), `gig-review.spec.ts`, plus the full existing suite (updated for the welcome step, the new gig card text and the wizard). Screenshots: `artifacts/ux-overhaul/{before,after}`.
+**Verified on the real Docker stack:** lint/typecheck/unit, API integration (onboarding, gig helper, tags, moderation queue + notification), Playwright desktop + mobile: new `ux.spec.ts` (visitor reaches a gig in 2-3 clicks, new seller publishes a complete gig with an image, new buyer + project summary), `gig-review.spec.ts`, plus the full existing suite (updated for the welcome step, the new gig card text and the wizard): 88 e2e passing (desktop + mobile), 173 API integration, 106+ shared unit tests. Screenshots: `artifacts/ux-overhaul/{before,after}`.
 
 **Found by the tests and fixed:** the room tour never opened (undefined treated as done); sub-categories already existed from migration 0011 (my duplicate migration rows removed); comparison table needed a focusable scroll region (axe); auto-cover illustration stretched because a nested SVG needs a fixed size; wizard autosave race (duplicate drafts).
 
