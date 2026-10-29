@@ -427,6 +427,8 @@ Trigger: Rashid's honest feedback after using the site: (1) a first-time visitor
 
 **Verified on the real Docker stack:** lint/typecheck/unit, API integration (onboarding, gig helper, tags, moderation queue + notification), Playwright desktop + mobile: new `ux.spec.ts` (visitor reaches a gig in 2-3 clicks, new seller publishes a complete gig with an image, new buyer + project summary), `gig-review.spec.ts`, plus the full existing suite (updated for the welcome step, the new gig card text and the wizard): 88 e2e passing (desktop + mobile), 173 API integration, 106+ shared unit tests. Screenshots: `artifacts/ux-overhaul/{before,after}`.
 
+**Final full run (2026-10-29):** 88/88 e2e, 173/173 integration, 23/23 lint/typecheck/unit tasks. No failures to re-run; after-screenshots in `artifacts/ux-overhaul/after` come from that run.
+
 **Found by the tests and fixed:** the room tour never opened (undefined treated as done); sub-categories already existed from migration 0011 (my duplicate migration rows removed); comparison table needed a focusable scroll region (axe); auto-cover illustration stretched because a nested SVG needs a fixed size; wizard autosave race (duplicate drafts).
 
 **Lighthouse (mobile, this Mac under load):** accessibility 99-100 on all 16 pages; performance on the home page 89-96 and the gig page 74-93 across repeated runs (the machine was busy; baseline from Phase 9 was 90 and 92). Re-run `node e2e/scripts/lighthouse.mjs` on a quiet machine before launch.
