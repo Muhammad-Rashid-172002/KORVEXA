@@ -43,9 +43,12 @@ export default async function MyServicesPage({
         </Button>
       </div>
       {submitted && (
-        <Alert tone="success">
-          Thank you! Your service was sent to our team. We will check it and let you know, usually within a
-          day.
+        <Alert tone="success" data-testid="submitted-banner">
+          <p className="font-medium">Submitted for review</p>
+          <p className="text-sm">
+            Thank you! Our team will check your service and let you know, usually within a day. You can
+            preview it below while you wait.
+          </p>
         </Alert>
       )}
       {res.data.length === 0 ? (
