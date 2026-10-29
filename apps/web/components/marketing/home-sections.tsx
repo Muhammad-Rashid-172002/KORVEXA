@@ -10,10 +10,10 @@ import { Reveal } from './reveal';
 
 /** Real listings only. Renders nothing until at least three published services exist. */
 export async function FeaturedServices() {
-  const { data } = await publicGw<ServicePageView>('/services?limit=6&sort=rating');
+  const { data } = await publicGw<ServicePageView>('/services?limit=3&sort=rating');
   if (!data || data.items.length < 3) return null;
   return (
-    <Section>
+    <Section className="[content-visibility:auto] [contain-intrinsic-size:auto_520px]">
       <Reveal>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -30,7 +30,7 @@ export async function FeaturedServices() {
         </div>
       </Reveal>
       <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {data.items.slice(0, 6).map((s) => (
+        {data.items.slice(0, 3).map((s) => (
           <li key={s.id}>
             <ServiceCard s={s} showFavorite={false} />
           </li>
