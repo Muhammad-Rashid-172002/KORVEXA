@@ -151,7 +151,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <Section id="how-it-works" className="[content-visibility:auto] [contain-intrinsic-size:auto_720px]">
+      <Section id="how-it-works">
         <Reveal>
           <p className="text-xs font-medium uppercase tracking-wider text-primary">
             How {brand.productName} works
@@ -190,7 +190,7 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section className="bg-surface/40 [content-visibility:auto] [contain-intrinsic-size:auto_720px]">
+      <Section className="bg-surface/40">
         <Reveal>
           <p className="text-xs font-medium uppercase tracking-wider text-primary">Popular categories</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What do you need built?</h2>
@@ -233,7 +233,7 @@ export default async function HomePage() {
 
       <FeaturedServices />
 
-      <Section className="[content-visibility:auto] [contain-intrinsic-size:auto_720px]">
+      <Section>
         <Reveal>
           <p className="text-xs font-medium uppercase tracking-wider text-primary">Why {brand.productName}</p>
           <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -293,7 +293,7 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section className="bg-surface/40 [content-visibility:auto] [contain-intrinsic-size:auto_720px]">
+      <Section className="bg-surface/40">
         <div className="glass bg-hero-glow relative overflow-hidden rounded-3xl px-6 py-12 sm:px-12">
           <div className="grid items-center gap-8 md:grid-cols-[1.4fr_1fr]">
             <Reveal>
@@ -316,7 +316,7 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section id="faq" className="[content-visibility:auto] [contain-intrinsic-size:auto_720px]">
+      <Section id="faq">
         <h2 className="text-3xl font-semibold tracking-tight">Questions, answered plainly</h2>
         <div className="mt-8 divide-y divide-border rounded-xl border border-border bg-surface">
           {FAQ.map(([q, a]) => (

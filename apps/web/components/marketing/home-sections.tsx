@@ -13,7 +13,7 @@ export async function FeaturedServices() {
   const { data } = await publicGw<ServicePageView>('/services?limit=3&sort=rating');
   if (!data || data.items.length < 3) return null;
   return (
-    <Section className="[content-visibility:auto] [contain-intrinsic-size:auto_520px]">
+    <Section>
       <Reveal>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
