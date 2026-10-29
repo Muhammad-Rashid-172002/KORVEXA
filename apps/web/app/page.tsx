@@ -251,7 +251,12 @@ export default async function HomePage() {
             </Reveal>
           ))}
         </div>
-        <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
+        <div
+          className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface"
+          role="region"
+          aria-label="Comparison table"
+          tabIndex={0}
+        >
           <table className="w-full min-w-[34rem] text-left text-sm">
             <caption className="sr-only">{brand.productName} compared with a regular freelance site</caption>
             <thead>

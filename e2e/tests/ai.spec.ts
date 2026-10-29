@@ -113,7 +113,7 @@ test.describe('Phase 6 AI (offline stub provider)', () => {
     await apiCall(page, 'POST', `/milestones/${room.milestones[0]!.id}/submit`, { note: 'Kickoff done' });
 
     await buyer.goto(`/projects/${projectId}?tab=reports`);
-    await expect(buyer.getByText('No reports have been sent yet.')).toBeVisible();
+    await expect(buyer.getByText('No progress reports yet')).toBeVisible();
     await expect(buyer.getByRole('button', { name: 'Write a report' })).toHaveCount(0);
 
     await page.goto(`/projects/${projectId}?tab=reports`);

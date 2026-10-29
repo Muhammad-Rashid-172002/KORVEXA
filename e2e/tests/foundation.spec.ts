@@ -45,6 +45,10 @@ test.describe('Phase 0 foundation', () => {
     // 4. Click the link from the email → signed in on the dashboard
     const link = await waitForVerificationLink(email);
     await page.goto(link);
+    // new accounts land on the welcome step first; skipping it leads to the dashboard
+    await expect(page).toHaveURL(/\/welcome/);
+    await expect(page.getByRole('heading', { name: /What brings you/ })).toBeVisible();
+    await page.getByRole('link', { name: 'Skip for now' }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.getByRole('heading', { name: /Welcome, E2E Tester/ })).toBeVisible();
     await expect(page.getByText('email verified')).toBeVisible();
