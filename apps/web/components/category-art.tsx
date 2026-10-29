@@ -145,6 +145,8 @@ export function CategoryArt({
   return (
     <svg
       viewBox="0 0 240 240"
+      width={size}
+      height={size}
       className={className}
       aria-hidden
       focusable="false"
