@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { FavoriteButton } from '@/components/favorite-button';
 import { MessageSellerButton } from '@/components/message-seller-button';
+import { HelpTip } from '@/components/help-tip';
 import { ReportButton } from '@/components/report-button';
 import { ServiceCover } from '@/components/service-cover';
 import { LevelBadge, Stars } from '@/components/trust';
@@ -124,7 +125,15 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
             <p className="text-sm">{s.seller.displayName}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <Stars value={s.trust.avgRating} count={s.trust.reviewCount || undefined} />
-              {s.trust.level !== 'new' && <LevelBadge level={s.trust.level} label={s.trust.levelLabel} />}
+              {s.trust.level !== 'new' && (
+                <>
+                  <LevelBadge level={s.trust.level} label={s.trust.levelLabel} />
+                  <HelpTip label="a seller level">
+                    Levels show how experienced a seller is on the platform. They are worked out from real
+                    orders, reviews and on-time delivery. Nobody can buy a level.
+                  </HelpTip>
+                </>
+              )}
               {s.trust.verified && <Badge className="border-success/50 text-success">Verified</Badge>}
             </div>
           </div>

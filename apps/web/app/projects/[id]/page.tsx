@@ -1,4 +1,4 @@
-import type { MessagePageView, ProjectView } from '@glasswork/shared';
+import type { MessagePageView, OnboardingState, ProjectView } from '@glasswork/shared';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { serverApi } from '@/lib/server-api';
@@ -33,9 +33,10 @@ export default async function ProjectPage({
 }) {
   const { id } = await params;
   const { tab } = await searchParams;
-  const [res, chat] = await Promise.all([
+  const [res, chat, onboarding] = await Promise.all([
     serverGw<ProjectView>(`/projects/${id}`),
     serverGw<MessagePageView>(`/projects/${id}/chat?limit=1`),
+    serverGw<OnboardingState>('/me/onboarding'),
   ]);
   if (res.status === 401) redirect(`/login?next=/projects/${id}`);
   if (!res.data) notFound();
@@ -50,6 +51,7 @@ export default async function ProjectPage({
         tab={active}
         conversationId={chat.data?.conversationId ?? null}
         myId={me.id}
+        tourDone={onboarding.data?.tours.room ?? true}
       />
     </div>
   );

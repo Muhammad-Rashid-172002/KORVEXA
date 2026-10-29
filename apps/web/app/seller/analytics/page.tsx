@@ -78,7 +78,7 @@ export default async function AnalyticsPage() {
         />
         <Stat
           id="escrow"
-          label="Held in escrow for you"
+          label="Held safely for you"
           value={a.earnings.pendingInEscrow > 0 ? money(a.earnings.pendingInEscrow, a.currency) : null}
           note="Paid out when the buyer approves."
         />

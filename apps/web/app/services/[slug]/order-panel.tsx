@@ -7,6 +7,7 @@ import {
 } from '@glasswork/shared';
 import { Alert } from '@glasswork/ui/components/alert';
 import { Button } from '@glasswork/ui/components/button';
+import { HelpTip } from '@/components/help-tip';
 import { Card, CardTitle } from '@glasswork/ui/components/card';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -160,7 +161,12 @@ export function OrderPanel({ service }: { service: ServiceDetailView }) {
         </div>
         <hr className="my-1 border-border" />
         <p className="text-xs text-muted">
-          You fund one milestone at a time. Money is held by the platform until you approve each milestone.
+          You pay one step at a time (a “milestone”
+          <HelpTip label="a milestone">
+            A milestone is one part of the work, like “design” or “first version”. You pay for it, the expert
+            does it, you check it, then the money is released.
+          </HelpTip>
+          ). The money is held safely until you approve each step.
         </p>
         <div className="flex justify-between">
           <span>First milestone</span>
@@ -179,6 +185,17 @@ export function OrderPanel({ service }: { service: ServiceDetailView }) {
           </span>
         </div>
       </Card>
+
+      <ol
+        className="flex flex-col gap-1.5 rounded-lg bg-surface-2 p-3 text-xs text-muted"
+        data-testid="what-next"
+      >
+        <li className="font-medium text-fg">What happens next</li>
+        <li>1. You pay for the first step. The money is held safely, not sent yet.</li>
+        <li>2. The expert accepts and starts. You can follow progress live.</li>
+        <li>3. When the step is ready, you check it. Ask for changes, or approve it.</li>
+        <li>4. Only when you approve, the money is released to the expert.</li>
+      </ol>
 
       {error && <Alert tone="danger">{error}</Alert>}
       <Button type="submit" disabled={pending}>

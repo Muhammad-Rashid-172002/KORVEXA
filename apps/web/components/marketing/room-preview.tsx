@@ -17,7 +17,7 @@ export function RoomPreview() {
     <div
       className="glass overflow-hidden rounded-2xl shadow-2xl"
       role="img"
-      aria-label="Illustrative project room: three milestones, one in progress, funds held in escrow"
+      aria-label="Illustrative project room: three milestones, one in progress, money held safely"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--gw-glass-border)] px-5 py-3">
         <div>
@@ -58,7 +58,7 @@ export function RoomPreview() {
         <div className="space-y-3">
           <div className="rounded-lg border border-border bg-surface/60 p-4">
             <p className="flex items-center gap-2 text-sm font-medium">
-              <ShieldCheck size={16} className="text-primary" aria-hidden /> Escrow
+              <ShieldCheck size={16} className="text-primary" aria-hidden /> Held safely
             </p>
             <dl className="mt-3 space-y-1.5 text-sm">
               <div className="flex justify-between">

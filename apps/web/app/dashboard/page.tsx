@@ -1,4 +1,4 @@
-import type { ProjectListItem } from '@glasswork/shared';
+import type { OnboardingState, ProfileView, ProjectListItem, ServiceCardView } from '@glasswork/shared';
 import { Badge } from '@glasswork/ui/components/badge';
 import { Card, CardDescription, CardTitle } from '@glasswork/ui/components/card';
 import { EmptyState } from '@glasswork/ui/components/empty-state';
@@ -20,6 +20,8 @@ import { redirect } from 'next/navigation';
 import { money } from '@/lib/format';
 import { serverApi } from '@/lib/server-api';
 import { serverGw } from '@/lib/server-gw';
+import { GettingStarted, type ChecklistItem } from '@/components/getting-started';
+import { ProductTour } from '@/components/product-tour';
 import { FileUploader } from './file-uploader';
 import { RealtimeStatus } from './realtime-status';
 import { SignOutButton } from './sign-out-button';
@@ -38,14 +40,69 @@ export default async function DashboardPage() {
   const open = all.filter((p) => !['completed', 'reviewed', 'cancelled'].includes(p.status));
   const done = all.filter((p) => ['completed', 'reviewed'].includes(p.status));
 
-  const isSeller = me.roles.includes('seller');
+  const isSeller = me.roles.includes('seller') && me.activeMode === 'seller';
+  const [onboardingRes, profileRes, servicesRes, briefsRes] = await Promise.all([
+    serverGw<OnboardingState>('/me/onboarding'),
+    serverGw<ProfileView>('/me/profile'),
+    isSeller ? serverGw<ServiceCardView[]>('/me/services') : Promise.resolve(null),
+    isSeller ? Promise.resolve(null) : serverGw<unknown[]>('/me/briefs'),
+  ]);
+  const onboarding = onboardingRes.data ?? { welcomed: false, tours: {}, checklistHidden: false };
+  const sellerView = profileRes.data?.seller;
+  const checklist: ChecklistItem[] = isSeller
+    ? [
+        {
+          label: 'Complete your profile',
+          hint: 'Add your skills, rates and a short intro so buyers know who you are.',
+          href: '/seller/onboarding',
+          done: !!sellerView?.onboardingCompleted,
+        },
+        {
+          label: 'Add something you have built',
+          hint: 'Show one project in your portfolio. Real work builds trust fast.',
+          href: '/seller/onboarding',
+          done: (sellerView?.portfolio.length ?? 0) > 0,
+        },
+        {
+          label: 'Create your first service',
+          hint: 'About 10 minutes, with help on every step.',
+          href: '/sell/services/new',
+          done: (servicesRes?.data?.length ?? 0) > 0,
+        },
+        {
+          label: 'Get verified',
+          hint: 'Verified sellers get a badge and more orders.',
+          href: '/seller/verification',
+          done: (sellerView?.trust.badges.length ?? 0) > 0,
+        },
+      ]
+    : [
+        {
+          label: 'Look at what experts offer',
+          hint: 'Browse services, or let our AI suggest experts for your idea.',
+          href: '/services',
+          done: all.length > 0 || (briefsRes?.data?.length ?? 0) > 0,
+        },
+        {
+          label: 'Describe your project',
+          hint: 'Post a request and experts will send you offers. The AI helper writes the brief with you.',
+          href: '/requests/new/ai',
+          done: (briefsRes?.data?.length ?? 0) > 0 || all.length > 0,
+        },
+        {
+          label: 'Place your first order',
+          hint: 'You pay step by step, only after you approve each step.',
+          href: '/services',
+          done: all.some((p) => p.myRole === 'buyer'),
+        },
+      ];
   const actions = isSeller
     ? [
         {
           href: '/sell/services',
           icon: Briefcase,
           title: 'Your services',
-          body: 'Edit packages, pricing and your gallery.',
+          body: 'Create or edit what you sell, with prices and images.',
         },
         {
           href: '/requests',
@@ -116,6 +173,52 @@ export default async function DashboardPage() {
         <SignOutButton />
       </div>
 
+      <ProductTour
+        tour={isSeller ? 'seller' : 'buyer'}
+        done={!!onboarding.tours[isSeller ? 'seller' : 'buyer']}
+        steps={
+          isSeller
+            ? [
+                {
+                  title: 'This is your selling home',
+                  body: 'Your orders, services and earnings live here. Check it daily so buyers get quick answers.',
+                },
+                {
+                  title: 'Create services buyers can order',
+                  body: 'Under “Your services” you build a service in a few guided steps. A clear title and your own images help the most.',
+                },
+                {
+                  title: 'Work in the project page',
+                  body: 'When someone orders, you get a project page. Update your steps there, and the buyer sees progress live.',
+                },
+                {
+                  title: 'Switch to buying any time',
+                  body: 'Use the “Switch to buying” button at the top if you also want to hire someone.',
+                },
+              ]
+            : [
+                {
+                  title: 'This is your home',
+                  body: 'Your projects and what to do next are here. Start with the “Getting started” list.',
+                },
+                {
+                  title: 'Find an expert',
+                  body: 'Browse services, or describe your project and let our AI helper find good matches.',
+                },
+                {
+                  title: 'Follow every project live',
+                  body: 'After you order, a project page shows what is done, what is next, and the next payment. You only pay after you approve each step.',
+                },
+              ]
+        }
+      />
+
+      <GettingStarted
+        title={isSeller ? 'Getting started as a seller' : 'Getting started'}
+        items={checklist}
+        hidden={onboarding.checklistHidden}
+      />
+
       <section aria-labelledby="active-projects" className="flex flex-col gap-3">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Stat label="Active projects" value={open.length} />
@@ -145,10 +248,17 @@ export default async function DashboardPage() {
           <EmptyState
             icon={<FolderKanban />}
             title="No active projects yet"
-            description="Browse services or post a request. Your project room appears here as soon as an order starts."
+            description={
+              isSeller
+                ? 'When a buyer orders one of your services, the project shows up here. The fastest way to get your first order is a clear service with your own images.'
+                : 'When you order a service or accept an offer, your project appears here with live progress. Start by finding an expert.'
+            }
             action={
-              <Link className="text-sm text-primary underline-offset-4 hover:underline" href="/services">
-                Browse services
+              <Link
+                className="text-sm text-primary underline-offset-4 hover:underline"
+                href={isSeller ? '/sell/services/new' : '/services'}
+              >
+                {isSeller ? 'Create a service' : 'Find an expert'}
               </Link>
             }
           />

@@ -142,3 +142,18 @@ export interface SessionView {
   createdAt: string;
   expiresAt: string;
 }
+
+/** First-run state kept per user so the welcome step, tours and checklist are shown once, on any device. */
+export const TOUR_KEYS = ['buyer', 'seller', 'room'] as const;
+export const onboardingSchema = z.object({
+  welcomed: z.boolean().default(false),
+  tours: z.partialRecord(z.enum(TOUR_KEYS), z.boolean()).default({}),
+  checklistHidden: z.boolean().default(false),
+});
+export type OnboardingState = z.infer<typeof onboardingSchema>;
+export const updateOnboardingSchema = z.object({
+  welcomed: z.boolean().optional(),
+  tours: z.partialRecord(z.enum(TOUR_KEYS), z.boolean()).optional(),
+  checklistHidden: z.boolean().optional(),
+});
+export type UpdateOnboardingInput = z.infer<typeof updateOnboardingSchema>;

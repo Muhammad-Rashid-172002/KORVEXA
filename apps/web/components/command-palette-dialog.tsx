@@ -66,7 +66,7 @@ const ITEMS: Item[] = [
     keywords: 'profile security 2fa',
   },
   { label: 'How it works', href: '/how-it-works', icon: <FileText size={16} /> },
-  { label: 'Fees & escrow', href: '/pricing', icon: <Wallet size={16} /> },
+  { label: 'Fees & payment protection', href: '/pricing', icon: <Wallet size={16} /> },
 ];
 
 /** The heavy part (cmdk + dialog). Loaded on first ⌘K so it never costs anything on page load. */

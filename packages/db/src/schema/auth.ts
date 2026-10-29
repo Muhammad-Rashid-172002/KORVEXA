@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  jsonb,
   check,
   index,
   integer,
@@ -120,6 +121,10 @@ export const profiles = pgTable('profiles', {
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
+  /** First-run state: welcome step seen, product tours finished, checklist hidden. See `onboardingSchema`. */
+  onboarding: jsonb()
+    .notNull()
+    .default(sql`'{}'::jsonb`),
   isSeed: isSeed(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

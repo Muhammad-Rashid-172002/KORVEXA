@@ -17,6 +17,8 @@ import { Reports } from '@/components/room/reports';
 import { ReviewsPanel } from '@/components/room/reviews-panel';
 import { ChatPanel } from '@/components/room/chat-panel';
 import { Deliverables } from '@/components/room/deliverables';
+import { RoomSummary } from '@/components/room/summary';
+import { ProductTour } from '@/components/product-tour';
 import { Previews } from '@/components/room/previews';
 import { Timeline } from '@/components/room/timeline';
 import { money } from '@/lib/format';
@@ -50,11 +52,13 @@ function Inner({
   tab,
   conversationId,
   myId,
+  tourDone,
 }: {
   project: ProjectView;
   tab: Tab;
   conversationId: string | null;
   myId: string;
+  tourDone: boolean;
 }) {
   const router = useRouter();
   const { tick, connected } = useRealtime();
@@ -102,6 +106,26 @@ function Inner({
           </p>
         )}
       </div>
+
+      <ProductTour
+        tour="room"
+        done={tourDone}
+        steps={[
+          {
+            title: 'This is your project page',
+            body: 'Everything about this project is here: progress, work, messages and payments.',
+          },
+          {
+            title: 'Start with the three boxes',
+            body: 'They tell you what is happening now, what you need to do, and the next payment.',
+          },
+          {
+            title: 'Use the tabs for details',
+            body: 'Look at files in Deliverables, tasks in Board, and talk in Chat. Progress updates live; you never need to refresh.',
+          },
+        ]}
+      />
+      <RoomSummary project={p} />
 
       <Card className="flex flex-col gap-3">
         <div className="flex items-center justify-between text-sm">
@@ -243,6 +267,7 @@ export function ProjectRoom(props: {
   tab: Tab;
   conversationId: string | null;
   myId: string;
+  tourDone: boolean;
 }) {
   const join = [
     { projectId: props.project.id },

@@ -19,7 +19,11 @@ export const HELP_CATEGORIES = [
   { key: 'getting-started', label: 'Getting started', blurb: 'Accounts, modes and your first project.' },
   { key: 'buying', label: 'Buying', blurb: 'Briefs, offers, funding and approving work.' },
   { key: 'selling', label: 'Selling', blurb: 'Onboarding, listings, levels and getting paid.' },
-  { key: 'payments', label: 'Payments & protection', blurb: 'Escrow, fees, refunds and disputes.' },
+  {
+    key: 'payments',
+    label: 'Payments & protection',
+    blurb: 'How payments are protected, fees, refunds and disputes.',
+  },
   { key: 'account', label: 'Account & privacy', blurb: 'Security, notifications and your data.' },
 ] as const;
 export type HelpCategory = (typeof HELP_CATEGORIES)[number]['key'];
@@ -59,7 +63,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
         steps: [
           'Agree the scope: pick a service package, accept a proposal, or accept a custom offer from chat.',
           'The project is split into milestones. Each milestone has its own price and is funded separately.',
-          'Fund the first milestone. The money is held in escrow, not paid to the seller yet.',
+          'Fund the first milestone. The money is held safely, not paid to the seller yet.',
           'The seller starts work and updates the Project Room. You see overall progress, health, tasks, deliverables and previews as they change.',
           'The seller submits the milestone. You approve it, or request changes with feedback.',
           'On approval the funds are released to the seller. Fund the next milestone and repeat.',
@@ -280,14 +284,14 @@ export const HELP_ARTICLES: HelpArticle[] = [
   },
   {
     slug: 'escrow-and-fees',
-    title: 'How escrow and fees work',
+    title: 'How payment protection and fees work',
     category: 'payments',
     summary: 'Where your money is, and what it costs.',
     sections: [
       {
         body: [
           'Each milestone is funded and held separately. Money is released only when the buyer approves the work or the review window passes after reminders. A milestone under dispute is frozen until our team resolves it.',
-          'Every movement is recorded in an append-only ledger, so balances can always be explained.',
+          'Every payment is recorded, so balances can always be explained.',
         ],
       },
       {
@@ -306,7 +310,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     sections: [
       {
         body: [
-          'Escrow covers funded milestones that have not been approved. Money already released for approved work is not refunded automatically.',
+          'The held money covers paid steps that have not been approved yet. Money already released for approved work is not refunded automatically.',
         ],
       },
       {

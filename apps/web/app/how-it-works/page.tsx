@@ -26,9 +26,9 @@ export default function HowItWorksPage() {
           result.
         </p>
       </Block>
-      <Block title="3. Fund milestone by milestone">
+      <Block title="3. Pay step by step">
         <p>
-          Each milestone is funded separately and held in escrow. The seller starts work, submits
+          Each step is paid for separately and the money is held safely. The seller starts work, submits
           deliverables, and you approve or request changes with feedback pinned to a file or screenshot
           region. Approved milestones release funds; if you do not respond within the review window (with
           reminders first), the milestone auto-approves.
@@ -62,8 +62,8 @@ export default function HowItWorksPage() {
             milestones, or send proposals to buyers with a milestone plan and a price.
           </li>
           <li>
-            <strong className="text-fg">Start when funds are in escrow.</strong> A funded milestone is your
-            signal to begin; the money is already committed.
+            <strong className="text-fg">Start when a step is paid.</strong> A funded milestone is your signal
+            to begin; the money is already committed.
           </li>
           <li>
             <strong className="text-fg">Keep the room current.</strong> Update tasks, upload versions and

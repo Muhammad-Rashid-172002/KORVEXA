@@ -44,6 +44,8 @@ export async function signUpAndVerify(page: Page, email: string, name: string, p
   await page.getByRole('button', { name: 'Create account' }).click();
   await page.waitForURL(/\/verify-email/);
   await page.goto(await waitForVerificationLink(email));
+  await page.waitForURL(/\/(welcome|dashboard)/);
+  if (/\/welcome/.test(page.url())) await page.goto('/dashboard');
   await page.waitForURL(/\/dashboard/);
 }
 

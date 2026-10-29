@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { Block, ProsePage } from '@/components/marketing/prose-page';
 
 export const metadata: Metadata = {
-  title: 'Fees & escrow',
-  description: 'Transparent fees and milestone escrow.',
+  title: 'Fees & payment protection',
+  description: 'Transparent fees and step-by-step payment protection.',
 };
 
 export default function PricingPage() {
   return (
     <ProsePage
-      eyebrow="Fees & escrow"
+      eyebrow="Fees & payment protection"
       title="No hidden fees. You see the full breakdown before you pay."
       description="Joining and browsing are free. Fees apply only when a milestone is funded."
     >
@@ -30,7 +30,7 @@ export default function PricingPage() {
           analytics.
         </p>
       </Block>
-      <Block title="How escrow protects both sides">
+      <Block title="How payment protection works for both sides">
         <ul className="list-disc space-y-2 pl-5">
           <li>Funds are held per milestone, not for the whole project.</li>
           <li>
@@ -38,7 +38,7 @@ export default function PricingPage() {
             first.
           </li>
           <li>A funded milestone under dispute is frozen until our team resolves it.</li>
-          <li>Every money movement is written to an append-only double-entry ledger.</li>
+          <li>Every payment is recorded, so any balance can always be explained.</li>
         </ul>
       </Block>
       <Block title="Services operated by us">

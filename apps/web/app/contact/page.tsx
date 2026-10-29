@@ -18,7 +18,7 @@ export default function ContactPage() {
     >
       <Block title="Help center">
         <p>
-          Step-by-step guides for projects, milestones, escrow, disputes and your account are in the{' '}
+          Step-by-step guides for projects, steps, payments, disputes and your account are in the{' '}
           <Link href="/help">Help center</Link>.
         </p>
       </Block>

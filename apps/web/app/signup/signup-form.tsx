@@ -26,7 +26,7 @@ export function SignupForm({ providers }: { providers?: { google: boolean; githu
       name: String(form.get('name')),
       email,
       password: String(form.get('password')),
-      callbackURL: `${WEB_URL}/dashboard`,
+      callbackURL: `${WEB_URL}/welcome`,
     });
     setPending(false);
     if (err) {

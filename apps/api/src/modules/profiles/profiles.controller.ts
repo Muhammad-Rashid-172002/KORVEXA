@@ -5,6 +5,7 @@ import {
   setAvatarSchema,
   setModeSchema,
   setSkillsSchema,
+  updateOnboardingSchema,
   updateProfileSchema,
   updateSellerSchema,
 } from '@glasswork/shared';
@@ -16,6 +17,7 @@ import { Policy, Public } from '../../common/policy/decorators';
 import { ProfilesService } from './profiles.service';
 
 class SetModeDto extends createZodDto(setModeSchema) {}
+class UpdateOnboardingDto extends createZodDto(updateOnboardingSchema) {}
 class UpdateProfileDto extends createZodDto(updateProfileSchema) {}
 class SetAvatarDto extends createZodDto(setAvatarSchema) {}
 class UpdateSellerDto extends createZodDto(updateSellerSchema) {}
@@ -47,6 +49,18 @@ export class ProfilesController {
   @Get('me/profile')
   getOwn(@CurrentActor() a: RequestActor) {
     return this.profiles.getOwn(a);
+  }
+
+  @Policy('a user reads only their own first-run state')
+  @Get('me/onboarding')
+  getOnboarding(@CurrentActor() a: RequestActor) {
+    return this.profiles.getOnboarding(a);
+  }
+
+  @Policy('a user changes only their own first-run state')
+  @Patch('me/onboarding')
+  updateOnboarding(@CurrentActor() a: RequestActor, @Body() b: UpdateOnboardingDto) {
+    return this.profiles.updateOnboarding(a, b);
   }
 
   @Policy('a user edits only their own profile')

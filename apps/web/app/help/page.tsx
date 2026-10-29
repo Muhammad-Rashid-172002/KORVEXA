@@ -7,8 +7,7 @@ import { HELP_ARTICLES, HELP_CATEGORIES } from '@/lib/help-content';
 
 export const metadata: Metadata = {
   title: 'Help center',
-  description:
-    'Guides for buyers and sellers: projects, milestones, escrow, disputes, levels and your account.',
+  description: 'Guides for buyers and sellers: projects, steps, payments, disputes, levels and your account.',
 };
 
 export default function HelpPage() {

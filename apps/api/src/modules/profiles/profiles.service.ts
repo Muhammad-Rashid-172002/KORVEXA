@@ -13,6 +13,7 @@ import {
   users,
   type DbClient,
 } from '@glasswork/db';
+import { onboardingSchema, type OnboardingState, type UpdateOnboardingInput } from '@glasswork/shared';
 import type {
   OnboardingStatus,
   PortfolioItemInput,
@@ -90,6 +91,25 @@ export class ProfilesService {
     const view = await this.buildView(actor.userId, { includeUnpublishedSeller: true });
     if (!view) throw new NotFoundException();
     return view;
+  }
+
+  async getOnboarding(actor: RequestActor): Promise<OnboardingState> {
+    const [row] = await this.db.db
+      .select({ onboarding: profiles.onboarding })
+      .from(profiles)
+      .where(eq(profiles.userId, actor.userId));
+    return onboardingSchema.parse(row?.onboarding ?? {});
+  }
+
+  async updateOnboarding(actor: RequestActor, input: UpdateOnboardingInput): Promise<OnboardingState> {
+    const cur = await this.getOnboarding(actor);
+    const next = onboardingSchema.parse({
+      welcomed: input.welcomed ?? cur.welcomed,
+      tours: { ...cur.tours, ...input.tours },
+      checklistHidden: input.checklistHidden ?? cur.checklistHidden,
+    });
+    await this.db.db.update(profiles).set({ onboarding: next }).where(eq(profiles.userId, actor.userId));
+    return next;
   }
 
   async getPublic(slug: string): Promise<ProfileView> {

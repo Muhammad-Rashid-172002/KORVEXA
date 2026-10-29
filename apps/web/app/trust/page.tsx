@@ -26,8 +26,8 @@ export default function TrustPage() {
       <Block title="Chat safety">
         <p>
           Before an order exists, we warn both sides if contact details or off-platform payment is suggested.
-          We log it and never silently block or alter messages. Paying outside the platform removes escrow and
-          dispute protection.
+          We log it and never silently block or alter messages. Paying outside the platform removes payment
+          protection and dispute protection.
         </p>
       </Block>
       <Block title="Disputes with evidence">
