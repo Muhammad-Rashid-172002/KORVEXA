@@ -55,8 +55,8 @@ export function LiveProgressDemo() {
         </div>
         <div className="mt-3 h-3 overflow-hidden rounded-full bg-surface-2" aria-hidden>
           <div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-[width] duration-1000 ease-out"
-            style={{ width: `${pct}%` }}
+            className="h-full w-full origin-left rounded-full bg-gradient-to-r from-primary to-success transition-transform duration-1000 ease-out will-change-transform"
+            style={{ transform: `scaleX(${pct / 100})` }}
           />
         </div>
         <ul className="mt-5 flex flex-col gap-2">
