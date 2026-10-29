@@ -133,10 +133,13 @@ export function CategoryArt({
   slug,
   accent = '#19C784',
   className,
+  size,
 }: {
   slug: string;
   accent?: string;
   className?: string;
+  /** Fixed pixel size; needed when nested inside another SVG (otherwise it stretches to fill it). */
+  size?: number;
 }) {
   const scene = SCENES[slug] ?? SCENES['web-development']!;
   return (

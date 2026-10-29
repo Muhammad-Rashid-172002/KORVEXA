@@ -121,7 +121,7 @@ export function ServiceCover({
             : 'translate(26 60) scale(0.98)'
         }
       >
-        <CategoryArt slug={top} accent={accent} />
+        <CategoryArt slug={top} accent={accent} size={240} />
       </g>
       {title && (
         <text
