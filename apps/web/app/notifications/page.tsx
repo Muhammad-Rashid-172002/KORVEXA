@@ -24,7 +24,9 @@ export default async function NotificationsPage() {
         </div>
       </div>
       {res.data.items.length === 0 ? (
-        <p className="text-sm text-muted">Nothing yet. Updates about your projects will show up here.</p>
+        <p className="text-sm text-muted">
+          Nothing yet. Updates about your projects, messages and payments will show up here.
+        </p>
       ) : (
         <ul className="flex flex-col gap-2" data-testid="notification-list">
           {res.data.items.map((n) => (

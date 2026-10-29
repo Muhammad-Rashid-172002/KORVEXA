@@ -113,7 +113,11 @@ export function CodeActivity({ projectId, isSeller }: { projectId: string; isSel
           );
         })}
       </ul>
-      {items.length === 0 && <p className="text-sm text-muted">No code activity yet.</p>}
+      {items.length === 0 && (
+        <p className="text-sm text-muted">
+          No code activity yet. If the expert connects GitHub, updates appear here in plain words.
+        </p>
+      )}
     </div>
   );
 }

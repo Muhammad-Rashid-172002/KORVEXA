@@ -1,3 +1,6 @@
+import { Button } from '@glasswork/ui/components/button';
+import { EmptyState } from '@glasswork/ui/components/empty-state';
+import { FileText } from 'lucide-react';
 import type { BriefView } from '@glasswork/shared';
 import { Badge } from '@glasswork/ui/components/badge';
 import { Card, CardTitle } from '@glasswork/ui/components/card';
@@ -16,13 +19,21 @@ export default async function MyRequestsPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">My requests</h1>
       {res.data.length === 0 ? (
-        <p className="text-sm text-muted">
-          You have not posted a request.{' '}
-          <Link className="text-primary underline-offset-4 hover:underline" href="/requests/new">
-            Post one
-          </Link>
-          .
-        </p>
+        <EmptyState
+          icon={<FileText aria-hidden />}
+          title="You have not posted a request yet"
+          description="Describe what you need and experts send you offers. Not sure how to write it? Our AI helper asks a few questions and writes the brief with you."
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button asChild>
+                <Link href="/requests/new/ai">Write it with AI</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/requests/new">Post a request</Link>
+              </Button>
+            </div>
+          }
+        />
       ) : (
         <ul className="flex flex-col gap-3" data-testid="my-requests">
           {res.data.map((b) => (

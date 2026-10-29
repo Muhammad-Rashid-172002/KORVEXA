@@ -241,7 +241,12 @@ export function Deliverables({
               <h3 id={`dm-${m.id}`} className="text-sm font-semibold">
                 {m.position}. {m.title}
               </h3>
-              {versions.length === 0 && <p className="text-sm text-muted">No deliverables yet.</p>}
+              {versions.length === 0 && (
+                <p className="text-sm text-muted">
+                  No files yet. When the expert finishes a step, they upload the work here and you can approve
+                  it or ask for changes.
+                </p>
+              )}
               {versions.map((d) => (
                 <article
                   key={d.id}

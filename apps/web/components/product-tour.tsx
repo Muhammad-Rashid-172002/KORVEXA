@@ -24,9 +24,9 @@ export function ProductTour({
 }) {
   const [open, setOpen] = useState(!done);
   const [i, setI] = useState(0);
-  // Automated browsers set this cookie so tours never cover the page under test.
+  // Automated browsers skip tours so they never cover the page under test; the tour's own tests opt back in.
   useEffect(() => {
-    if (document.cookie.includes('gw-skip-tour=1')) setOpen(false);
+    if (navigator.webdriver && !document.cookie.includes('gw-show-tour=1')) setOpen(false);
   }, []);
   const last = i === steps.length - 1;
   const step = steps[i]!;

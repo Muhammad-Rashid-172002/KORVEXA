@@ -5,7 +5,6 @@ import { defineConfig, devices } from '@playwright/test';
  * Screenshots land in the git-ignored ../artifacts/screenshots folder.
  */
 const executablePath = process.env.PW_CHROMIUM_PATH || undefined;
-const baseURL = process.env.WEB_URL ?? 'http://localhost:3000';
 
 export default defineConfig({
   testDir: './tests',
@@ -21,23 +20,7 @@ export default defineConfig({
     : 'list',
   outputDir: '../artifacts/test-results',
   use: {
-    baseURL,
-    // Product tours would cover the page under test; journeys that test the tour override this.
-    storageState: {
-      cookies: [
-        {
-          name: 'gw-skip-tour',
-          value: '1',
-          domain: new URL(baseURL).hostname,
-          path: '/',
-          expires: -1,
-          httpOnly: false,
-          secure: false,
-          sameSite: 'Lax' as const,
-        },
-      ],
-      origins: [],
-    },
+    baseURL: process.env.WEB_URL ?? 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     launchOptions: { executablePath },

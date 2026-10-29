@@ -3,7 +3,9 @@
 Source of truth for progress. Built from docs/BRIEF.md §12; decisions live in DECISIONS.md.
 Rule (brief §3): continue from the first unchecked item and never redo ticked work. Each ticked item records files changed, known issues and what to test manually.
 
-## ▶ RESUME HERE (updated 2026-10-28)
+## ▶ RESUME HERE (updated 2026-10-29)
+
+**Phase 11 UX overhaul is in progress on `phase/11-ux-overhaul`** (Rashid's feedback: unclear first impression, confusing gig creation, no gig images). See the Phase 11 section near the end of this file.
 
 Phases 0–8 done. **2026-10-28: Rashid switched to FULL AUTONOMY MODE** (no checkpoints; the agent self-reviews). Work this session on branch `phase/9-hardening`: Phase 8 self-review and fixes, Phase 9 hardening, Phase 10 preparation (nothing deployed). See "Autonomy session log" at the end of this file for the exact state, then continue from the first unchecked item.
 
@@ -407,6 +409,18 @@ Scope set by Rashid on 2026-10-15: complete, realistic, premium marketplace UI; 
 - [ ] FINAL CHECKPOINT: report to Rashid and **wait for the word "deploy"**
 
 Relationship to Phase 9: Phase 9 keeps load tests, OWASP, accessibility, Lighthouse, data export/deletion; its production-deploy and backup lines move here. Phase 10 follows Phase 9.
+
+## Phase 11 — UX overhaul · branch `phase/11-ux-overhaul` (2026-10-29)
+
+Trigger: Rashid's honest feedback after using the site: (1) a first-time visitor does not understand what it is, (2) creating a gig is confusing, (3) gigs have no images. Tested as a non-technical small-business owner and as a first-time seller from Pakistan.
+
+- [x] **1. First impression**: new hero ("Hire verified experts. Watch your project progress live."), two big buttons (Find an expert / Start selling), 3-step "How it works" with icons, "Why Glasswork, not a regular freelance site?" with a plain comparison table, looping animated Project Room demo (`LiveProgressDemo`, static under reduced motion), category cards with original illustrations. Jargon (escrow, ledger, webhook) removed from user-facing pages and help text; legal text keeps legal wording.
+- [x] **2. Onboarding**: `/welcome` ("What brings you here?" → hire / offer services, can switch later), skippable one-time product tours (buyer dashboard, seller dashboard, Project Room), "Getting started" checklist with real progress on each dashboard, helpful empty states, `?` tips (milestones, seller levels, held-safely payments). First-run state is stored per user on the server (`profiles.onboarding`, `GET/PATCH /v1/me/onboarding`).
+- [x] **3. Gig wizard** (`/sell/services/new`, `/sell/services/[id]`): 6 steps (Overview, Pricing, Description & FAQ, Requirements, Gallery, Publish) with a live card/page preview, autosave (device always; server draft once steps 1-4 are valid; never autosaves a live gig), category → sub-category, search tags, side-by-side packages with per-category suggestions or single package, guided description template, ready-made buyer questions, drag-and-drop gallery with 16:9 crop, quality score with exact tips, AI helpers (title, packages, description, FAQs) via `POST /v1/ai/gig-helper` on the existing AI service/stub. Plain-language validation.
+- [x] **4. Gig images**: auto-generated branded cover (SVG: category colour + original illustration + title + seller; 3 layouts) whenever a gig has no image, labelled "Auto-generated cover" with a nudge to upload; original SVG illustration set for the 8 categories (sub-categories reuse their parent scene); 22 sub-categories seeded; demo seed gigs get varied covers automatically; new gig card (cover, seller avatar + level, rating or "New", "Starting at" price, delivery, favourite).
+- [x] **5. Simpler everywhere**: header has at most 5 main items with separate buyer/seller menus and a visible "Switch to selling/buying" button; checkout shows "What happens next"; Project Room opens with "What is happening now / What you need to do / Next payment".
+- [~] **6. Verify like a real user**: `e2e/tests/ux.spec.ts` (first-time visitor ≤3 clicks, new seller publishes a complete gig with an image, new buyer + room summary), before/after screenshots, Lighthouse/a11y re-check. See the log below for the final state.
+- [ ] Deferred: video and PDF in the gallery (API accepts images only); drag-to-pan cropping (sliders are used); a nonce-free "tour spotlight" on page elements (tours are step dialogs).
 
 ## Autonomy session log (2026-10-28, full autonomy mode)
 

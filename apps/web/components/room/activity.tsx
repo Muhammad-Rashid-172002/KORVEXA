@@ -99,7 +99,9 @@ export function Activity({ projectId }: { projectId: string }) {
         ))}
       </div>
       {loaded && items.length === 0 ? (
-        <p className="text-sm text-muted">Nothing here yet.</p>
+        <p className="text-sm text-muted">
+          No activity yet. Everything that happens in this project will be listed here.
+        </p>
       ) : (
         <ol
           className="flex flex-col divide-y divide-border rounded-xl border border-border bg-surface"

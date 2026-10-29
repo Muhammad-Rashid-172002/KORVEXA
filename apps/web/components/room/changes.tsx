@@ -52,7 +52,12 @@ export function Changes({ projectId, editable }: { projectId: string; editable: 
         funded like the others.
       </p>
       {msg && <Alert tone="danger">{msg}</Alert>}
-      {data.length === 0 && <p className="text-sm text-muted">No change requests yet.</p>}
+      {data.length === 0 && (
+        <p className="text-sm text-muted">
+          No change requests. If the plan changes, a request with the new price and time appears here for you
+          to accept or decline.
+        </p>
+      )}
       <ul className="flex flex-col gap-3" data-testid="change-list">
         {data.map((c) => (
           <li key={c.id}>

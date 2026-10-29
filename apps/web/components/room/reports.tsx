@@ -204,7 +204,11 @@ export function Reports({ projectId, isSeller }: { projectId: string; isSeller: 
           </li>
         ))}
       </ul>
-      {sent.length === 0 && <p className="text-sm text-muted">No reports have been sent yet.</p>}
+      {sent.length === 0 && (
+        <p className="text-sm text-muted">
+          No progress reports yet. Short summaries of the work appear here once the expert has checked them.
+        </p>
+      )}
     </div>
   );
 }

@@ -76,7 +76,10 @@ export default async function EarningsPage() {
           Payouts
         </h2>
         {e.payouts.length === 0 ? (
-          <p className="text-sm text-muted">No payouts yet.</p>
+          <p className="text-sm text-muted">
+            No payouts yet. After a buyer approves a step, the money shows up here and you can ask to be paid
+            out.
+          </p>
         ) : (
           <ul
             className="flex flex-col divide-y divide-border rounded-md border border-border text-sm"

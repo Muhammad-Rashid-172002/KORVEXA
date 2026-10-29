@@ -1,3 +1,6 @@
+import { Button } from '@glasswork/ui/components/button';
+import { EmptyState } from '@glasswork/ui/components/empty-state';
+import { MessageSquare } from 'lucide-react';
 import type { ConversationView } from '@glasswork/shared';
 import { Badge } from '@glasswork/ui/components/badge';
 import { Card, CardTitle } from '@glasswork/ui/components/card';
@@ -16,9 +19,16 @@ export default async function MessagesPage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
       {res.data.length === 0 ? (
-        <p className="text-sm text-muted">
-          No conversations yet. Use “Message seller” on a service, or open a project’s Chat tab.
-        </p>
+        <EmptyState
+          icon={<MessageSquare aria-hidden />}
+          title="No messages yet"
+          description="Chat with an expert before you order: open any service and choose “Message seller”. Project chats appear here too."
+          action={
+            <Button asChild>
+              <Link href="/services">Find an expert</Link>
+            </Button>
+          }
+        />
       ) : (
         <ul className="flex flex-col gap-2" data-testid="conversation-list">
           {res.data.map((c) => (

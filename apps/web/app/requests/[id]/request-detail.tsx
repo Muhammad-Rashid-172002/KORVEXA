@@ -246,7 +246,10 @@ export function RequestDetail({ brief: b }: { brief: BriefView }) {
             )}
           </div>
           {(b.proposals ?? []).length === 0 ? (
-            <p className="text-sm text-muted">No proposals yet.</p>
+            <p className="text-sm text-muted">
+              No offers yet. Experts who fit your request will send offers here, and you get a message when
+              one arrives.
+            </p>
           ) : (
             (b.proposals ?? []).map((p) => <ProposalCard key={p.id} p={p} brief={b} onChange={refresh} />)
           )}

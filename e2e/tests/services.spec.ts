@@ -38,29 +38,45 @@ test.describe('Phase 2 services & discovery', () => {
     // 1. Seller creates a draft with a gallery image
     await publishedSeller(page, `${info.project.name}-svc`);
     await page.goto('/sell/services/new');
-    await page.getByLabel('Title').fill(title);
-    await page.getByLabel('Category').selectOption({ label: 'Web development' });
-    await page
-      .getByLabel('Description')
-      .fill(
-        `A complete ${unique} dashboard with charts, auth and an API, delivered in clear milestones with tests.`,
-      );
+    // Step 1: overview
+    await page.getByLabel('Gig title').fill(title);
+    await page.getByLabel('Category', { exact: true }).selectOption({ label: 'Web development' });
+    await page.getByLabel('More specific').selectOption({ label: 'Web apps & dashboards' });
+    await page.getByLabel('Search tags').fill('dashboard');
+    await page.getByLabel('Search tags').press('Enter');
+    await page.getByTestId('wizard-next').click();
+    // Step 2: pricing (one package + one extra)
+    await page.getByLabel('I only want to offer one package').check();
     await page.getByLabel('Name').fill('Starter dashboard');
     await page.getByLabel('What is included').fill('Up to five screens, auth and charts.');
     await page.getByLabel('Price (USD)').fill('450');
     await page.getByLabel('Delivery (days)').fill('10');
-    await page.getByRole('button', { name: 'Add extra' }).click();
-    await page.getByLabel('Title', { exact: true }).nth(1).fill('Source handover');
+    await page.getByRole('button', { name: 'Add an extra' }).click();
+    await page.getByLabel('Extra', { exact: true }).fill('Source handover');
     await page.getByLabel('Price (USD)').nth(1).fill('50');
-    await page.getByRole('button', { name: 'Add FAQ' }).click();
-    await page.getByLabel('Question').fill('Do you sign NDAs?');
+    await page.getByTestId('wizard-next').click();
+    // Step 3: description and FAQ
+    await page
+      .getByLabel('Your description')
+      .fill(
+        `A complete ${unique} dashboard with charts, auth and an API, delivered in clear milestones with tests.`,
+      );
+    await page.getByRole('button', { name: 'Add a question' }).click();
+    await page.getByLabel('Question', { exact: true }).fill('Do you sign NDAs?');
     await page.getByLabel('Answer').fill('Yes, on request.');
+    await page.getByTestId('wizard-next').click();
+    // Step 4: requirements (skip), Step 5: gallery with cropping
+    await page.getByTestId('wizard-next').click();
     await page
       .getByTestId('gallery-input')
       .setInputFiles({ name: 'shot.png', mimeType: 'image/png', buffer: PNG_1PX });
-    await expect(page.getByTestId('image-count')).toHaveText('1 of 6 images');
+    await page.getByTestId('crop-confirm').click();
+    await expect(page.getByTestId('image-count')).toContainText('1 of 6 images');
     await shot(page, info, '20-service-form');
-    await page.getByRole('button', { name: 'Create draft' }).click();
+    await page.getByTestId('wizard-next').click();
+    // Step 6: publish → save as a draft first
+    await expect(page.getByTestId('quality-score')).toBeVisible();
+    await page.getByRole('button', { name: 'Save as draft' }).click();
 
     await expect(page).toHaveURL(/\/sell\/services$/);
     const row = page.getByTestId('my-services').locator('li', { hasText: title });
@@ -89,7 +105,7 @@ test.describe('Phase 2 services & discovery', () => {
     await visitor.goto(`/services?q=${unique}`);
     const card = visitor.getByTestId('service-card').filter({ hasText: title });
     await expect(card).toBeVisible();
-    await expect(card).toContainText('From $450');
+    await expect(card).toContainText('Starting at $450');
     await visitor.goto(`/services?q=${unique}&maxPrice=100`);
     await expect(visitor.getByTestId('no-results')).toBeVisible();
     await visitor.goto(`/services?q=${unique}&category=web-development&maxPrice=500&maxDelivery=14`);
