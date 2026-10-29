@@ -34,6 +34,7 @@ export const serviceInputSchema = z
     title: text(10, 100),
     description: text(50, 5000),
     requirementsForm: z.array(requirementFieldSchema).max(10).default([]),
+    tags: z.array(z.string().trim().toLowerCase().min(2).max(30)).max(5).default([]),
     packages: z.array(packageInputSchema).min(1).max(3),
     extras: z.array(extraInputSchema).max(10).default([]),
     faqs: z.array(faqInputSchema).max(10).default([]),
@@ -111,6 +112,7 @@ export interface ServiceDetailView extends ServiceCardView {
   description: string;
   rejectionReason: string | null;
   requirementsForm: z.infer<typeof requirementFieldSchema>[];
+  tags: string[];
   packages: (z.infer<typeof packageInputSchema> & { id: string })[];
   extras: (z.infer<typeof extraInputSchema> & { id: string })[];
   faqs: (z.infer<typeof faqInputSchema> & { id: string })[];

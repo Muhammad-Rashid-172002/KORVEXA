@@ -15,3 +15,4 @@ export * from './trust';
 export * from './chat-safety';
 export * from './ai';
 export * from './meetings';
+export * from './gig-templates';

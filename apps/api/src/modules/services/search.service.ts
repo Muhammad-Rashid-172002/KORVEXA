@@ -44,7 +44,7 @@ export class PostgresSearchService extends SearchService {
     const where: SQL[] = [sql`s.status = 'live'`, sql`p.min_price is not null`];
     if (term) {
       where.push(
-        sql`(s.search_vector @@ websearch_to_tsquery('english', ${term}) or similarity(s.title, ${term}) > 0.25)`,
+        sql`(s.search_vector @@ websearch_to_tsquery('english', ${term}) or similarity(s.title, ${term}) > 0.25 or lower(${term}) = any(s.tags))`,
       );
     }
     if (q.category) {

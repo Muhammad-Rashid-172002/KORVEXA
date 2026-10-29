@@ -89,7 +89,9 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
           <ServiceCover
             category={s.category.slug}
             seed={s.slug}
-            className="aspect-[21/9] w-full rounded-xl"
+            title={s.title}
+            seller={s.seller.displayName}
+            className="aspect-video w-full rounded-xl"
           />
         )}
 

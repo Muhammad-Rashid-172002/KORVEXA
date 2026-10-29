@@ -114,6 +114,7 @@ export class ServicesService {
           title: input.title,
           description: input.description,
           requirementsForm: input.requirementsForm,
+          tags: [...new Set(input.tags)],
         })
         .returning({ id: services.id });
       if (!s) throw new Error('insert failed');
@@ -142,6 +143,7 @@ export class ServicesService {
           title: input.title,
           description: input.description,
           requirementsForm: input.requirementsForm,
+          tags: [...new Set(input.tags)],
           status,
         })
         .where(eq(services.id, id));
@@ -545,6 +547,7 @@ export class ServicesService {
       description: s.description,
       rejectionReason: s.rejectionReason,
       requirementsForm: s.requirementsForm as ServiceDetailView['requirementsForm'],
+      tags: s.tags,
       packages: pkgs
         .map((p) => ({
           id: p.id,

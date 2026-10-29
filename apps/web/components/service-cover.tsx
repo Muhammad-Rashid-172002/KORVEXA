@@ -1,54 +1,159 @@
-import {
-  Bot,
-  BarChart3,
-  Boxes,
-  Cloud,
-  Code2,
-  Palette,
-  ShieldCheck,
-  Smartphone,
-  type LucideIcon,
-} from 'lucide-react';
+import { gigTemplate } from '@glasswork/shared';
+import { CategoryArt } from './category-art';
 
-const BY_CATEGORY: Record<string, { icon: LucideIcon; hue: number }> = {
-  'web-development': { icon: Code2, hue: 160 },
-  'mobile-apps': { icon: Smartphone, hue: 190 },
-  'ai-ml': { icon: Bot, hue: 140 },
-  saas: { icon: Boxes, hue: 170 },
-  design: { icon: Palette, hue: 150 },
-  devops: { icon: Cloud, hue: 200 },
-  'qa-testing': { icon: ShieldCheck, hue: 130 },
-  data: { icon: BarChart3, hue: 180 },
+/** Sub-category slug -> top-level slug, so covers/illustrations stay consistent even when only the child is known. */
+const PARENT: Record<string, string> = {
+  'landing-pages': 'web-development',
+  ecommerce: 'web-development',
+  'web-apps': 'web-development',
+  wordpress: 'web-development',
+  'flutter-apps': 'mobile-apps',
+  'react-native-apps': 'mobile-apps',
+  'native-ios-android': 'mobile-apps',
+  chatbots: 'ai-ml',
+  'ai-integration': 'ai-ml',
+  'computer-vision': 'ai-ml',
+  'apis-backend': 'saas',
+  'saas-mvp': 'saas',
+  integrations: 'saas',
+  'ui-ux-design': 'design',
+  'branding-logos': 'design',
+  prototypes: 'design',
+  'cloud-setup': 'devops',
+  'ci-cd': 'devops',
+  'manual-testing': 'qa-testing',
+  'test-automation': 'qa-testing',
+  dashboards: 'data',
+  'data-pipelines': 'data',
 };
+export const topLevel = (slug: string) => PARENT[slug] ?? slug;
+
+const hash = (s: string) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+
+/** Greedy word wrap for SVG text (no layout engine in SVG). */
+function wrap(text: string, max: number, lines: number): string[] {
+  const out: string[] = [];
+  let cur = '';
+  for (const w of text.split(/\s+/)) {
+    if ((cur + ' ' + w).trim().length > max && cur) {
+      out.push(cur);
+      cur = w;
+    } else cur = (cur + ' ' + w).trim();
+  }
+  if (cur) out.push(cur);
+  if (out.length > lines) {
+    out.length = lines;
+    out[lines - 1] = out[lines - 1]!.replace(/\s*\S{0,3}$/, '') + '…';
+  }
+  return out;
+}
+
+const initials = (n: string) =>
+  n
+    .split(/\s+/)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
 /**
- * Fallback cover when a service has no uploaded image: a calm gradient + category icon. Deterministic per
- * service (hue nudged by the slug) so a grid of cards does not look identical. It is decoration, not a photo.
+ * Automatic branded cover for a gig that has no uploaded image: category colour + original illustration, the gig
+ * title and the seller's name. Three layouts, picked per gig, so a grid of covers is varied. It is marked
+ * data-autogen so the UI can say "auto-generated" and keep nudging the seller to upload a real image.
  */
 export function ServiceCover({
   category,
   seed,
+  title,
+  seller,
   className = '',
 }: {
   category: string;
   seed: string;
+  title?: string;
+  seller?: string;
   className?: string;
 }) {
-  const c = BY_CATEGORY[category] ?? { icon: Code2, hue: 160 };
-  const nudge = [...seed].reduce((a, ch) => (a + ch.charCodeAt(0)) % 40, 0) - 20;
-  const hue = c.hue + nudge;
-  const Icon = c.icon;
+  const top = topLevel(category);
+  const h = hash(seed);
+  const hue = gigTemplate(top).hue + ((h % 30) - 15);
+  const layout = h % 3;
+  const accent = `hsl(${hue + 10} 75% 55%)`;
+  const lines = wrap(title ?? '', layout === 1 ? 26 : 20, 3);
+  const artRight = layout !== 2;
+  const gid = `g${h}`;
   return (
-    <div
-      aria-hidden
-      className={`relative flex items-center justify-center overflow-hidden ${className}`}
-      style={{
-        background: `linear-gradient(135deg, hsl(${hue} 55% 14%), hsl(${hue + 25} 60% 22%) 60%, hsl(${hue} 70% 30%))`,
-      }}
+    <svg
+      viewBox="0 0 640 360"
+      className={className}
+      role="img"
+      aria-label={title ? `Auto-generated cover for ${title}` : 'Auto-generated cover'}
+      data-autogen="true"
+      preserveAspectRatio="xMidYMid slice"
     >
-      <div className="absolute -right-6 -top-6 size-32 rounded-full bg-white/5 blur-2xl" />
-      <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:20px_20px]" />
-      <Icon className="relative size-10 text-white/80" strokeWidth={1.4} />
-    </div>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={`hsl(${hue} 55% 10%)`} />
+          <stop offset=".6" stopColor={`hsl(${hue + 20} 60% 18%)`} />
+          <stop offset="1" stopColor={`hsl(${hue} 65% 28%)`} />
+        </linearGradient>
+      </defs>
+      <rect width="640" height="360" fill={`url(#${gid})`} />
+      <circle cx={artRight ? 520 : 120} cy="120" r="150" fill={accent} opacity=".12" />
+      <circle cx={artRight ? 600 : 40} cy="330" r="90" fill="#fff" opacity=".04" />
+      <g
+        transform={
+          artRight
+            ? layout === 1
+              ? 'translate(380 70) scale(1.0)'
+              : 'translate(372 50) scale(1.15)'
+            : 'translate(30 50) scale(1.15)'
+        }
+      >
+        <CategoryArt slug={top} accent={accent} />
+      </g>
+      {title && (
+        <text
+          x={artRight ? 40 : 330}
+          y={layout === 1 ? 120 : 130}
+          fill="#fff"
+          fontFamily="ui-sans-serif, system-ui, sans-serif"
+          fontWeight="700"
+          fontSize={layout === 1 ? 30 : 32}
+        >
+          {lines.map((l, i) => (
+            <tspan key={i} x={artRight ? 40 : 330} dy={i === 0 ? 0 : 40}>
+              {l}
+            </tspan>
+          ))}
+        </text>
+      )}
+      {seller && (
+        <g transform={`translate(${artRight ? 40 : 330} 300)`}>
+          <circle cx="18" cy="0" r="18" fill={accent} />
+          <text
+            x="18"
+            y="5"
+            textAnchor="middle"
+            fontSize="14"
+            fontWeight="700"
+            fill="#07110E"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+          >
+            {initials(seller)}
+          </text>
+          <text
+            x="46"
+            y="5"
+            fontSize="16"
+            fill="#fff"
+            opacity=".85"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+          >
+            {seller}
+          </text>
+        </g>
+      )}
+    </svg>
   );
 }

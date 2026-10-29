@@ -54,6 +54,11 @@ export const services = pgTable(
     requirementsForm: jsonb()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    /** Seller-chosen search tags (lowercase, max 5). */
+    tags: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     status: serviceStatus().notNull().default('draft'),
     rejectionReason: text(),
     /** Label only ("Operated by KorvenzaTech"); set by an admin, never used for ranking. */
