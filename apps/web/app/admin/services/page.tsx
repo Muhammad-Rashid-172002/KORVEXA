@@ -1,5 +1,6 @@
 import type { ServiceCardView } from '@glasswork/shared';
 import { Badge } from '@glasswork/ui/components/badge';
+import Link from 'next/link';
 import { Card, CardTitle } from '@glasswork/ui/components/card';
 import type { Metadata } from 'next';
 import { money } from '@/lib/format';
@@ -22,12 +23,22 @@ export default async function AdminServices() {
             <li key={s.id}>
               <Card className="flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-3">
-                  <CardTitle>{s.title}</CardTitle>
+                  <CardTitle>
+                    <Link className="hover:underline" href={`/admin/services/${s.id}`}>
+                      {s.title}
+                    </Link>
+                  </CardTitle>
                   <Badge>{s.category.name}</Badge>
                 </div>
                 <p className="text-xs text-muted">
                   by {s.seller.displayName} · from {money(s.fromPrice, s.currency)}
                 </p>
+                <Link
+                  className="text-sm text-primary underline-offset-4 hover:underline"
+                  href={`/admin/services/${s.id}`}
+                >
+                  View the full gig
+                </Link>
                 <ModerationActions id={s.id} title={s.title} />
               </Card>
             </li>

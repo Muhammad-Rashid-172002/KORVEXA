@@ -22,6 +22,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from '@/components/field';
@@ -280,14 +281,26 @@ export function GigWizard({
     setD((x) => ({ ...x, packages: { ...x.packages, [tier]: { ...x.packages[tier], ...p } } }));
 
   /** Writes the draft to the server (create or update). Only valid drafts can be stored there. */
+  // One save at a time, and the id of the server draft is remembered the moment it exists: otherwise an autosave
+  // still in flight and the final submit could both CREATE, leaving the seller with two copies of the same gig.
+  const serviceIdRef = useRef<string | null>(service?.id ?? null);
+  const chain = useRef<Promise<unknown>>(Promise.resolve());
   const saveToServer = useCallback(
-    async (draft: Draft): Promise<{ ok: true; id: string } | { ok: false; error: string }> => {
-      const body = toInput(draft);
-      const r = draft.serviceId
-        ? await gw<ServiceDetailView>('PUT', `/me/services/${draft.serviceId}`, body)
-        : await gw<ServiceDetailView>('POST', '/me/services', body);
-      if (!r.ok) return { ok: false, error: r.error ?? 'We could not save your service. Please try again.' };
-      return { ok: true, id: r.data!.id };
+    (draft: Draft): Promise<{ ok: true; id: string } | { ok: false; error: string }> => {
+      const run = async (): Promise<{ ok: true; id: string } | { ok: false; error: string }> => {
+        const body = toInput(draft);
+        const id = serviceIdRef.current;
+        const r = id
+          ? await gw<ServiceDetailView>('PUT', `/me/services/${id}`, body)
+          : await gw<ServiceDetailView>('POST', '/me/services', body);
+        if (!r.ok)
+          return { ok: false, error: r.error ?? 'We could not save your service. Please try again.' };
+        serviceIdRef.current = r.data!.id;
+        return { ok: true, id: r.data!.id };
+      };
+      const next = chain.current.then(run, run);
+      chain.current = next.catch(() => undefined);
+      return next;
     },
     [],
   );
@@ -472,7 +485,7 @@ export function GigWizard({
     } catch {
       /* ignore */
     }
-    router.push(submit ? '/sell/services?submitted=1' : '/sell/services');
+    router.push(submit ? `/sell/services?submitted=${saved.id}` : '/sell/services');
     router.refresh();
   }
 
@@ -1276,7 +1289,16 @@ export function GigWizard({
                 ? 'Saving sends your service back to our team for a quick check, usually within a day.'
                 : 'Our team checks every new service (usually within a day) before it goes online. You can still edit afterwards.'}
             </p>
-            {submitError && <Alert tone="danger">{submitError}</Alert>}
+            {submitError && (
+              <Alert tone="danger" data-testid="submit-error">
+                {submitError}{' '}
+                {/profile/i.test(submitError) && (
+                  <Link className="underline" href="/seller/onboarding">
+                    Finish my seller profile
+                  </Link>
+                )}
+              </Alert>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"

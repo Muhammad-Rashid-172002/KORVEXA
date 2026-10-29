@@ -85,4 +85,53 @@ describe('UX overhaul: first-run state, gig helper, tags and sub-categories', ()
         .statusCode,
     ).toBe(400);
   });
+
+  it('submitting a gig puts it in the moderation queue and notifies moderating admins', async () => {
+    const { call, json, seller, buyer, ops } = m;
+    const cats = json<{ id: string; slug: string }[]>(await call(null, 'GET', '/categories'));
+    const created = json<ServiceDetailView>(
+      await call(seller, 'POST', '/me/services', {
+        categoryId: cats.find((c) => c.slug === 'web-development')!.id,
+        title: 'I will build your moderation-queue website',
+        description: 'A clean, fast website for your business with a contact form and basic SEO included.',
+        packages: [
+          {
+            tier: 'basic',
+            title: 'Starter',
+            description: 'One page website with form',
+            priceAmount: 15000,
+            deliveryDays: 5,
+            revisions: 1,
+          },
+        ],
+      }),
+    );
+    expect(created.status).toBe('draft');
+    const before = json<{ items: { id: string }[] }>(
+      await call(ops, 'GET', '/admin/services?status=pending_review&limit=50'),
+    );
+    expect(before.items.some((i) => i.id === created.id)).toBe(false);
+
+    const submitted = json<ServiceDetailView>(
+      await call(seller, 'POST', `/me/services/${created.id}/submit`),
+    );
+    expect(submitted.status).toBe('pending_review');
+    const queue = json<{ items: { id: string }[] }>(
+      await call(ops, 'GET', '/admin/services?status=pending_review&limit=50'),
+    );
+    expect(queue.items.some((i) => i.id === created.id)).toBe(true);
+    // a buyer cannot see the queue; the owner can still read it by id
+    expect((await call(buyer, 'GET', '/admin/services?status=pending_review')).statusCode).toBe(403);
+    expect((await call(seller, 'GET', `/me/services/${created.id}`)).statusCode).toBe(200);
+
+    const notes = json<{ items: { type: string; url: string | null }[] }>(
+      await call(ops, 'GET', '/me/notifications'),
+    );
+    expect(notes.items.some((n) => n.type === 'service.submitted' && n.url === '/admin/services')).toBe(true);
+    expect(
+      json<{ items: { type: string }[] }>(await call(buyer, 'GET', '/me/notifications')).items.some(
+        (n) => n.type === 'service.submitted',
+      ),
+    ).toBe(false);
+  });
 });

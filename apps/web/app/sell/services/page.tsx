@@ -63,7 +63,10 @@ export default async function MyServicesPage({
         <ul className="flex flex-col gap-3" data-testid="my-services">
           {res.data.map((s) => (
             <li key={s.id}>
-              <Card className="flex flex-col gap-3 sm:flex-row">
+              <Card
+                className={`flex flex-col gap-3 sm:flex-row ${submitted === s.id ? 'border-success/60' : ''}`}
+                data-submitted={submitted === s.id}
+              >
                 <div className="w-full shrink-0 overflow-hidden rounded-lg sm:w-44">
                   {s.imageUrl ? (
                     <img src={s.imageUrl} alt="" className="aspect-video w-full object-cover" />

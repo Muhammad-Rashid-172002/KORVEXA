@@ -43,8 +43,8 @@ export default async function AdminOverview() {
     },
     {
       href: '/admin/services',
-      title: 'Listings to moderate',
-      hint: 'New services awaiting approval',
+      title: 'Gigs waiting for review',
+      hint: 'New or edited gigs sellers have submitted',
       icon: Hammer,
       count: moderation,
     },

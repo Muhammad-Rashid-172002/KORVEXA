@@ -23,8 +23,13 @@ export function ServiceActions({ id, status, slug }: { id: string; status: Servi
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button asChild size="sm" variant="secondary">
-        <Link href={`/sell/services/${id}`}>Edit</Link>
+        <Link href={`/sell/services/${id}/preview`}>Preview</Link>
       </Button>
+      {status !== 'pending_review' && (
+        <Button asChild size="sm" variant="secondary">
+          <Link href={`/sell/services/${id}`}>Edit</Link>
+        </Button>
+      )}
       {(status === 'draft' || status === 'rejected') && (
         <Button size="sm" onClick={() => void run('POST', `/me/services/${id}/submit`)}>
           Submit for review

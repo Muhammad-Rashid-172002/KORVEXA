@@ -315,6 +315,10 @@ export const NOTIFICATION_TYPES = {
     label: 'A meeting was cancelled',
     defaults: { inApp: true, email: true, push: false },
   },
+  'service.submitted': {
+    label: 'A gig was submitted for review (admins)',
+    defaults: { inApp: true, email: false, push: true },
+  },
   'report.sent': {
     label: 'You received a progress report',
     defaults: { inApp: true, email: true, push: false },

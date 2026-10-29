@@ -41,6 +41,7 @@ import { randomBytes } from 'node:crypto';
 import type { RequestActor } from '../../auth/session.service';
 import { DB } from '../../infra/tokens';
 import { StorageService } from '../files/storage.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { SellerStatsService } from '../trust/stats.service';
 import { SearchService } from './search.service';
 
@@ -60,7 +61,39 @@ export class ServicesService {
     private readonly storage: StorageService,
     private readonly search: SearchService,
     private readonly stats: SellerStatsService,
+    private readonly notifications: NotificationsService,
   ) {}
+
+  /** Tells every moderating admin (operations or product scope) that a gig is waiting. Never blocks the seller. */
+  private async notifyModerators(serviceId: string): Promise<void> {
+    try {
+      const [s] = await this.db.db
+        .select({ title: services.title, name: profiles.displayName })
+        .from(services)
+        .innerJoin(profiles, eq(profiles.userId, services.sellerId))
+        .where(eq(services.id, serviceId));
+      const admins = await this.db.db
+        .select({ id: users.id })
+        .from(users)
+        .where(
+          and(
+            sql`'admin' = any(${users.roles})`,
+            sql`${users.adminScopes} && array['operations','product']::admin_scope[]`,
+          ),
+        );
+      await this.notifications.notify(
+        admins.map((a) => a.id),
+        {
+          type: 'service.submitted',
+          title: 'A gig is waiting for review',
+          body: s ? `${s.name}: ${s.title}` : undefined,
+          url: '/admin/services',
+        },
+      );
+    } catch {
+      /* a failed notification must never fail a submission */
+    }
+  }
 
   // ---- public ---------------------------------------------------------------
 
@@ -161,6 +194,7 @@ export class ServicesService {
         after: { status },
       });
     });
+    if (current.status === 'live') await this.notifyModerators(id);
     return this.detail(id);
   }
 
@@ -201,6 +235,7 @@ export class ServicesService {
       next = 'live';
     }
     await this.setStatus(actor.userId, id, s.status, next, { rejectionReason: null });
+    if (next === 'pending_review') await this.notifyModerators(id);
     return this.detail(id);
   }
 

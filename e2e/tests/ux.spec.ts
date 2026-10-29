@@ -156,7 +156,7 @@ test.describe('UX: new seller', () => {
     await expect(page.getByTestId('quality-score')).toHaveText(/^(8|9|10)\d?0?$/);
     await shot(page, info, '72-wizard-6-publish');
     await page.getByTestId('submit-gig').click();
-    await expect(page).toHaveURL(/\/sell\/services\?submitted=1/);
+    await expect(page).toHaveURL(/\/sell\/services\?submitted=/);
     await expect(page.getByText('Thank you!')).toBeVisible();
     const row = page.getByTestId('my-services').locator('li').first();
     await expect(row.getByTestId('service-status')).toHaveText('pending review');
