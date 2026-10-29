@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { API_URL, SEED_PASSWORD, WEB_ORIGIN } from './helpers';
+import { adminContext, API_URL, liveService, publishedSeller, SEED_PASSWORD, WEB_ORIGIN } from './helpers';
 
 /** WCAG 2.2 AA: keyboard-only flows and automated axe scans on key pages (run for desktop and mobile). */
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -99,7 +99,16 @@ test.describe('Accessibility (WCAG 2.2 AA)', () => {
     expect(missing).toEqual([]);
   });
 
-  test('keyboard only: browse services, open a card, reach the order panel', async ({ page }) => {
+  test('keyboard only: browse services, open a card, reach the order panel', async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
+    // Self-contained: a clean CI database has no demo listings, so publish one through the real endpoints.
+    await publishedSeller(page, 'a11y');
+    const admin = await adminContext(browser, baseURL);
+    await liveService(page, admin.page, `Accessible keyboard flow service ${Date.now()}`, 50_000);
+    await admin.ctx.close();
     await page.goto('/services');
     const first = page.getByTestId('service-card').first().getByRole('link').first();
     await first.focus();

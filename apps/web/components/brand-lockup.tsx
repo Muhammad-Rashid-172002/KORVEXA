@@ -10,9 +10,9 @@ export function BrandLockup() {
       className="flex min-w-0 items-center gap-2 whitespace-nowrap font-semibold tracking-tight text-fg"
     >
       <ProductMark />
-      <span className="flex items-baseline gap-1.5">
-        <span className="text-base">{brand.productName}</span>
-        <span className="text-[11px] font-normal text-muted sm:text-xs">by {brand.parentName}</span>
+      <span className="flex min-w-0 items-baseline gap-1.5">
+        <span className="shrink-0 text-base">{brand.productName}</span>
+        <span className="truncate text-[11px] font-normal text-muted sm:text-xs">by {brand.parentName}</span>
       </span>
     </Link>
   );

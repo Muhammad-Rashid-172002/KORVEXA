@@ -335,7 +335,10 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
         </div>
       )}
       <form onSubmit={onSend} className="flex items-center gap-2 border-t border-border p-3">
-        <label className="cursor-pointer rounded-md p-2 hover:bg-surface-2" aria-label="Attach a file">
+        <label
+          className="shrink-0 cursor-pointer rounded-md p-2 hover:bg-surface-2"
+          aria-label="Attach a file"
+        >
           <Paperclip size={16} aria-hidden />
           <input
             type="file"
@@ -352,7 +355,8 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
         {files.map((f) => (
           <span
             key={f.id}
-            className="rounded-md bg-surface-2 px-2 py-1 text-xs"
+            className="max-w-24 shrink truncate rounded-md bg-surface-2 px-2 py-1 text-xs sm:max-w-40"
+            title={f.name}
             data-testid="pending-attachment"
           >
             {f.name}
@@ -366,9 +370,9 @@ export function ChatPanel({ conversationId, myId }: { conversationId: string; my
           maxLength={4000}
           placeholder="Write a message…"
           onChange={onType}
-          className="h-10 flex-1 rounded-md border border-border bg-bg px-3 text-sm"
+          className="h-10 min-w-0 flex-1 rounded-md border border-border bg-bg px-3 text-sm"
         />
-        <Button type="submit" disabled={busy} data-testid="chat-send">
+        <Button type="submit" disabled={busy} data-testid="chat-send" className="shrink-0">
           Send
         </Button>
       </form>
