@@ -51,7 +51,7 @@ export default async function ProjectPage({
         tab={active}
         conversationId={chat.data?.conversationId ?? null}
         myId={me.id}
-        tourDone={onboarding.data?.tours.room ?? true}
+        tourDone={onboarding.data ? !!onboarding.data.tours.room : true}
       />
     </div>
   );

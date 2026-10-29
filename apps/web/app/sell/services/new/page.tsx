@@ -1,4 +1,7 @@
+import type { ProfileView } from '@glasswork/shared';
+import { Alert } from '@glasswork/ui/components/alert';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { publicGw } from '@/lib/public-api';
 import { serverGw } from '@/lib/server-gw';
@@ -10,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export default async function NewServicePage() {
   const [mine, me, cats] = await Promise.all([
     serverGw('/me/services'),
-    serverGw<{ displayName?: string }>('/me/profile'),
+    serverGw<ProfileView>('/me/profile'),
     publicGw<Category[]>('/categories'),
   ]);
   if (mine.status === 401) redirect('/login?next=/sell/services/new');
@@ -22,6 +25,15 @@ export default async function NewServicePage() {
           Six short steps. Your work is saved as you go, and you can come back any time.
         </p>
       </div>
+      {me.data?.seller && !me.data.seller.onboardingCompleted && (
+        <Alert tone="warning" data-testid="profile-incomplete">
+          You can fill this in now, but you need to finish your seller profile before you can send the service
+          for review.{' '}
+          <Link className="underline" href="/seller/onboarding">
+            Finish my profile
+          </Link>
+        </Alert>
+      )}
       <GigWizard categories={cats.data ?? []} sellerName={me.data?.displayName ?? 'You'} />
     </div>
   );

@@ -6,25 +6,36 @@ const PARENT: Record<string, string> = {
   'landing-pages': 'web-development',
   ecommerce: 'web-development',
   'web-apps': 'web-development',
-  wordpress: 'web-development',
+  'cms-wordpress': 'web-development',
+  ios: 'mobile-apps',
+  android: 'mobile-apps',
+  'cross-platform': 'mobile-apps',
+  'app-maintenance': 'mobile-apps',
   'flutter-apps': 'mobile-apps',
-  'react-native-apps': 'mobile-apps',
-  'native-ios-android': 'mobile-apps',
   chatbots: 'ai-ml',
-  'ai-integration': 'ai-ml',
+  'llm-integration': 'ai-ml',
   'computer-vision': 'ai-ml',
-  'apis-backend': 'saas',
+  'ml-models': 'ai-ml',
   'saas-mvp': 'saas',
-  integrations: 'saas',
-  'ui-ux-design': 'design',
-  'branding-logos': 'design',
-  prototypes: 'design',
-  'cloud-setup': 'devops',
+  apis: 'saas',
+  'payments-billing': 'saas',
+  'auth-security': 'saas',
+  'ui-design': 'design',
+  'ux-research': 'design',
+  'design-systems': 'design',
+  branding: 'design',
   'ci-cd': 'devops',
-  'manual-testing': 'qa-testing',
+  'cloud-infra': 'devops',
+  containers: 'devops',
+  monitoring: 'devops',
   'test-automation': 'qa-testing',
+  'manual-qa': 'qa-testing',
+  'performance-testing': 'qa-testing',
+  'security-testing': 'qa-testing',
   dashboards: 'data',
   'data-pipelines': 'data',
+  analytics: 'data',
+  'data-collection': 'data',
 };
 export const topLevel = (slug: string) => PARENT[slug] ?? slug;
 
@@ -79,7 +90,7 @@ export function ServiceCover({
   const hue = gigTemplate(top).hue + ((h % 30) - 15);
   const layout = h % 3;
   const accent = `hsl(${hue + 10} 75% 55%)`;
-  const lines = wrap(title ?? '', layout === 1 ? 26 : 20, 3);
+  const lines = wrap(title ?? '', layout === 1 ? 20 : 18, 3);
   const artRight = layout !== 2;
   const gid = `g${h}`;
   return (
@@ -105,9 +116,9 @@ export function ServiceCover({
         transform={
           artRight
             ? layout === 1
-              ? 'translate(380 70) scale(1.0)'
-              : 'translate(372 50) scale(1.15)'
-            : 'translate(30 50) scale(1.15)'
+              ? 'translate(400 90) scale(0.85)'
+              : 'translate(390 60) scale(0.98)'
+            : 'translate(26 60) scale(0.98)'
         }
       >
         <CategoryArt slug={top} accent={accent} />
@@ -119,10 +130,10 @@ export function ServiceCover({
           fill="#fff"
           fontFamily="ui-sans-serif, system-ui, sans-serif"
           fontWeight="700"
-          fontSize={layout === 1 ? 30 : 32}
+          fontSize={28}
         >
           {lines.map((l, i) => (
-            <tspan key={i} x={artRight ? 40 : 330} dy={i === 0 ? 0 : 40}>
+            <tspan key={i} x={artRight ? 40 : 330} dy={i === 0 ? 0 : 36}>
               {l}
             </tspan>
           ))}

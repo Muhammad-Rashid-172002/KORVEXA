@@ -41,7 +41,7 @@ test.describe('Phase 2 services & discovery', () => {
     // Step 1: overview
     await page.getByLabel('Gig title').fill(title);
     await page.getByLabel('Category', { exact: true }).selectOption({ label: 'Web development' });
-    await page.getByLabel('More specific').selectOption({ label: 'Web apps & dashboards' });
+    await page.getByLabel('More specific').selectOption({ label: 'Web applications' });
     await page.getByLabel('Search tags').fill('dashboard');
     await page.getByLabel('Search tags').press('Enter');
     await page.getByTestId('wizard-next').click();

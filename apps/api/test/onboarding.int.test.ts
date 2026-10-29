@@ -60,7 +60,7 @@ describe('UX overhaul: first-run state, gig helper, tags and sub-categories', ()
     const cats = json<{ id: string; slug: string; parentId: string | null }[]>(
       await call(null, 'GET', '/categories'),
     );
-    const flutter = cats.find((c) => c.slug === 'flutter-apps');
+    const flutter = cats.find((c) => c.slug === 'cross-platform');
     expect(flutter?.parentId).toBe(cats.find((c) => c.slug === 'mobile-apps')!.id);
     const input = {
       categoryId: flutter!.id,

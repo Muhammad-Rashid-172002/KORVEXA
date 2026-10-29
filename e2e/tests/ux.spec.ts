@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import {
   PNG_1PX,
   activeRoom,
+  apiCall,
   payTestCheckout,
   publishedSeller,
   shot,
@@ -79,10 +80,14 @@ test.describe('UX: new seller', () => {
     await expect(page).toHaveURL(/\/seller\/onboarding/);
 
     // finish the profile through the API, then the dashboard shows the guided checklist and tour
-    await page.request.fetch('http://localhost:4000/v1/me/profile', {
-      method: 'PATCH',
-      data: { headline: 'Flutter developer', bio: 'I build apps for small businesses.', country: 'PK' },
+    await apiCall(page, 'PATCH', '/me/profile', {
+      headline: 'Flutter developer',
+      bio: 'I build apps for small businesses.',
+      country: 'PK',
     });
+    await apiCall(page, 'PUT', '/me/seller/skills', { skills: ['Flutter'] });
+    await apiCall(page, 'PATCH', '/me/seller', { hourlyRateAmount: 2500 });
+    await apiCall(page, 'POST', '/me/seller/onboarding/complete');
     await page.goto('/dashboard');
     await expect(page.getByTestId('product-tour')).toBeVisible();
     await shot(page, info, '64-seller-tour');
@@ -103,12 +108,12 @@ test.describe('UX: new seller', () => {
     await page.getByRole('button', { name: 'Use this' }).click();
     await expect(page.getByLabel('Gig title')).toHaveValue(/^I will/);
     await page.getByLabel('Category', { exact: true }).selectOption({ label: 'Mobile apps' });
-    await page.getByLabel('More specific').selectOption({ label: 'Flutter apps' });
-    await expect(page.getByTestId('gig-preview')).toContainText('I will');
+    await page.getByLabel('More specific').selectOption({ label: 'Cross-platform (Flutter, React Native)' });
+    await expect(page.getByTestId('gig-preview').first()).toContainText('I will');
     // validation in plain words
     await page.getByLabel('Gig title').fill('short');
     await page.getByTestId('wizard-next').click();
-    await expect(page.getByRole('alert')).toContainText('at least 10 characters');
+    await expect(page.locator('#title-err')).toContainText('at least 10 characters');
     await page.getByLabel('Gig title').fill('I will build a Flutter app for your small business');
     await page.getByTestId('wizard-next').click();
 
@@ -161,28 +166,24 @@ test.describe('UX: new seller', () => {
 
   test('a gig without an image gets a branded auto-generated cover and says so', async ({ page }, info) => {
     await publishedSeller(page, `${info.project.name}-ux-nocover`);
-    await page.request.fetch('http://localhost:4000/v1/me/services', { method: 'GET' });
-    const cats = await (await page.request.get('http://localhost:4000/v1/categories')).json();
-    const web = cats.find((c: { slug: string }) => c.slug === 'web-development');
-    const res = await page.request.post('http://localhost:4000/v1/me/services', {
-      data: {
-        categoryId: web.id,
-        title: 'I will build your business website fast',
-        description:
-          'A clean, fast website for your business with a contact form and basic SEO included for you.',
-        packages: [
-          {
-            tier: 'basic',
-            title: 'Starter',
-            description: 'One page website with contact form',
-            priceAmount: 15000,
-            deliveryDays: 5,
-            revisions: 1,
-          },
-        ],
-      },
+    const cats = await apiCall<{ id: string; slug: string }[]>(page, 'GET', '/categories');
+    const web = cats.find((c) => c.slug === 'web-development')!;
+    await apiCall(page, 'POST', '/me/services', {
+      categoryId: web.id,
+      title: 'I will build your business website fast',
+      description:
+        'A clean, fast website for your business with a contact form and basic SEO included for you.',
+      packages: [
+        {
+          tier: 'basic',
+          title: 'Starter',
+          description: 'One page website with contact form',
+          priceAmount: 15000,
+          deliveryDays: 5,
+          revisions: 1,
+        },
+      ],
     });
-    expect(res.ok()).toBeTruthy();
     await page.goto('/sell/services');
     await expect(page.getByTestId('autogen-note')).toContainText('Auto-generated cover');
     await expect(page.locator('svg[data-autogen="true"]').first()).toBeVisible();
