@@ -1,273 +1,307 @@
 import { brand } from '@glasswork/shared/brand';
+import { gigTemplate } from '@glasswork/shared';
 import { Button } from '@glasswork/ui/components/button';
 import { Section } from '@glasswork/ui/components/section';
 import {
   ArrowRight,
-  BarChart3,
-  Bot,
-  FileDiff,
-  Gavel,
-  GitBranch,
+  BadgeCheck,
+  Check,
   Handshake,
   LayoutPanelLeft,
-  Lock,
-  Video,
+  ListChecks,
+  MessageSquareText,
+  Sparkles,
+  UserSearch,
+  Wallet,
+  X,
 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { HeroVisual } from '@/components/marketing/hero-visual';
+import { CategoryArt } from '@/components/category-art';
+import { LiveProgressDemo } from '@/components/marketing/live-progress-demo';
 import { Reveal } from '@/components/marketing/reveal';
-import { AiSection, FeaturedServices, ProtectionSection } from '@/components/marketing/home-sections';
-import { RoomPreview } from '@/components/marketing/room-preview';
+import { FeaturedServices } from '@/components/marketing/home-sections';
 
 export const metadata: Metadata = {
   title: { absolute: `${brand.productName} by ${brand.parentName} · ${brand.tagline}` },
   description:
-    'A marketplace for software projects. Hire verified builders, fund work milestone by milestone, and see exactly how far your project has progressed.',
+    'Hire verified experts for apps, websites and AI, and watch your project progress live. Pay step by step, only when you are happy.',
   openGraph: { title: brand.lockup, description: brand.tagline, type: 'website' },
 };
 
 const STEPS = [
   {
-    n: '01',
-    title: 'Describe your idea',
-    body: 'Use the AI brief builder or pick a ready-made service. Estimates are always labelled as estimates.',
+    icon: MessageSquareText,
+    title: 'Describe your project',
+    body: 'Tell us what you need in your own words. Our AI helper turns your idea into a clear plan.',
   },
   {
-    n: '02',
-    title: 'Choose a verified builder',
-    body: 'Compare real portfolios, reviews and response times. Badges appear only when actually verified.',
+    icon: UserSearch,
+    title: 'Pick a verified expert',
+    body: 'Compare real work, reviews and prices. Badges only appear when we have checked them.',
   },
   {
-    n: '03',
-    title: 'Fund one milestone at a time',
-    body: 'Money waits in escrow and moves only when you approve the work, or the review window passes.',
-  },
-  {
-    n: '04',
-    title: 'Watch it get built',
-    body: 'A live project room shows progress, previews, tasks and every decision, without chasing anyone.',
+    icon: Wallet,
+    title: 'Watch it grow, pay step by step',
+    body: 'See progress live. Each payment is released only when you approve that step.',
   },
 ];
 
-const FEATURES = [
-  {
-    icon: LayoutPanelLeft,
-    title: 'Live project room',
-    body: 'Progress weighted by milestone value, health with a reason, timeline, board, versioned deliverables and an activity feed.',
-  },
-  {
-    icon: Lock,
-    title: 'Milestone escrow',
-    body: 'Every milestone is funded separately and released on approval. A transparent ledger records every cent.',
-  },
-  {
-    icon: Bot,
-    title: 'AI that explains, not decides',
-    body: 'Brief builder, match explanations and weekly progress summaries your seller edits before sending.',
-  },
-  {
-    icon: FileDiff,
-    title: 'Formal change requests',
-    body: 'Scope changes carry time and price impact and need acceptance and funding. No surprise invoices.',
-  },
-  {
-    icon: Video,
-    title: 'Built-in meetings',
-    body: 'Video calls with consent-gated recording. Meeting notes become tasks on the board.',
-  },
-  {
-    icon: GitBranch,
-    title: 'Code activity, in plain language',
-    body: 'Optionally connect GitHub to see commits, pull requests and deployments summarised for non-engineers.',
-  },
-  {
-    icon: Gavel,
-    title: 'Evidence-based disputes',
-    body: 'A case file is assembled automatically from messages, versions and approvals. Admins resolve with exact ledger math.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Honest seller metrics',
-    body: 'Levels and analytics are computed from real data with public criteria. No data means "not enough data yet".',
-  },
+const WHY = [
+  [
+    LayoutPanelLeft,
+    'See progress, always',
+    'A live page shows what is done, what is next and what is late. No chasing.',
+  ],
+  [
+    Wallet,
+    'Pay one step at a time',
+    'Your money is held safely and goes to the expert only after you approve each step.',
+  ],
+  [
+    BadgeCheck,
+    'Experts we have checked',
+    'Identity, portfolio and skills badges are only shown when they are real.',
+  ],
+  [
+    Sparkles,
+    'AI help with your brief',
+    'Not sure what to ask for? Answer a few questions and get a ready-to-send project brief.',
+  ],
+] as const;
+
+const COMPARE = [
+  ['See how far the work has got', 'Live progress bar, tasks and previews', 'Ask and wait for updates'],
+  ['Pay', 'Step by step, after you approve', 'Often everything up front'],
+  ['Know who you hire', 'Verified badges, real reviews', 'Mostly self-described'],
+  ['Write your project brief', 'AI helps you, free', 'Figure it out yourself'],
+  ['Change the plan mid-way', 'Clear price and time shown first', 'Messy chat negotiation'],
 ];
 
 const CATEGORIES = [
-  ['web-development', 'Web development'],
-  ['mobile-apps', 'Mobile apps'],
-  ['ai-ml', 'AI & machine learning'],
-  ['saas', 'SaaS & backend'],
-  ['design', 'UI/UX design'],
-  ['devops', 'DevOps & cloud'],
-  ['qa-testing', 'QA & testing'],
-  ['data', 'Data & analytics'],
+  ['web-development', 'Websites & web apps', 'Business sites, online shops, dashboards'],
+  ['mobile-apps', 'Mobile apps', 'iPhone and Android apps'],
+  ['ai-ml', 'AI & chatbots', 'Chatbots, automation, AI features'],
+  ['saas', 'Software products', 'MVPs, backends and APIs'],
+  ['design', 'Design', 'App design, logos, prototypes'],
+  ['devops', 'Hosting & cloud', 'Put your app online, keep it fast'],
+  ['qa-testing', 'Testing', 'Find bugs before your users do'],
+  ['data', 'Data & reports', 'Dashboards and clean data'],
 ] as const;
 
 const FAQ = [
   [
-    'When does the seller get paid?',
-    'Only after you approve a milestone, or after the review window passes with no response. Reminders are sent before auto-approval.',
+    'When does the expert get paid?',
+    'Only after you approve a step, or after the review time passes with no reply from you. We remind you before that happens.',
   ],
   [
     'What if the work is not what I asked for?',
-    'Request changes on any deliverable, with feedback pinned to the exact spot. If you cannot agree, open a dispute: the evidence is collected for you and our team decides.',
+    'Ask for changes and point at the exact spot. If you still cannot agree, open a case: we collect the messages and files for you and our team decides.',
   ],
   [
-    'Can I talk to a seller before ordering?',
-    'Yes. Message any seller. We warn both sides if payment or contact details are shared off-platform, because that removes your protection.',
+    'Can I talk to an expert before ordering?',
+    'Yes. Message any expert. Keep payments on the platform: paying outside removes your protection, and we warn you if it comes up.',
   ],
   [
     'Is the AI making decisions?',
-    'No. AI drafts briefs, explains matches and summarises progress. Ranking is rule-based from real data, and sellers review summaries before you see them.',
+    'No. AI helps you write a brief and explains suggestions. You choose, and experts check any AI summary before you see it.',
   ],
   [
     'Who runs this?',
-    `${brand.productName} is owned and operated by ${brand.parentName}. Services listed by ${brand.parentName}'s own agency are labelled and get no ranking advantage.`,
+    `${brand.productName} is owned and operated by ${brand.parentName}. Services from ${brand.parentName}'s own team are labelled and get no ranking advantage.`,
   ],
 ];
 
 export default async function HomePage() {
   return (
     <>
-      <section className="bg-hero-glow relative overflow-hidden px-4 pt-14 sm:pt-24">
+      <section className="bg-hero-glow relative overflow-hidden px-4 pb-16 pt-12 sm:pb-24 sm:pt-20">
         <div className="bg-grid pointer-events-none absolute inset-0 opacity-40" aria-hidden />
-        <div className="relative mx-auto max-w-6xl">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="glass mx-auto inline-flex rounded-full px-3 py-1 text-xs text-muted">
-              Software projects, made visible
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
+          <div className="text-center lg:text-left">
+            <p className="glass inline-flex rounded-full px-3 py-1 text-xs text-muted">
+              For apps, websites, AI and design
             </p>
-            <h1 className="mt-5 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
-              Hire verified builders. <span className="text-gradient">Watch your project move.</span>
+            <h1 className="mt-5 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
+              Hire verified experts. <span className="text-gradient">Watch your project progress live.</span>
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base text-muted sm:text-lg">
-              {brand.productName} is a marketplace for apps, websites, AI and design work where every
-              milestone, deliverable and payment lives in one live project room.
+            <p className="mx-auto mt-5 max-w-xl text-base text-muted sm:text-lg lg:mx-0">
+              Tell us what you want built. Pick a checked expert, follow every step on one page, and pay only
+              when you are happy with each step.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               <Button asChild size="lg">
                 <Link href="/services">
-                  Browse services <ArrowRight size={16} aria-hidden />
+                  Find an expert <ArrowRight size={16} aria-hidden />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
-                <Link href="/requests/new/ai">Describe your idea with AI</Link>
+                <Link href="/for-sellers">Start selling</Link>
               </Button>
             </div>
-            <p className="mt-4 text-xs text-muted">
-              Escrow on every milestone · Verified badges only when verified
-            </p>
+            <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-muted lg:justify-start">
+              {['Free to join', 'Pay step by step', 'Experts are checked'].map((t) => (
+                <li key={t} className="flex items-center gap-1.5">
+                  <Check size={14} className="text-success" aria-hidden /> {t}
+                </li>
+              ))}
+            </ul>
           </div>
-          <HeroVisual />
+          <LiveProgressDemo />
         </div>
       </section>
 
       <Section id="how-it-works">
         <Reveal>
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">How it works</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">
+            How {brand.productName} works
+          </p>
           <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-            From a rough idea to shipped software, with no black box in the middle
+            Three simple steps from idea to finished project
           </h2>
         </Reveal>
-        <ol className="mt-10 grid gap-4 md:grid-cols-4">
+        <ol className="mt-10 grid gap-4 md:grid-cols-3">
           {STEPS.map((s, i) => (
-            <li key={s.n}>
+            <li key={s.title}>
               <Reveal delay={i * 0.07} className="h-full">
-                <div className="card-lift h-full rounded-xl border border-border bg-surface p-5">
-                  <p className="font-mono text-sm text-primary">{s.n}</p>
-                  <h3 className="mt-3 font-medium">{s.title}</h3>
+                <div className="card-lift relative h-full rounded-xl border border-border bg-surface p-6">
+                  <span className="absolute right-5 top-4 font-mono text-4xl font-semibold text-border">
+                    {i + 1}
+                  </span>
+                  <span className="flex size-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                    <s.icon size={24} aria-hidden />
+                  </span>
+                  <h3 className="mt-4 text-lg font-medium">{s.title}</h3>
                   <p className="mt-2 text-sm text-muted">{s.body}</p>
                 </div>
               </Reveal>
             </li>
           ))}
         </ol>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button asChild>
+            <Link href="/requests/new/ai">
+              <Sparkles size={16} aria-hidden /> Write my project brief with AI
+            </Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href="/how-it-works">More details</Link>
+          </Button>
+        </div>
+      </Section>
+
+      <Section className="bg-surface/40">
+        <Reveal>
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">Popular categories</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What do you need built?</h2>
+        </Reveal>
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {CATEGORIES.map(([slug, name, examples], i) => (
+            <Reveal key={slug} delay={(i % 4) * 0.05} className="h-full">
+              <Link
+                href={`/services?category=${slug}`}
+                className="card-lift group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface"
+              >
+                <div
+                  className="flex aspect-[4/3] items-center justify-center"
+                  style={{
+                    background: `linear-gradient(135deg, hsl(${gigTemplate(slug).hue} 55% 10%), hsl(${gigTemplate(slug).hue + 20} 60% 22%))`,
+                  }}
+                >
+                  <CategoryArt
+                    slug={slug}
+                    accent={`hsl(${gigTemplate(slug).hue + 10} 75% 55%)`}
+                    className="size-3/4"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
+                  <h3 className="flex items-center justify-between text-sm font-medium sm:text-base">
+                    {name}
+                    <ArrowRight
+                      size={14}
+                      className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5"
+                      aria-hidden
+                    />
+                  </h3>
+                  <p className="text-xs text-muted">{examples}</p>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
       </Section>
 
       <FeaturedServices />
 
-      <Section className="bg-surface/40">
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.35fr]">
-          <Reveal>
-            <p className="text-xs font-medium uppercase tracking-wider text-primary">The project room</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Always know what is done, what is next and what you are paying for
-            </h2>
-            <p className="mt-4 text-muted">
-              Progress is calculated from approved milestones and completed tasks, never typed in by hand. If
-              something is at risk or blocked, the room says so and says why.
-            </p>
-            <Button asChild variant="secondary" className="mt-6">
-              <Link href="/how-it-works">See how it works</Link>
-            </Button>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <RoomPreview />
-            <p className="mt-2 text-center text-xs text-muted">Illustrative example, not a real project.</p>
-          </Reveal>
-        </div>
-      </Section>
-
       <Section>
         <Reveal>
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">Built for software</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">Why {brand.productName}</p>
           <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-            Everything a generic freelance marketplace leaves out
+            Why {brand.productName}, not a regular freelance site?
           </h2>
         </Reveal>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f, i) => (
-            <Reveal key={f.title} delay={(i % 4) * 0.06} className="h-full">
+          {WHY.map(([Icon, title, body], i) => (
+            <Reveal key={title} delay={(i % 4) * 0.06} className="h-full">
               <div className="card-lift h-full rounded-xl border border-border bg-surface p-5">
-                <f.icon size={20} className="text-primary" aria-hidden />
-                <h3 className="mt-3 font-medium">{f.title}</h3>
-                <p className="mt-2 text-sm text-muted">{f.body}</p>
+                <Icon size={22} className="text-primary" aria-hidden />
+                <h3 className="mt-3 font-medium">{title}</h3>
+                <p className="mt-2 text-sm text-muted">{body}</p>
               </div>
             </Reveal>
           ))}
         </div>
-      </Section>
-
-      <AiSection />
-
-      <ProtectionSection />
-
-      <Section className="bg-surface/40">
-        <Reveal>
-          <h2 className="text-3xl font-semibold tracking-tight">Explore by category</h2>
-        </Reveal>
-        <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {CATEGORIES.map(([slug, name]) => (
-            <Link
-              key={slug}
-              href={`/services?category=${slug}`}
-              className="card-lift group flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-4 text-sm font-medium"
-            >
-              {name}
-              <ArrowRight
-                size={14}
-                className="text-muted transition-transform group-hover:translate-x-0.5"
-                aria-hidden
-              />
-            </Link>
-          ))}
+        <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
+          <table className="w-full min-w-[34rem] text-left text-sm">
+            <caption className="sr-only">{brand.productName} compared with a regular freelance site</caption>
+            <thead>
+              <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                <th scope="col" className="px-4 py-3 font-medium">
+                  <span className="sr-only">Question</span>
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium text-primary">
+                  {brand.productName}
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Regular freelance site
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {COMPARE.map(([what, us, them]) => (
+                <tr key={what}>
+                  <th scope="row" className="px-4 py-3 font-medium">
+                    {what}
+                  </th>
+                  <td className="px-4 py-3">
+                    <Check size={14} className="mr-1.5 inline text-success" aria-hidden />
+                    {us}
+                  </td>
+                  <td className="px-4 py-3 text-muted">
+                    <X size={14} className="mr-1.5 inline text-muted" aria-hidden />
+                    {them}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Section>
 
-      <Section>
+      <Section className="bg-surface/40">
         <div className="glass bg-hero-glow relative overflow-hidden rounded-3xl px-6 py-12 sm:px-12">
           <div className="grid items-center gap-8 md:grid-cols-[1.4fr_1fr]">
             <Reveal>
               <Handshake size={24} className="text-primary" aria-hidden />
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight">Build with us as a seller</h2>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight">Are you a developer or designer?</h2>
               <p className="mt-3 max-w-xl text-muted">
-                Get paid for approved milestones, show your real work, and let transparent levels and verified
-                badges do the talking. Your reputation is computed from real projects only.
+                Create your first service in minutes with our step-by-step guide. Get paid for every approved
+                step, and build a reputation from real projects.
               </p>
             </Reveal>
             <div className="flex flex-wrap gap-3 md:justify-end">
               <Button asChild size="lg">
-                <Link href="/for-sellers">Become a seller</Link>
+                <Link href="/for-sellers">Start selling</Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
                 <Link href="/seller-levels">How levels work</Link>
@@ -277,7 +311,7 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section id="faq" className="pt-0">
+      <Section id="faq">
         <h2 className="text-3xl font-semibold tracking-tight">Questions, answered plainly</h2>
         <div className="mt-8 divide-y divide-border rounded-xl border border-border bg-surface">
           {FAQ.map(([q, a]) => (
@@ -293,15 +327,16 @@ export default async function HomePage() {
           ))}
         </div>
         <div className="mt-12 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Ready to see your project take shape?
+          <ListChecks size={24} className="mx-auto text-primary" aria-hidden />
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Ready to get your project started?
           </h2>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
               <Link href="/signup">Create a free account</Link>
             </Button>
             <Button asChild size="lg" variant="secondary">
-              <Link href="/services">Browse services</Link>
+              <Link href="/services">Find an expert</Link>
             </Button>
           </div>
         </div>

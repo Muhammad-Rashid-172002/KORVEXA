@@ -2,6 +2,7 @@ import {
   briefSessionAnswersSchema,
   briefSessionStartSchema,
   confirmTasksSchema,
+  gigHelperRequestSchema,
   editReportSchema,
   generateReportSchema,
   matchRequestSchema,
@@ -18,6 +19,7 @@ import { Policy } from '../../common/policy/decorators';
 import { AiService } from './ai.service';
 import { AnalyticsService } from './analytics.service';
 import { BriefBuilderService } from './brief-builder.service';
+import { GigHelperService } from './gig-helper.service';
 import { MatchingService } from './matching.service';
 import { MeetingNotesService } from './meeting-notes.service';
 import { ProgressReportsService } from './progress-reports.service';
@@ -30,6 +32,7 @@ class MatchDto extends createZodDto(matchRequestSchema) {}
 class GenerateDto extends createZodDto(generateReportSchema) {}
 class EditReportDto extends createZodDto(editReportSchema) {}
 class NotesDto extends createZodDto(meetingNotesSchema) {}
+class GigHelperDto extends createZodDto(gigHelperRequestSchema) {}
 class ConfirmDto extends createZodDto(confirmTasksSchema) {}
 
 @ApiExcludeController()
@@ -42,7 +45,16 @@ export class AiController {
     private readonly reports: ProgressReportsService,
     private readonly notes: MeetingNotesService,
     private readonly analytics: AnalyticsService,
+    private readonly gigHelper: GigHelperService,
   ) {}
+
+  @Policy(
+    'any signed-in user; suggestions are not saved and count against the caller own AI rate limit and daily cap',
+  )
+  @Post('ai/gig-helper')
+  gigHelp(@CurrentActor() a: RequestActor, @Body() b: GigHelperDto) {
+    return this.gigHelper.help(a, b);
+  }
 
   @Policy('any signed-in user may read their own AI allowance')
   @Get('ai/status')

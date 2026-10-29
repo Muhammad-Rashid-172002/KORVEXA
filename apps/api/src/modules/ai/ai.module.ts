@@ -3,6 +3,7 @@ import { ENV, type ApiEnv } from '../../config/env';
 import { OrdersModule } from '../orders/orders.module';
 import { RoomModule } from '../room/room.module';
 import { AiAdminController } from './ai-admin.controller';
+import { GigHelperService } from './gig-helper.service';
 import { AiController } from './ai.controller';
 import { AiInternalController } from './ai-internal.controller';
 import { AiProvider, AnthropicAiProvider, StubAiProvider } from './ai.provider';
@@ -17,6 +18,7 @@ import { ProgressReportsService } from './progress-reports.service';
   imports: [OrdersModule, RoomModule],
   controllers: [AiController, AiAdminController, AiInternalController],
   providers: [
+    GigHelperService,
     {
       provide: AiProvider,
       inject: [ENV],

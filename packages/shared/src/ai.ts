@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-export const AI_FEATURES = ['brief_builder', 'matching', 'progress_report', 'meeting_notes'] as const;
+export const AI_FEATURES = [
+  'brief_builder',
+  'matching',
+  'progress_report',
+  'meeting_notes',
+  'gig_helper',
+] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
 
 /** USD per million tokens. Numerically equal to micro-USD per token, so cost stays in integers. */
@@ -194,3 +200,29 @@ export interface AiStatusView {
   /** Remaining budget today for the caller, in cents (never exposes platform totals). */
   remainingTodayCents: number;
 }
+
+/** Gig wizard helpers ("Improve my title", "Write my description", ...). The seller always edits the result. */
+export const GIG_HELPER_KINDS = ['title', 'description', 'packages', 'faqs'] as const;
+export const gigHelperRequestSchema = z.object({
+  kind: z.enum(GIG_HELPER_KINDS),
+  categorySlug: z.string().trim().min(1).max(60),
+  title: z.string().trim().max(200).default(''),
+  description: z.string().trim().max(5000).default(''),
+});
+export type GigHelperRequest = z.infer<typeof gigHelperRequestSchema>;
+export const gigHelperResultSchema = z.object({
+  title: z.string().nullable(),
+  description: z.string().nullable(),
+  packages: z.array(
+    z.object({
+      tier: z.enum(['basic', 'standard', 'premium']),
+      title: z.string(),
+      description: z.string(),
+      price: z.number(),
+      days: z.number(),
+      revisions: z.number(),
+    }),
+  ),
+  faqs: z.array(z.object({ question: z.string(), answer: z.string() })),
+});
+export type GigHelperResult = z.infer<typeof gigHelperResultSchema>;

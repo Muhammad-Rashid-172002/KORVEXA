@@ -42,6 +42,7 @@ export class AiService {
       matching: this.env.AI_MODEL_MATCHING,
       progress_report: this.env.AI_MODEL_PROGRESS_REPORT,
       meeting_notes: this.env.AI_MODEL_MEETING_NOTES,
+      gig_helper: undefined,
     }[feature];
     return override?.trim() || this.env.AI_MODEL;
   }
